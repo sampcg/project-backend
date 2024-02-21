@@ -1,53 +1,14 @@
-const { data } = require('./data.md');
 
-function adminQuizList(authUserId) {
-    let quizList = {};
-    let i = 0;
-    let j = 0;
-    
-    if (data.user[i] == null) {
-        return {
-            error: 'There are no quizzes owned by this user',
-        }
-    }
-    
-}
-
-console.log(adminQuizList(1));
-
+/**
+ * Creates a quiz for the logged in user given basic details
+ * @param {number} authUserId - unique identifier for admin user
+ * @param {string} name - name for the quiz
+ * @param {string} description - description of the quiz
+ * @returns {{quizId: 2}} - quizId
+ */
 
 function adminQuizCreate(authUserId, name, description) {
-    let i = 0;
-    let validAuth = false;
-    while (data.user[i] != null) {
-        if (data.user[i].userId === authUserId) {
-            validAuth = true;
-        }
-        i++;
-    }
-    if (validAuth == false) {
-        return {
-            error: 'There is no author by that ID'
-        }
-    }
-
-    let j = 0;
-    while (data.user[j] != null) {
-        j++;
-    }
-
     return {
-        quizId: data.quizzes[i].quizId
-    }   
-}
-
-function adminQuizRemove(authUserId, quizId) {
-    let i = 0;
-    while (data.user[i].authUserId != null) {
-        if (quizId === data.quizzes[i].quizId) {
-            /* remove */
-        }
-    }
-    
-    return {}
+        quizId: 2
+    };
 }
