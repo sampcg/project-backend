@@ -21,8 +21,6 @@ function adminUserDetails( authUserId ) {
     numFailedPasswordsSinceLastLogin: 1, } }
 }
 
-//Third Function By Abrar
-function adminAuthRegister( email, password, nameFirst, nameLast ) {
-  
-  return { authUserId: 1 }
+function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
+  return { }
 }
