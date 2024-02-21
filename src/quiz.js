@@ -1,5 +1,5 @@
 
-/**
+/** 
  * Provides a list of all quizzed owned by the currently logged in user
  * @param {number} authUserId - unique identifier for the user
  * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
@@ -68,5 +68,17 @@ function adminQuizInfo(authUserId, quizId ) {
         timeLastEdited: 1683125871, 
         description: 'This is my quiz', 
     };
+}
+
+/**
+ * Updates the name of the relevant quiz.
+ * @param {number} authUserId - unique identifier for an authorated user
+ * @param {number} quizId - unique identifier for quiz 
+ * @param {string} name - updated name for relevant quiz
+ */
+
+
+function adminQuizNameUpdate( authUserId, quizId, name ) {
+	return {};
 }
 
