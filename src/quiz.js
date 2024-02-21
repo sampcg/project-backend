@@ -13,7 +13,8 @@ function adminQuizList(authUserId) {
     }
 }
 
-/** Creates a quiz for the logged in user given basic details
+/** 
+ * Creates a quiz for the logged in user given basic details
  * @param {number} authUserId - unique identifier for admin user
  * @param {string} name - name for the quiz
  * @param {string} description - description of the quiz
@@ -24,4 +25,15 @@ function adminQuizCreate(authUserId, name, description) {
     return {
         quizId: 2
     };
+}
+
+/**
+ * Removes a quiz given the author and quiz IDs
+ * @param {number} authUserId - unique identifter fot the user
+ * @param {number} quizId - unique identifier for the quiz
+ * @return { } - empty object
+ */
+
+function adminQuizRemove(authUserId, quizId) {
+    return {};
 }
