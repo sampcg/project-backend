@@ -18,3 +18,7 @@ function adminUserDetails( authUserId ) {
    numSuccessfulLogins: 3,
     numFailedPasswordsSinceLastLogin: 1, } }
 }
+
+function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
+  return { }
+}
