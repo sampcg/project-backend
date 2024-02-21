@@ -6,7 +6,6 @@
   * @param {string} newPassword - new password of admin user
   * @returns { } - empty object
 */
-
 //First Function By Abrar
 function adminAuthLogin( email, password ) {
   
@@ -25,4 +24,3 @@ function adminUserDetails( authUserId ) {
 function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
   return { }
 }
-
