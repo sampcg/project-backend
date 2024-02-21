@@ -29,3 +29,7 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
   
   return { authUserId: 1 }
 }
+
+function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
+  return { }
+}
