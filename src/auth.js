@@ -6,11 +6,13 @@
   * @param {string} newPassword - new password of admin user
   * @returns { } - empty object
 */
+//First Function By Abrar
 function adminAuthLogin( email, password ) {
   
   return { authUserId: 1 }
 }
 
+//Second Function By Abrar
 function adminUserDetails( authUserId ) {
   return { user: { userId: 1,
      name: 'Hayden Smith',
@@ -19,6 +21,7 @@ function adminUserDetails( authUserId ) {
     numFailedPasswordsSinceLastLogin: 1, } }
 }
 
+//Third Function By Abrar
 function adminAuthRegister( email, password, nameFirst, nameLast ) {
   
   return { authUserId: 1 }
