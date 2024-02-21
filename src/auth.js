@@ -6,6 +6,7 @@
   * @param {string} newPassword - new password of admin user
   * @returns { } - empty object
 */
-function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
-    return { };
+function adminAuthRegister( email, password, nameFirst, nameLast ) {
+  
+  return { authUserId: 1 }
 }
