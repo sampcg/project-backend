@@ -6,7 +6,7 @@
   * @param {string} newPassword - new password of admin user
   * @returns { } - empty object
 */
-function adminAuthRegister( email, password, nameFirst, nameLast ) {
+function adminAuthLogin( email, password ) {
   
   return { authUserId: 1 }
 }
