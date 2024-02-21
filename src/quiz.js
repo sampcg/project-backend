@@ -28,10 +28,10 @@ function adminQuizCreate(authUserId, name, description) {
 }
 
 /**
- * Removes a quiz given the author and quiz IDs
- * @param {number} authUserId - unique identifter fot the user
- * @param {number} quizId - unique identifier for the quiz
- * @return { } - empty object
+ * Removes a quiz given author and quiz IDs
+ * @param {number} authUserId - unique identifer for the user
+ * @param {number} quizId - unique identifier for quiz
+ * @returns { } - empty object
  */
 
 function adminQuizRemove(authUserId, quizId) {
