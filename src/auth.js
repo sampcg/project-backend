@@ -1,11 +1,3 @@
-
-/**
-  * Updates the password of an admin user
-  * @param {number} authUserId - unique identifier for an admin user
-  * @param {string} oldPassword - old password of admin user
-  * @param {string} newPassword - new password of admin user
-  * @returns { } - empty object
-*/
 //First Function By Abrar
 function adminAuthLogin( email, password ) {
   
@@ -15,9 +7,9 @@ function adminAuthLogin( email, password ) {
 //Second Function By Abrar
 function adminUserDetails( authUserId ) {
   return { user: { userId: 1,
-     name: 'Hayden Smith',
-      email: 'hayden.smith@unsw.edu.au',
-   numSuccessfulLogins: 3,
+    name: 'Hayden Smith',
+    email: 'hayden.smith@unsw.edu.au',
+    numSuccessfulLogins: 3,
     numFailedPasswordsSinceLastLogin: 1, } }
 }
 
@@ -31,7 +23,7 @@ function adminUserDetails( authUserId ) {
  */
 
 function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
-  return { }
+  return { };
 }
 
 function adminAuthRegister( email, password, nameFirst, nameLast ) {
@@ -40,7 +32,7 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
 }
 
 /** 
- * Update the email and name of the admin user
+ * Updates the password of an admin user
  * @param {number} authUserId - unique identifier for admin user
  * @param {string} oldPassword - old password of user
  * @param {string} newPassword - new password of user
@@ -48,5 +40,5 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
  */
 
 function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
-  return { }
+  return { };
 }
