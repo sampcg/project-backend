@@ -38,3 +38,15 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
   
   return { authUserId: 1 }
 }
+
+/** 
+ * Update the email and name of the admin user
+ * @param {number} authUserId - unique identifier for admin user
+ * @param {string} oldPassword - old password of user
+ * @param {string} newPassword - new password of user
+ * @returns {} - empty object
+ */
+
+function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
+  return { }
+}
