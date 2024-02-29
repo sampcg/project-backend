@@ -1,3 +1,4 @@
+
 //First Function By Abrar
 function adminAuthLogin( email, password ) {
   
@@ -26,10 +27,12 @@ function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
   return { };
 }
 
+//Third Function By Abrar
 function adminAuthRegister( email, password, nameFirst, nameLast ) {
   
   return { authUserId: 1 }
 }
+
 
 /** 
  * Updates the password of an admin user
