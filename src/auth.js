@@ -1,11 +1,21 @@
+//This Imports the Database
+import { getData, setData } from './dataStore.js';
 
 //First Function By Abrar
+function adminAuthRegister( email, password, nameFirst, nameLast ) {
+
+
+  
+  return { authUserId: data.user.length}
+}
+
+//Second Function By Abrar
 function adminAuthLogin( email, password ) {
   
   return { authUserId: 1 }
 }
 
-//Second Function By Abrar
+//Third Function By Abrar
 function adminUserDetails( authUserId ) {
   return { user: { userId: 1,
     name: 'Hayden Smith',
@@ -14,34 +24,17 @@ function adminUserDetails( authUserId ) {
     numFailedPasswordsSinceLastLogin: 1, } }
 }
 
-/** 
- * Update the email and name of the admin user
- * @param {number} authUserId - unique identifier for admin user
- * @param {string} email - email of the user
- * @param {string} nameFirst - frist name of user
- * @param {string} nameLast - last name of user
- * @returns {} - empty object
- */
-
+//First Function By Zechen
 function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
   return { };
 }
 
-//Third Function By Abrar
-function adminAuthRegister( email, password, nameFirst, nameLast ) {
-  
-  return { authUserId: 1 }
-}
 
-
-/** 
- * Updates the password of an admin user
- * @param {number} authUserId - unique identifier for admin user
- * @param {string} oldPassword - old password of user
- * @param {string} newPassword - new password of user
- * @returns {} - empty object
- */
-
+//Seond Function By Zechen
 function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
   return { };
 }
+
+//This is exporting the data to auth.test.js
+//Also to the dataStore.js
+export { adminAuthRegister }
