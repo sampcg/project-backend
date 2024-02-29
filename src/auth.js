@@ -4,7 +4,15 @@ import { getData, setData } from './dataStore.js';
 //First Function By Abrar
 function adminAuthRegister( email, password, nameFirst, nameLast ) {
 
+  let data = getData();
+  
+  data.users.push({
 
+    email: email,
+    password: password,
+    name: '$(nameFirst) $(nameLast)' ,
+
+  })
   
   return { authUserId: data.user.length}
 }
