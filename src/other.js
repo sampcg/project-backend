@@ -9,7 +9,7 @@ import { getData, setData } from "./dataStore";
 
 function clear() {
   setData({
-    user:[],
+    users:[],
     quizzes:[],
   });
     return { };
