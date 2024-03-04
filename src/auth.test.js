@@ -13,12 +13,24 @@ test('Checking a successful registration', () => {
 
 describe('adminAuthRegister', () => {
 
+    beforeEach(() => {
+        authEmail = 'aaa@bbb.com';
+        authPassword = 'abcde12345';
+        authNameFirst = 'Michael';
+        authNameLast = 'Hourn';
+    })
+
+
 //1)Checking for a successful creation 
     test('Checking if successful and already used email', () =>{
 
-
-
-
+        //Inserting a parameters and expect a successful number
+        expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
+             authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
+        
+        expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
+            authNameLast)).toStrictEqual({ error: expect.any(String)} );
+           
 
     })
 
