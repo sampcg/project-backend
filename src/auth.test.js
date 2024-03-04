@@ -87,9 +87,24 @@ test('Checking for invalid characters firstName', () => {
 //4)NameFirst is less than 2 characters or more than 20 characters
 test('Checking length of firstName', () => {
     clear();
+    
+    expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
+        authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
+    
+    //For Too short
 
+    expect(adminAuthRegister(authEmail, authPassword, 'M',
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
 
+     expect(adminAuthRegister(authEmail, authPassword, 'Mi',
+        authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
 
+    //For Too Long
+    expect(adminAuthRegister(authEmail, authPassword, 'aaaaaaaaaaaaaaaaaaa',
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+
+    expect(adminAuthRegister(authEmail, authPassword, 'aaaaaaaaaaaaaaaaaaaa',
+        authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
 })
 
 //5)NameLast contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes.
@@ -123,7 +138,24 @@ test('Checking for invalid character lastName', () => {
 //6)NameLast is less than 2 characters or more than 20 characters.
 test('Checking length of lastName', () => {
     clear();
+    
+    expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
+        authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
+    
+    //For Too short
 
+    expect(adminAuthRegister(authEmail, authPassword, 'M',
+        'M')).toStrictEqual({ error: expect.any(String)} );
+
+     expect(adminAuthRegister(authEmail, authPassword, 'Mi',
+        'Mi')).toStrictEqual({ authUserId: expect.any(Number)} );
+
+    //For Too Long
+    expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
+    'aaaaaaaaaaaaaaaaaaa')).toStrictEqual({ error: expect.any(String)} );
+
+    expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
+    'aaaaaaaaaaaaaaaaaaaa')).toStrictEqual({ authUserId: expect.any(Number)} );
 
 
 })
