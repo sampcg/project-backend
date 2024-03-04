@@ -163,11 +163,53 @@ test('Checking length of lastName', () => {
 //8)Password is less than 8 characters.
 test('Checking Password length, if , < 8' , () => {
     clear();
+
+    expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
+        authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
+    
+    //Checking now
+    expect(adminAuthRegister(authEmail, 'a1', authNameFirst,
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+
+    expect(adminAuthRegister(authEmail, 'a12', authNameFirst,
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+
+    expect(adminAuthRegister(authEmail, 'a123', authNameFirst,
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+    
+    expect(adminAuthRegister(authEmail, 'a1234', authNameFirst,
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+    
+    expect(adminAuthRegister(authEmail, 'a12345', authNameFirst,
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+    
+    expect(adminAuthRegister(authEmail, 'a123456', authNameFirst,
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+
+    expect(adminAuthRegister(authEmail, 'a1234567', authNameFirst,
+        authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
+    
+    
+    
 });
 
 //9)Password does not contain at least one number and at least one letter
     test('Checking Password 1 number and 1 letter, if , < 8' , () => {
     clear();
+
+    expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
+        authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
+    
+    expect(adminAuthRegister(authEmail, 'aaaaaaaa', authNameFirst,
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+    
+    expect(adminAuthRegister(authEmail, 'aaaaaaa1', authNameFirst,
+        authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
+    
+    expect(adminAuthRegister(authEmail, '11111111', authNameFirst,
+        authNameLast)).toStrictEqual({ error: expect.any(String)} );
+    
+
 });
 
 });
