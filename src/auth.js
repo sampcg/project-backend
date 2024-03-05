@@ -5,7 +5,46 @@ import { getData, setData } from './dataStore.js';
 function adminAuthRegister( email, password, nameFirst, nameLast ) {
 
   let data = getData();
-  
+
+  var validator = require('validator');
+  //Next Line for special character checks
+  const specialChars = /[`!@#$%^&*()_+\=\[\]{};:"\\|,.<>\/?~]/;
+  const queryLetterNumber = /^[A-Za-z0-9][`!@#$%^&*()_+\=\[\]{};:"\\|,.<>\/?~]/;
+
+
+  if (validator.isEmail(email) !== true) {
+   return { error: 'Email Not Valid'}
+  }
+  if (specialChars.test(nameFirst) === true){
+    return { error: 'Firstname contains invalid characters='}
+  }
+
+  if (nameFirst.length < 2 || nameFirst.length > 20) {
+    return { error: 'Firstname is less than 2 or larger than 20 characters'}
+  }
+  if (specialChars.test(nameLast) === true){
+    return { error: 'Lastname contains invalid characters='}
+  }
+
+  if (nameLast.length < 2 || nameLast.length > 20) {
+    return { error: 'Lastname is less than 2 or larger than 20 characters'}
+  }
+
+  if (password.length < 8) {
+    return { error: 'Password length is less than 8 characters'}
+  }
+  if (queryLetterNumber(password).test(password) === false) {
+    return { error: 'Password must contain at least 1 letter and number'}
+  }
+
+
+
+
+
+
+
+
+  //Bit of Code that pushes the data after the filter
   data.users.push({
 
     email: email,
@@ -13,7 +52,7 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
     name: '$(nameFirst) $(nameLast)' ,
 
   })
-  
+
   return { authUserId: data.user.length}
 }
 

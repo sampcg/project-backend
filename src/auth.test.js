@@ -14,16 +14,20 @@ test('Checking a successful registration', () => {
 describe('adminAuthRegister', () => {
 
     beforeEach(() => {
-        authEmail = 'aaa@bbb.com';
-        authPassword = 'abcde12345';
-        authNameFirst = 'Michael';
-        authNameLast = 'Hourn';
+        const authEmail = 'aaa@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Michael';
+        const authNameLast = 'Hourn';
     })
 
 
 //1)Checking for a successful creation 
     test('Checking if successful and already used email', () =>{
         clear();
+        const authEmail = 'aaa@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Michael';
+        const authNameLast = 'Hourn';
 
         //Inserting a parameters and expect a successful number
         expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
@@ -38,6 +42,10 @@ describe('adminAuthRegister', () => {
 //2)Checking for valid email structure
     test('Checking for valid emails', () => {
         clear();
+        const authEmail = 'aaa@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Michael';
+        const authNameLast = 'Hourn';
 
         expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
             authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
@@ -59,6 +67,10 @@ describe('adminAuthRegister', () => {
 //3) NameFirst contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes
 test('Checking for invalid characters firstName', () => {
     clear();
+    const authEmail = 'aaa@bbb.com';
+    const authPassword = 'abcde12345';
+    const authNameFirst = 'Michael';
+    const authNameLast = 'Hourn';
 
     expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
         authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
@@ -87,6 +99,11 @@ test('Checking for invalid characters firstName', () => {
 //4)NameFirst is less than 2 characters or more than 20 characters
 test('Checking length of firstName', () => {
     clear();
+
+    const authEmail = 'aaa@bbb.com';
+    const authPassword = 'abcde12345';
+    const authNameFirst = 'Michael';
+    const authNameLast = 'Hourn';
     
     expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
         authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
@@ -110,6 +127,11 @@ test('Checking length of firstName', () => {
 //5)NameLast contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes.
 test('Checking for invalid character lastName', () => {
     clear();
+
+    const authEmail = 'aaa@bbb.com';
+    const authPassword = 'abcde12345';
+    const authNameFirst = 'Michael';
+    const authNameLast = 'Hourn';
 
     expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
         authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
@@ -138,6 +160,10 @@ test('Checking for invalid character lastName', () => {
 //6)NameLast is less than 2 characters or more than 20 characters.
 test('Checking length of lastName', () => {
     clear();
+    const authEmail = 'aaa@bbb.com';
+    const authPassword = 'abcde12345';
+    const authNameFirst = 'Michael';
+    const authNameLast = 'Hourn';
     
     expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
         authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
@@ -163,6 +189,10 @@ test('Checking length of lastName', () => {
 //8)Password is less than 8 characters.
 test('Checking Password length, if , < 8' , () => {
     clear();
+    const authEmail = 'aaa@bbb.com';
+    const authPassword = 'abcde12345';
+    const authNameFirst = 'Michael';
+    const authNameLast = 'Hourn';
 
     expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
         authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
@@ -196,6 +226,10 @@ test('Checking Password length, if , < 8' , () => {
 //9)Password does not contain at least one number and at least one letter
     test('Checking Password 1 number and 1 letter, if , < 8' , () => {
     clear();
+    const authEmail = 'aaa@bbb.com';
+    const authPassword = 'abcde12345';
+    const authNameFirst = 'Michael';
+    const authNameLast = 'Hourn';
 
     expect(adminAuthRegister(authEmail, authPassword, authNameFirst,
         authNameLast)).toStrictEqual({ authUserId: expect.any(Number)} );
