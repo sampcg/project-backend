@@ -304,12 +304,12 @@ describe('adminAuthLogin', () => {
         const authNameFirst = 'Michael';
         const authNameLast = 'Hourn';
 
-        authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
+        const authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
             authNameLast);
 
-        expect(adminAuthlogin(authEmail, authPassword)).toStrictEqual({ authUserId: expect.any(Number)});
+        expect(adminAuthLogin(authEmail, authPassword)).toStrictEqual({ authUserId: expect.any(Number)});
 
-        expect(adminAuthlogin('fake@email.com', authPassword)).toStrictEqual({ error: expect.any(String)});
+        expect(adminAuthLogin('fake@email.com', authPassword)).toStrictEqual({ error: expect.any(String)});
 
     })
 
@@ -321,12 +321,12 @@ describe('adminAuthLogin', () => {
         const authNameFirst = 'Michael';
         const authNameLast = 'Hourn';
 
-        authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
+        const authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
             authNameLast);
         
-        expect(adminAuthlogin(authEmail, authPassword)).toStrictEqual({ authUserId: expect.any(Number)});
+        expect(adminAuthLogin(authEmail, authPassword)).toStrictEqual({ authUserId: expect.any(Number)});
 
-        expect(adminAuthlogin(authEmail, 'IncorrectPassword1')).toStrictEqual({ error: expect.any(String)});
+        expect(adminAuthLogin(authEmail, 'IncorrectPassword1')).toStrictEqual({ error: expect.any(String)});
 
 })  
     

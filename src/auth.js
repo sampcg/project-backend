@@ -38,11 +38,15 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
 
   //Bit of Code that pushes the data after the filter
   let new_data = {
-
+    userId: data.user.length,
+    nameFirst: nameFirst,
+    nameLast: nameLast,
     email: email,
     password: password,
-    name: `${nameFirst} ${nameLast}`
-
+    numSuccessfulLogins: 0,
+    numFailedPasswordsSinceLastLogin: 0,
+    oldPassword: null,
+    newPassword: password,
   };
 
   data.user.push(new_data);
@@ -53,7 +57,36 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
 //Second Function By Abrar
 function adminAuthLogin( email, password ) {
   
-  return { authUserId: 1 }
+  let data = getData();
+  let UserId = null;
+
+  let email_present = false;
+  for (let user of data.user) {
+    if (user.email === email) {
+      email_present = true;
+      break;
+    }
+  }
+
+  let password_correct = false;
+
+  for (let user of data.user) {
+    if (user.email === email && user.password === password) {
+      password_correct = true;
+      UserId = user.userId;
+      break;
+    }
+  }
+
+  if (email_present === false) {
+    return { error: 'Email address does not exist'}
+  } else if (password_correct === false) {
+    return { error: 'Password is not correct for the given email'}
+  }
+
+
+
+  return { authUserId: UserId }
 }
 
 //Third Function By Abrar
@@ -79,3 +112,4 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
 //This is exporting the data to auth.test.js
 //Also to the dataStore.js
 export { adminAuthRegister }
+export { adminAuthLogin }
