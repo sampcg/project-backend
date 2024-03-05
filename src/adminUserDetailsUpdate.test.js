@@ -9,7 +9,7 @@ beforeEach(() => {
 });
 
 /*======================== Testing adminUser Details Update ========================*/
-descdescribe('adminUserDetailsUpdate function tests', () => {
+describe('adminUserDetailsUpdate function tests', () => {
   beforeEach(() => {
     let user = adminAuthRegister('hayden.smith@unsw.edu.au', '123456ABC', 'Hayden', 'Smith');
 	});
