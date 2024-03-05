@@ -1,3 +1,7 @@
+import { getData } from "./dataStore";
+import { isAuthUserValid } from "./helpers";
+import validator from "validator";
+
 //First Function By Abrar
 function adminAuthLogin( email, password ) {
   
@@ -22,7 +26,31 @@ function adminUserDetails( authUserId ) {
  * @returns {} - empty object
  */
 
-function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
+export function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
+  let data = getData();
+/** AuthUserId is not a valid user */
+  if (!isAuthUserValid(authUserId)){
+    return { error: "AuthUserId is not a valid user" };
+  } 
+/** Check for duplicate email */
+  if (data.users.some((user) => user.email === email)) {
+    return { error: "Email is already in use" };
+  }
+/** Check for valid email */
+  if (!validator.isEmail(email)) {
+    return { error: "Email is not valid" };
+  }
+/** Check for invalid characters in nameFirst and if the first name length is valid*/
+  const namecharF = /(^[a-zA-Z]{1}[a-zA-Z\s'-]{0,18}[a-zA-Z]{1}$)/.test(nameFirst.trim());
+  if (!namecharF) {
+      return {error: "Invalid first name"};
+  }
+/** Check for invalid characters in nameLast and if the last name length is valid*/
+  const namecharL = /(^[a-zA-Z]{1}[a-zA-Z\s'-]{0,18}[a-zA-Z]{1}$)/.test(nameLast.trim());
+  if (!namecharL) {
+      return {error: "Invalid last name"};
+  }
+/** correct output */
   return { };
 }
 
