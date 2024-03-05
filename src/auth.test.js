@@ -1,5 +1,6 @@
 import { adminAuthRegister } from './auth.js';
 import { adminAuthLogin } from './auth.js';
+import { adminUserDetails } from './auth.js';
 import { clear } from './other.js'
 
 //BEGINNING OF AUTH REGISTER TESTING
@@ -335,3 +336,29 @@ describe('adminAuthLogin', () => {
 });
 
 //END OF AUTH LOGIN TESTING
+
+//BEGINNING OF AUTH USER DETAILS
+describe('adminUserDetails', () => {
+
+//1)AuthUserId is not a valid user
+    test('Checking if AuthUserId is valid', () => {
+        clear();
+        const authEmail = 'aaa@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Michael';
+        const authNameLast = 'Hourn';
+
+        const authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
+            authNameLast);
+
+        expect(adminUserDetails(authID)).toStrictEqual({ user: expect.any(String) });
+
+        expect(adminUserDetails(32323)).toStrictEqual({ error: expect.any(String) });
+ 
+        expect(adminUserDetails('Hello, World!')).toStrictEqual({ error: expect.any(String) });
+ 
+    })
+    
+    });
+
+//END OF AUTH USER DETAILS

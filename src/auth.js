@@ -113,3 +113,4 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
 //Also to the dataStore.js
 export { adminAuthRegister }
 export { adminAuthLogin }
+export { adminUserDetails }
