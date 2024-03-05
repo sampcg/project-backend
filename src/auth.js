@@ -44,13 +44,13 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
 
 export function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
   const data = getData();
-  const user = data.users.find((u) => u.userId.includes(authUserId));
+  const user = data.users.find((u) => u.userId === authUserId);
 /** AuthUserId is not a valid user */
   if (!isAuthUserValid(authUserId)){
     return { error: "AuthUserId is not a valid user" };
   } 
 /** Old Password is not the correct old password */
-  if (oldPassword === user.password) {
+  if (oldPassword !== user.password) {
     return { error: "Old Password is not the correct old password" };
   }
 /** Old Password and New Password match exactly */
@@ -58,7 +58,7 @@ export function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) 
     return { error: "Old Password and New Password match exactly" };
   }
 /** New Password has already been used before by this user */
-  if (user.oldPassword.includes(newPassword)) {
+  if (user.oldPassword === newPassword) {
     return { error: "New Password has already been used before by this user" };
   }
 /** New Password is less than 8 characters */
@@ -83,6 +83,5 @@ export function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) 
     return { error: "New Password does not contain at least one number and at least one letter" };
   }
 /** correct output */
-  user.password = newPassword;
   return { };
 }
