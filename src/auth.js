@@ -91,11 +91,29 @@ function adminAuthLogin( email, password ) {
 
 //Third Function By Abrar
 function adminUserDetails( authUserId ) {
-  return { user: { userId: 1,
-    name: 'Hayden Smith',
-    email: 'hayden.smith@unsw.edu.au',
-    numSuccessfulLogins: 3,
-    numFailedPasswordsSinceLastLogin: 1, } }
+
+  let data = getData();
+  let userDetails = null;
+
+  for (let user of data.user) {
+      if (user.userId === authUserId) {
+          userDetails = {
+              userId: user.userId,
+              name: user.nameFirst+' '+user.nameLast,
+              email: user.email,
+              numSuccessfulLogins: user.numSuccessfulLogins,
+              numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin
+          };
+          break;
+      }
+  }
+
+  if (userDetails === null) {
+    return { error: 'AuthUserId is not a valid user' };
+  } else {
+
+    return { user: userDetails };
+  }
 }
 
 //First Function By Zechen

@@ -348,10 +348,11 @@ describe('adminUserDetails', () => {
         const authNameFirst = 'Michael';
         const authNameLast = 'Hourn';
 
-        const authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
-            authNameLast);
+        const result = adminAuthRegister(authEmail, authPassword, authNameFirst, authNameLast);
+        const authID = result.authUserId;
 
-        expect(adminUserDetails(authID)).toStrictEqual({ user: expect.any(String) });
+
+        expect(adminUserDetails(authID)).toStrictEqual({ user: expect.any(Object) });
 
         expect(adminUserDetails(32323)).toStrictEqual({ error: expect.any(String) });
  
