@@ -11,5 +11,5 @@ import { getData } from "./dataStore";
  */
 export function isAuthUserValid(authUserId){
     const data = getData();
-    return data.users.some((user) => authUserId === user.userId);
+    return data.users.some((user) => authUserId === user.authUserId);
 }
