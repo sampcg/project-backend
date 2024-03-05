@@ -24,7 +24,7 @@ describe('adminUserPasswordUpdate function tests', () => {
 		expect(adminUserPasswordUpdate(user.authUserId, '1234566ABC', 'Tw3lv3L3tt3r')).toStrictEqual(ERROR);
 	});
 	test("Old Password and New Password match exactly", () => {
-		expect(adminUserPasswordUpdate(user.authUserId, '123456ABC', '12346ABC')).toStrictEqual(ERROR);
+		expect(adminUserPasswordUpdate(user.authUserId, '123456ABC', '123456ABC')).toStrictEqual(ERROR);
 	});
 	test("New Password has already been used before by this user", () => {
 		adminUserPasswordUpdate(user.authUserId, '123456ABC', 'Tw3lv3L3tt3r');
