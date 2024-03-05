@@ -1,4 +1,5 @@
 import { adminAuthRegister } from './auth.js';
+import { adminAuthLogin } from './auth.js';
 import { clear } from './other.js'
 
 //BEGINNING OF AUTH REGISTER TESTING
@@ -291,3 +292,46 @@ test('Checking Password length, if , < 8' , () => {
 });
 
 //END OF AUTH REGISTER TESTING
+
+//BEGINNING OF AUTH LOGIN TESTING 
+describe('adminAuthLogin', () => {
+
+//1)Email address does not exist.
+    test('Checking for Emails that dont exist', () =>{
+        clear();
+        const authEmail = 'aaa@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Michael';
+        const authNameLast = 'Hourn';
+
+        authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
+            authNameLast);
+
+        expect(adminAuthlogin(authEmail, authPassword)).toStrictEqual({ authUserId: expect.any(Number)});
+
+        expect(adminAuthlogin('fake@email.com', authPassword)).toStrictEqual({ error: expect.any(String)});
+
+    })
+
+//2)Password is not correct for the given email.
+    test('Checking for incorrect password', () =>{
+        clear();
+        const authEmail = 'aaa1@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Michael';
+        const authNameLast = 'Hourn';
+
+        authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
+            authNameLast);
+        
+        expect(adminAuthlogin(authEmail, authPassword)).toStrictEqual({ authUserId: expect.any(Number)});
+
+        expect(adminAuthlogin(authEmail, 'IncorrectPassword1')).toStrictEqual({ error: expect.any(String)});
+
+})  
+    
+  
+
+});
+
+//END OF AUTH LOGIN TESTING
