@@ -10,8 +10,9 @@ beforeEach(() => {
 
 /*======================== Testing adminUser Details Update ========================*/
 describe('adminUserDetailsUpdate function tests', () => {
-  beforeEach(() => {
-    let user = adminAuthRegister('hayden.smith@unsw.edu.au', '123456ABC', 'Hayden', 'Smith');
+  let user;
+	beforeEach(() => {
+    user = adminAuthRegister('hayden.smith@unsw.edu.au', '123456ABC', 'Hayden', 'Smith');
 	});
   test("correct cases", () => {
 		let test1 = adminUserDetailsUpdate(user.authUserId, 'validemail@gmail.com', 'Jake', 'Renzella');
