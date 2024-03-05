@@ -9,49 +9,43 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
   var validator = require('validator');
   //Next Line for special character checks
   const specialChars = /[`!@#$%^&*()_+\=\[\]{};:"\\|,.<>\/?~]/;
-  const queryLetterNumber = /^[A-Za-z0-9][`!@#$%^&*()_+\=\[\]{};:"\\|,.<>\/?~]/;
+  
+  console.log(data);
+  data.user = data.user || [];
 
+  for (let user of data.user) {
+    if (user.email === email) {
+        return { error: 'Email is already used' };
+    }
+  }
 
   if (validator.isEmail(email) !== true) {
-   return { error: 'Email Not Valid'}
-  }
-  if (specialChars.test(nameFirst) === true){
+    return { error: 'Email Not Valid'}
+  } else if (specialChars.test(nameFirst) === true){
     return { error: 'Firstname contains invalid characters='}
-  }
-
-  if (nameFirst.length < 2 || nameFirst.length > 20) {
+  } else if (nameFirst.length < 2 || nameFirst.length > 20) {
     return { error: 'Firstname is less than 2 or larger than 20 characters'}
-  }
-  if (specialChars.test(nameLast) === true){
+  } else if (specialChars.test(nameLast) === true){
     return { error: 'Lastname contains invalid characters='}
-  }
-
-  if (nameLast.length < 2 || nameLast.length > 20) {
+  } else if (nameLast.length < 2 || nameLast.length > 20) {
     return { error: 'Lastname is less than 2 or larger than 20 characters'}
-  }
-
-  if (password.length < 8) {
+  } else if (password.length < 8) {
     return { error: 'Password length is less than 8 characters'}
-  }
-  if (queryLetterNumber(password).test(password) === false) {
+
+  } else if (!/(?=.*\d)(?=.*[a-zA-Z])/.test(password)) {
     return { error: 'Password must contain at least 1 letter and number'}
   }
 
-
-
-
-
-
-
-
   //Bit of Code that pushes the data after the filter
-  data.users.push({
+  let new_data = {
 
     email: email,
     password: password,
-    name: '$(nameFirst) $(nameLast)' ,
+    name: `${nameFirst} ${nameLast}`
 
-  })
+  };
+
+  data.user.push(new_data);
 
   return { authUserId: data.user.length}
 }
