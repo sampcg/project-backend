@@ -24,24 +24,19 @@ function adminQuizList(authUserId) {
  */
 
 export function adminQuizCreate(authUserId, name, description) {
-    // Check if user is valid
     let data = getData();
 
+    // Check if user is valid
     let userExists = false;
-    for (let user of data.user) {
-        if (authUserId === user.userId) {
+    for (let users of data.users) {
+        if (authUserId === users.userId) {
             userExists = true;
         }
     }
     if (!userExists) {
         return { error: 'Invalid user ID' };
-    }
-/*
-    const user = data.users.some(user => user.userId === userId);
-    if (!user) {
-        return { error: 'Invalid user ID' };
-    }
-    */
+    } 
+    
     // Check if name contains invalid characters
     const validName = /^[a-zA-Z0-9\s]*$/.test(name);
     if (!validName) {
