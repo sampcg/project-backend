@@ -215,7 +215,7 @@ describe('adminQuizRemove', () => {
     });
     
     test('Deletes first quiz of 2', () => {
-        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
+        const quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
 
         adminQuizRemove(author.authUserId, quiz.quizId);
 
@@ -230,7 +230,7 @@ describe('adminQuizRemove', () => {
     });
 
     test('Deletes second quiz of 2', () => {
-        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
+        const quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
 
         adminQuizRemove(author.authUserId, quiz2.quizId);
 
@@ -245,16 +245,16 @@ describe('adminQuizRemove', () => {
     });
     
     test('Deletes 2 quizzes out of 2', () => {
-        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
+        const quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
         adminQuizRemove(author.authUserId, quiz.quizId);
-        adminQuizRemove(author.authUSerId, quiz2.quizId);
+        adminQuizRemove(author.authUserId, quiz2.quizId);
 
         expect(adminQuizList(author.authUserId)).toStrictEqual({quizzes: []});
     });
     
     test('Deletes 2 quizzes out of 3', () => {
-        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
-        quiz3 = adminQuizCreate(author.authUserId, 'Quiz 3', '');
+        const quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
+        const quiz3 = adminQuizCreate(author.authUserId, 'Quiz 3', '');
 
         adminQuizRemove(author.authUserId, quiz.quizId);
         adminQuizRemove(author.authUserId, quiz2.quizId);
@@ -270,8 +270,8 @@ describe('adminQuizRemove', () => {
     });
 
     test('Delete quiz from another user', () => {
-        author2 = adminAuthRegister('ccc@ddd.com', 'abcde1235', 'John', 'Doe');
-        quiz2 = adminQuizCreate(author2.authUserId, 'Quiz 2', '');
+        const author2 = adminAuthRegister('ccc@ddd.com', 'abcde1235', 'John', 'Doe');
+        const quiz2 = adminQuizCreate(author2.authUserId, 'Quiz 2', '');
 
         adminQuizRemove(author2.authUserId, quiz2.quizId);
 
