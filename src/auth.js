@@ -156,9 +156,55 @@ export function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast )
   return { };
 }
 
+/** 
+ * Updates the password of an admin user
+ * @param {number} authUserId - unique identifier for admin user
+ * @param {string} oldPassword - old password of user
+ * @param {string} newPassword - new password of user
+ * @returns {} - empty object
+ */
 
-//Seond Function By Zechen
-function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
+export function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
+  const data = getData();
+  const user = data.users.find((u) => u.userId === authUserId);
+/** AuthUserId is not a valid user */
+  if (!isAuthUserValid(authUserId)){
+    return { error: "AuthUserId is not a valid user" };
+  } 
+/** Old Password is not the correct old password */
+  if (oldPassword !== user.password) {
+    return { error: "Old Password is not the correct old password" };
+  }
+/** Old Password and New Password match exactly */
+  if (oldPassword === newPassword) {
+    return { error: "Old Password and New Password match exactly" };
+  }
+/** New Password has already been used before by this user */
+  if (user.oldPassword === newPassword) {
+    return { error: "New Password has already been used before by this user" };
+  }
+/** New Password is less than 8 characters */
+  if (newPassword.length < 8) {
+    return { error: "New Password is less than 8 characters" };
+  }
+/** New Password does not contain at least one number and at least one letter */
+  let hasNumber = false;
+  let hasLower = false;
+  let hasUpper = false;
+  for (const character of newPassword) {
+    if (!isNaN(character)) {
+      hasNumber = true;
+    } else if (character >= 'a' && character <= 'z') {
+      hasLower = true;
+    } else if (character >= 'A' && character <= 'Z') {
+      hasUpper = true;
+    }
+  }
+
+  if (!(hasNumber && (hasLower || hasUpper))){
+    return { error: "New Password does not contain at least one number and at least one letter" };
+  }
+/** correct output */
   return { };
 }
 
