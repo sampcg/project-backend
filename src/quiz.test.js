@@ -1,6 +1,7 @@
 import { adminAuthRegister } from './auth.js';
 import { clear } from './other.js';
 import { adminQuizCreate } from './quiz.js';
+import { adminQuizList } from './quiz.js';
 
 beforeEach(() => {
     clear();
@@ -108,12 +109,12 @@ describe('adminQuizList', () => {
         expect(adminQuizList(author.authUserId + 1)).toStrictEqual({error: expect.any(String)});
     });
 
-    test.todo('No quizzes logged', () => {
+    test('No quizzes logged', () => {
         expect(adminQuizList(author.authUserId)).toStrictEqual({quizzes: []});
     });
 
     test('Lists 1 quiz', () => {
-        quiz = adminQuizCreate(author.authUserId, 'Quiz Name', 'Quiz Description');
+        const quiz = adminQuizCreate(author.authUserId, 'Quiz Name', 'Quiz Description');
         expect(adminQuizList(author.authUserId)).toStrictEqual({
             quizzes: [
                 {
@@ -125,9 +126,9 @@ describe('adminQuizList', () => {
     });
 
     test('Lists 3 quizzes', () => {
-        quiz1 = adminQuizCreate(author.authUserId, 'Quiz 1 Name', 'Quiz Description');
-        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2 Name', 'Quiz Description');
-        quiz3 = adminQuizCreate(author.authUserId, 'Quiz 3 Name', 'Quiz Description');
+        const quiz1 = adminQuizCreate(author.authUserId, 'Quiz 1 Name', 'Quiz Description');
+        const quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2 Name', 'Quiz Description');
+        const quiz3 = adminQuizCreate(author.authUserId, 'Quiz 3 Name', 'Quiz Description');
 
         expect(adminQuizList(author.authUserId)).toStrictEqual({
             quizzes: [
@@ -148,10 +149,19 @@ describe('adminQuizList', () => {
     });
 
     test('Lists quizzes of a second user', () => {
-        author2 = adminAuthorRegister('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-        quizAuth1 = adminQuizCreate(author.authUserId, 'Quiz 1 Auth 1', '');
-        quiz1Auth2 = adminQuizCreate(author2.authUserId, 'Quiz 1 Auth 2', '');
-        quiz2Auth2 = adminQuizCreate(author2.authUserId, 'Quiz 2 Auth 2', '');
+        const author2 = adminAuthRegister('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+        const quizAuth1 = adminQuizCreate(author.authUserId, 'Quiz 1 Auth 1', '');
+        const quiz1Auth2 = adminQuizCreate(author2.authUserId, 'Quiz 1 Auth 2', '');
+        const quiz2Auth2 = adminQuizCreate(author2.authUserId, 'Quiz 2 Auth 2', '');
+
+        expect(adminQuizList(author.authUserId)).toStrictEqual({
+            quizzes: [
+                {
+                    quizId: quizAuth1.quizId,
+                    name: 'Quiz 1 Auth 1',
+                }
+            ]
+        });
 
         expect(adminQuizList(author2.authUserId)).toStrictEqual({
             quizzes: [
@@ -168,8 +178,8 @@ describe('adminQuizList', () => {
     });
 
     test('Lists no quizzes by second user', () => {
-        author2 = adminAuthorRegister('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-        quiz = adminQuizCreate(author.authUserId, 'Quiz', '');
+        const author2 = adminAuthRegister('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+        const quiz = adminQuizCreate(author.authUserId, 'Quiz', '');
 
         expect(adminQuizList(author2.authUserId)).toStrictEqual({quizzes: []});
     });
