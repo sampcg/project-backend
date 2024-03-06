@@ -10,7 +10,6 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
   //Next Line for special character checks
   const specialChars = /[`!@#$%^&*()_+\=\[\]{};:"\\|,.<>\/?~]/;
   
-  console.log(data);
   data.users = data.users || [];
 
   for (let users of data.users) {

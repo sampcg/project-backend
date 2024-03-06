@@ -4,14 +4,6 @@ import { adminUserDetails } from './auth.js';
 import { clear } from './other.js'
 
 //BEGINNING OF AUTH REGISTER TESTING
-test('Checking a successful registration', () => {
-    // clear();
-    // let authUserID1 = adminAuthRegister('abrar@unsw.edu.com', 'abcd1234', 'abrar',
-    // 'gofur');
-    // expect(authUserID1).toStrictEqual({expect.any(Number)});
-
-    expect(1+1).toEqual(2);
-});
 
 describe('adminAuthRegister', () => {
 
