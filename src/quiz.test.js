@@ -2,6 +2,7 @@ import { adminAuthRegister } from './auth.js';
 import { clear } from './other.js';
 import { adminQuizCreate } from './quiz.js';
 import { adminQuizList } from './quiz.js';
+import { adminQuizRemove } from './quiz.js';
 
 beforeEach(() => {
     clear();
@@ -180,6 +181,99 @@ describe('adminQuizList', () => {
     test('Lists no quizzes by second user', () => {
         const author2 = adminAuthRegister('ccc@ddd.com', '12345abcde', 'John', 'Doe');
         const quiz = adminQuizCreate(author.authUserId, 'Quiz', '');
+
+        expect(adminQuizList(author2.authUserId)).toStrictEqual({quizzes: []});
+    });
+});
+
+// Testing adminQuizRemove
+
+describe('adminQuizRemove', () => {
+    let author, quiz;
+    beforeEach(() => {
+        author = adminAuthRegister('aaa@bbb.com', '12345abcde', 'Michael', 'Hourn');
+        quiz = adminQuizCreate(author.authUserId, 'Quiz', '');
+    });
+    
+    test('Invalid user ID', () => {
+        expect(adminQuizRemove(author.authUserId + 1, quiz.quizId)).toStrictEqual({error: expect.any(String)});
+    });
+
+    test('Invalid quiz ID', () => {
+        expect(adminQuizRemove(author.authUserId, quiz.quizId + 1)).toStrictEqual({error: expect.any(String)});
+    });
+
+    test('Quiz ID does not refer to owned quiz by given user', () => {
+        const author2 = adminAuthRegister('ccc@ddd.com', 'abcde12345', 'John', 'Doe');
+        expect(adminQuizRemove(author2.authUserId, quiz.quizId)).toStrictEqual({error: expect.any(String)});
+    });
+    
+    test('Deletes 1 quiz out of 1', () => {
+        expect(adminQuizRemove(author.authUserId, quiz.quizId)).toStrictEqual({});
+
+        expect(adminQuizList(author.authUserId)).toStrictEqual({quizzes: []});
+    });
+    
+    test('Deletes first quiz of 2', () => {
+        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
+
+        adminQuizRemove(author.authUserId, quiz.quizId);
+
+        expect(adminQuizList(author.authUserId)).toStrictEqual({
+            quizzes: [
+                {
+                    quizId: quiz2.quizId,
+                    name: 'Quiz 2',
+                }
+            ]
+        });
+    });
+
+    test('Deletes second quiz of 2', () => {
+        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
+
+        adminQuizRemove(author.authUserId, quiz2.quizId);
+
+        expect(adminQuizList(author.authUserId)).toStrictEqual({
+            quizzes: [
+                {
+                    quizId: quiz.quizId,
+                    name: 'Quiz',
+                }
+            ]
+        });
+    });
+    
+    test('Deletes 2 quizzes out of 2', () => {
+        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
+        adminQuizRemove(author.authUserId, quiz.quizId);
+        adminQuizRemove(author.authUSerId, quiz2.quizId);
+
+        expect(adminQuizList(author.authUserId)).toStrictEqual({quizzes: []});
+    });
+    
+    test('Deletes 2 quizzes out of 3', () => {
+        quiz2 = adminQuizCreate(author.authUserId, 'Quiz 2', '');
+        quiz3 = adminQuizCreate(author.authUserId, 'Quiz 3', '');
+
+        adminQuizRemove(author.authUserId, quiz.quizId);
+        adminQuizRemove(author.authUserId, quiz2.quizId);
+
+        expect(adminQuizList(author.authUserId)).toStrictEqual({
+            quizzes: [
+                {
+                    quizId: quiz3.quizId,
+                    name: 'Quiz 3',
+                }
+            ]
+        });
+    });
+
+    test('Delete quiz from another user', () => {
+        author2 = adminAuthRegister('ccc@ddd.com', 'abcde1235', 'John', 'Doe');
+        quiz2 = adminQuizCreate(author2.authUserId, 'Quiz 2', '');
+
+        adminQuizRemove(author2.authUserId, quiz2.quizId);
 
         expect(adminQuizList(author2.authUserId)).toStrictEqual({quizzes: []});
     });
