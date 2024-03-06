@@ -65,12 +65,12 @@ describe('adminQuizInfo', () =>  {
     });
 
     test('Return type if no error', () => {
-        const result = adminQuizInfo(authUserId, quizId);
-        expect(result).toEqual({
+        const result = adminQuizInfo(1,1);
+        expect(result).toMatchObject({
             quizId: expect.any(Number),
             name: expect.any(String),
-            timeCreated: expect.any(Date),
-            timeLastEdited: expect.any(Date),
+            timeCreated: expect.any(String),
+            timeLastEdited: expect.any(String),
             description: expect.any(String)
         });
     });

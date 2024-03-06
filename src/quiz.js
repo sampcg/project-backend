@@ -74,6 +74,20 @@ function adminQuizInfo(authUserId, quizId ) {
     if (!quizValid) {
         return { error: 'Quiz ID does not refer to a valid quiz.' }
     }
+
+    const quizOwn = data.quizzes.find((quiz) => quiz.userId === authUserId);
+    if (!quizOwn) {
+        return { error: 'Quiz ID does not refer to a quiz that this user owns.'}
+    }
+    
+    return {
+        quizId: quiz.quizId,
+        name: quiz.name,
+        timeCreated: quiz.timeCreated,
+        timeLastEdited: quiz.timeLastEdited,
+        description: quiz.description
+    }
+    
 }
    
 
