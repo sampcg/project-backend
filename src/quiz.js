@@ -64,17 +64,17 @@ function adminQuizInfo(authUserId, quizId ) {
 
     const data = getData();
 
-    const user = data.users.find(user => user.userId === authUserId);
+    const userValid = data.users.find(user => user.userId === authUserId);
     
-    if (!user) {
-        return { error: 'AuthUserId is not a valid user'};
+    if (!userValid) {
+        return { error: 'AuthUserId is not a valid user.'};
     }
 
-    const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-    if (!quiz) {
-        return { error: 'QuizID does not refer to a valid quiz' }
+    const quizValid = data.quizzes.find(quiz => quiz.quizId === quizId);
+    if (!quizValid) {
+        return { error: 'Quiz ID does not refer to a valid quiz.' }
     }
-    }
+}
    
 
 export { adminQuizInfo };
