@@ -1,3 +1,4 @@
+import {getData, setData } from './dataStore.js';
 
 /** 
  * Provides a list of all quizzed owned by the currently logged in user
@@ -56,20 +57,27 @@ function adminQuizDescriptionUpdate( authUserId, quizId, description ) {
  * Program to get all of the relevant information about the current quiz
  * @param {number} authUserId - unique identifier for an authorated user
  * @param {number} quizId - unique identifier for quiz 
- * @returns {{academic: {name: string, hobby: string}}}
  * @returns {quizId: number, name: string, timeCreated: number, timeLastEdited: number, description: string}
  */
 
 function adminQuizInfo(authUserId, quizId ) {
-   return { 
-        quizId: 1, 
-        name: 'My Quiz', 
-        timeCreated: 1683125870,
-        timeLastEdited: 1683125871, 
-        description: 'This is my quiz', 
-    };
-}
 
+    const data = getData();
+
+    const user = data.users.find(user => user.userId === authUserId);
+    
+    if (!user) {
+        return { error: 'AuthUserId is not a valid user'};
+    }
+
+    const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+    if (!quiz) {
+        return { error: 'QuizID does not refer to a valid quiz' }
+    }
+    }
+   
+
+export { adminQuizInfo };
 /**
  * Updates the name of the relevant quiz.
  * @param {number} authUserId - unique identifier for an authorated user
