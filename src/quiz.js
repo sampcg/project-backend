@@ -1,4 +1,4 @@
-import { data } from './dataStore.js'
+import { getData, setData } from './dataStore.js'
 
 /** 
  * Provides a list of all quizzed owned by the currently logged in user
@@ -27,11 +27,21 @@ export function adminQuizCreate(authUserId, name, description) {
     // Check if user is valid
     let data = getData();
 
-    const userExists = data.users.some(user => user.userId === authUserId);
+    let userExists = false;
+    for (let user of data.user) {
+        if (authUserId === user.userId) {
+            userExists = true;
+        }
+    }
     if (!userExists) {
         return { error: 'Invalid user ID' };
     }
-    
+/*
+    const user = data.users.some(user => user.userId === userId);
+    if (!user) {
+        return { error: 'Invalid user ID' };
+    }
+    */
     // Check if name contains invalid characters
     const validName = /^[a-zA-Z0-9\s]*$/.test(name);
     if (!validName) {
