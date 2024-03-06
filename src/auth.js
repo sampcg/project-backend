@@ -1,3 +1,8 @@
+//This Imports the Database
+import { getData, setData } from './dataStore.js';
+import { isAuthUserValid } from "./helpers";
+import validator from "validator";
+
 //First Function By Abrar
 function adminAuthRegister( email, password, nameFirst, nameLast ) {
 
@@ -115,7 +120,14 @@ function adminUserDetails( authUserId ) {
   }
 }
 
-//First Function By Zechen
+/** 
+ * Update the email and name of the admin user
+ * @param {number} authUserId - unique identifier for admin user
+ * @param {string} email - email of the user
+ * @param {string} nameFirst - frist name of user
+ * @param {string} nameLast - last name of user
+ * @returns {} - empty object
+ */
 export function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
   let data = getData();
 /** AuthUserId is not a valid user */
