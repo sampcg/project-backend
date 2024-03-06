@@ -167,7 +167,7 @@ describe('adminQuizList', () => {
             quizzes: [
                 {
                     quizId: quiz1Auth2.quizId,
-                    name: 'Quiz 1 Auth 1',
+                    name: 'Quiz 1 Auth 2',
                 },
                 {
                     quizId: quiz2Auth2.quizId,

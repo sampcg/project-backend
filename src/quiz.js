@@ -6,13 +6,36 @@ import { getData, setData } from './dataStore.js'
  * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
  */
 
-function adminQuizList(authUserId) {
+export function adminQuizList(authUserId) {
+    let data = getData();
+
+    let userExists = false;
+    for (let users of data.users) {
+        if (authUserId === users.userId) {
+            userExists = true;
+        }
+    }
+    if (!userExists) {
+        return { error: 'Invalid user ID'};
+    }
+
+    const quizzes = [];
+
+    for (let quiz of data.quizzes) {
+        if (quiz.userId === authUserId) {
+            quizzes.push({quizId: quiz.quizId, name: quiz.name});
+        }
+    }
+
+    return {quizzes: quizzes };
+    
+    /*
     return {
         quizzes: [ {
             quizId: 1,
             name: 'My Quiz',
         } ]
-    }
+    } */
 }
 
 /** 
