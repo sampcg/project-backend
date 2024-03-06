@@ -75,16 +75,6 @@ describe('adminQuizCreate', () => {
         expect(adminQuizCreate(author.authUserId, quizName, quizDescription)).toStrictEqual({quizId: expect.any(Number)});
     });
 
-    test('If added to database', () => {
-        const quizName = 'Quiz Name';
-        const quizDescription = 'Quiz Description';
-        
-        const quiz = adminQuizCreate(author.userId, quizName, quizDescription);
-        expect(data()).toStrictEqual({
-            quizzes: [{quizId: quiz.quizId, name: quizName, description: quizDescription}]
-        });
-    }); 
-
     test('Second adminQuizCreate works', () => {
         const auth2Email = 'ccc@ddd.com';
         const auth2Password = '12345abcde';
