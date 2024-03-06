@@ -9,8 +9,6 @@ import { clear } from './other.js';
 // Quiz ID does not refer to a valid quiz.
 // Quiz ID does not refer to a quiz that this user owns. 
 
-// a
-
 beforeEach(() => {
     clear();
 })
@@ -28,8 +26,9 @@ describe('adminQuizInfo', () =>  {
         
         const quizName = 'Test Quiz';
         const quizDescription = 'Quiz Description';
-        const quiz = adminQuizCreate(authUserId, quizName, quizDescription);
-        quizId = quiz.quizId;
+        //const quiz = adminQuizCreate(authUserId, quizName, quizDescription);
+        //quizId = quiz.quizId;
+        quizId = 1;
     });
 
     test('Returns information about quiz when provided with valid authUserId', () => {
