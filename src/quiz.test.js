@@ -25,7 +25,7 @@ describe('adminQuizCreate', () => {
     });
 
     test('Name contains invalid characters', () => {        
-        const invalidQuizName = '-----';
+        const invalidQuizName = 'aB1 -';
         const quizDescription = 'Quiz Description';
         expect(adminQuizCreate(author.authUserId, invalidQuizName, quizDescription)).toMatchObject({error: expect.any(String)});
     });
