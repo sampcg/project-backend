@@ -11,10 +11,10 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
   const specialChars = /[`!@#$%^&*()_+\=\[\]{};:"\\|,.<>\/?~]/;
   
   console.log(data);
-  data.user = data.user || [];
+  data.users = data.users || [];
 
-  for (let user of data.user) {
-    if (user.email === email) {
+  for (let users of data.users) {
+    if (users.email === email) {
         return { error: 'Email is already used' };
     }
   }
@@ -38,7 +38,7 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
 
   //Bit of Code that pushes the data after the filter
   let new_data = {
-    userId: data.user.length,
+    userId: data.users.length,
     nameFirst: nameFirst,
     nameLast: nameLast,
     email: email,
@@ -49,20 +49,20 @@ function adminAuthRegister( email, password, nameFirst, nameLast ) {
     newPassword: password,
   };
 
-  data.user.push(new_data);
+  data.users.push(new_data);
 
-  return { authUserId: data.user.length}
+  return { authUserId: (data.users.length - 1)}
 }
 
 //Second Function By Abrar
 function adminAuthLogin( email, password ) {
   
   let data = getData();
-  let UserId = null;
+  let User_Id = null;
 
   let email_present = false;
-  for (let user of data.user) {
-    if (user.email === email) {
+  for (let users of data.users) {
+    if (users.email === email) {
       email_present = true;
       break;
     }
@@ -70,10 +70,10 @@ function adminAuthLogin( email, password ) {
 
   let password_correct = false;
 
-  for (let user of data.user) {
-    if (user.email === email && user.password === password) {
+  for (let users of data.users) {
+    if (users.email === email && users.password === password) {
       password_correct = true;
-      UserId = user.userId;
+      User_Id = users.userId;
       break;
     }
   }
@@ -86,7 +86,7 @@ function adminAuthLogin( email, password ) {
 
 
 
-  return { authUserId: UserId }
+  return { authUserId: User_Id }
 }
 
 //Third Function By Abrar
@@ -94,21 +94,24 @@ function adminUserDetails( authUserId ) {
 
   let data = getData();
   let userDetails = null;
+  let id_present = false; 
 
-  for (let user of data.user) {
-      if (user.userId === authUserId) {
+
+  for (let users of data.users) {
+      if (users.userId === authUserId) {
+          id_present = true;
           userDetails = {
-              userId: user.userId,
-              name: user.nameFirst+' '+user.nameLast,
-              email: user.email,
-              numSuccessfulLogins: user.numSuccessfulLogins,
-              numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin
+              userId: users.userId,
+              name: users.nameFirst+' '+users.nameLast,
+              email: users.email,
+              numSuccessfulLogins: users.numSuccessfulLogins,
+              numFailedPasswordsSinceLastLogin: users.numFailedPasswordsSinceLastLogin
           };
           break;
       }
   }
 
-  if (userDetails === null) {
+  if (id_present === false) {
     return { error: 'AuthUserId is not a valid user' };
   } else {
 
