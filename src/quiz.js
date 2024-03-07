@@ -133,7 +133,6 @@ export function adminQuizRemove(authUserId, quizId) {
  * @param {string} name - updated name for relevant quiz
  * @returns {} an empty object
  */
-
 export function adminQuizNameUpdate(authUserId, quizId, name) {
     const data = getData();
 
@@ -166,13 +165,59 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
 
     // Check if the name is already used by the current user for another quiz
     const quizWithSameName = data.quizzes.find(q => q.userId === authUserId && q.quizId !== quizId && q.name === name);
+
     if (quizWithSameName) {
         return { error: 'Name is already used by the current logged in user for another quiz.' };
     }
+    quiz.timeLastEdited = Date.now()/1000;
     quiz.name = name;
     return {};
 }
 
+
+/**
+ * Updates the description of the relevant quiz
+ * @param {number} authUserId - unique identifier for an authorated user
+ * @param {number} quizId - unique identifier for quiz 
+ * @param {string} description - updated name for relevant quiz
+ * @returns {} an empty object
+ */
+// Update the description of the relevant quiz.
+
+export function adminQuizDescriptionUpdate( authUserId, quizId, description ) {
+    let data = getData();
+
+    // Check if user is valid
+    const user = data.users.find(user => user.userId === authUserId);
+    if (!user) {
+        return { error: 'AuthUserId is not a valid user.' };
+    }
+
+    // Check if quizId is valid
+    const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+    if (!quiz) {
+        return { error: 'Quiz ID does not refer to a valid quiz.' };
+    }
+
+    // Check if user owns the quiz
+    if (quiz.userId !== authUserId) {
+        return { error: 'User does not own this quiz' };
+    }
+
+    if (description.length > 100) {
+        return { error: 'Description is more than 100 characters in length.' };
+    }
+     // Update the description of the quiz
+    quiz.description = description;
+
+    // Update the last edited time
+    quiz.timeLastEdited = Date.now()/1000;
+    
+    // Save the updated data
+    setData(data);
+    // Return empty object
+    return {};
+}
 
 /**
  * Program to get all of the relevant information about the current quiz
@@ -210,7 +255,3 @@ export function adminQuizInfo(authUserId, quizId ) {
     
 }
    
-
-
-
-
