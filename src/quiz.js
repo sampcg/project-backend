@@ -126,7 +126,13 @@ export function adminQuizRemove(authUserId, quizId) {
     return {};
 }
 
-
+/**
+ * Updates the name of the relevant quiz
+ * @param {number} authUserId - unique identifier for an authorated user
+ * @param {number} quizId - unique identifier for quiz 
+ * @param {string} name - updated name for relevant quiz
+ * @returns {} an empty object
+ */
 
 export function adminQuizNameUpdate(authUserId, quizId, name) {
     const data = getData();
@@ -149,8 +155,9 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
     }
 
     // Validate the name
-    if (!isValidName(name)) {
-        return { error: 'Name contains invalid characters.' };
+    const validName = /^[a-zA-Z0-9\s]*$/.test(name);    
+    if (!validName) {        
+        return { error: 'Name contains invalid characters' }    
     }
 
     if (name.length < 3 || name.length > 30) {
@@ -162,27 +169,47 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
     if (quizWithSameName) {
         return { error: 'Name is already used by the current logged in user for another quiz.' };
     }
-
     quiz.name = name;
-
-
-
     return {};
 }
 
-// Function to validate name
-function isValidName(name) {
-    for (let char of name) {
-        const charCode = char.charCodeAt(0);
-        if (!(charCode >= 48 && charCode <= 57) && // Numeric characters
-            !(charCode >= 65 && charCode <= 90) && // Uppercase alphabetical characters
-            !(charCode >= 97 && charCode <= 122) && // Lowercase alphabetical characters
-            char !== ' ') { // Space character
-            return false;
-        }
+
+/**
+ * Program to get all of the relevant information about the current quiz
+ * @param {number} authUserId - unique identifier for an authorated user
+ * @param {number} quizId - unique identifier for quiz 
+ * @returns {quizId: number, name: string, timeCreated: number, timeLastEdited: number, description: string}
+ */
+
+export function adminQuizInfo(authUserId, quizId ) {
+
+    const data = getData();
+
+    const user = data.users.find(user => user.userId === authUserId);
+    
+    if (!user) {
+        return { error: 'AuthUserId is not a valid user.'};
     }
-    return true;
+
+    const quiz= data.quizzes.find(quiz => quiz.quizId === quizId);
+    if (!quiz) {
+        return { error: 'Quiz ID does not refer to a valid quiz.' }
     }
+
+    if (quiz.userId !== authUserId) {
+        return { error: 'Quiz ID does not refer to a quiz that this user owns.'}
+    }
+    
+    return {
+        quizId: quiz.quizId,
+        name: quiz.name,
+        timeCreated: quiz.timeCreated,
+        timeLastEdited: Date.now()/1000,
+        description: quiz.description
+    }
+    
+}
+   
 
 
 
