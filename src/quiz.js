@@ -169,6 +169,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
     if (quizWithSameName) {
         return { error: 'Name is already used by the current logged in user for another quiz.' };
     }
+    quiz.timeLastEdited = Date.now()/1000;
     quiz.name = name;
     return {};
 }
@@ -210,7 +211,7 @@ export function adminQuizDescriptionUpdate( authUserId, quizId, description ) {
     quiz.description = description;
 
     // Update the last edited time
-    quiz.timeLastEdited = Date.now();
+    quiz.timeLastEdited = Date.now()/1000;
     
     // Save the updated data
     setData(data);
