@@ -9,33 +9,24 @@ import { getData, setData } from './dataStore.js'
 export function adminQuizList(authUserId) {
     let data = getData();
 
-    let userExists = false;
-    for (let users of data.users) {
-        if (authUserId === users.userId) {
-            userExists = true;
-        }
-    }
+    // Checks if userId is valid
+    const userExists = data.users.some(user => user.userId === authUserId);
     if (!userExists) {
-        return { error: 'Invalid user ID'};
+        return { error: 'Invalid user ID' }
     }
 
+    // Creates array of quizzes to return
     const quizzes = [];
 
+    // Pushes all quizzes with given user ID in data to array quizzes 
     for (let quiz of data.quizzes) {
         if (quiz.userId === authUserId) {
             quizzes.push({quizId: quiz.quizId, name: quiz.name});
         }
     }
 
+    // Returns object containing array of all quizzes owned by user
     return {quizzes: quizzes };
-    
-    /*
-    return {
-        quizzes: [ {
-            quizId: 1,
-            name: 'My Quiz',
-        } ]
-    } */
 }
 
 /** 
@@ -50,15 +41,10 @@ export function adminQuizCreate(authUserId, name, description) {
     let data = getData();
 
     // Check if user is valid
-    let userExists = false;
-    for (let users of data.users) {
-        if (authUserId === users.userId) {
-            userExists = true;
-        }
-    }
+    const userExists = data.users.some(user => user.userId === authUserId);
     if (!userExists) {
-        return { error: 'Invalid user ID' };
-    } 
+        return { error: 'Invalid user ID' }
+    }
     
     // Check if name contains invalid characters
     const validName = /^[a-zA-Z0-9\s]*$/.test(name);
@@ -112,7 +98,31 @@ export function adminQuizCreate(authUserId, name, description) {
  * @returns { } - empty object
  */
 
-function adminQuizRemove(authUserId, quizId) {
+export function adminQuizRemove(authUserId, quizId) {
+    let data = getData();
+
+    // Check if user is valid
+    const userExists = data.users.some(user => user.userId === authUserId);
+    if (!userExists) {
+        return { error: 'Invalid user ID' }
+    }
+
+    // Check if quizId is valid
+    const quizExists = data.quizzes.some(quiz => quiz.quizId === quizId);
+    if (!quizExists) {
+        return { error: 'Invalid quiz ID' };
+    }
+
+    // Check if owner owns quiz
+    const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+    if (findQuiz.userId !== authUserId) {
+        return { error: 'User does not own this quiz' };
+    }
+
+    // Remove quiz that has given quizId
+    data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== quizId);
+
+    // Return empty object
     return {};
 }
 
