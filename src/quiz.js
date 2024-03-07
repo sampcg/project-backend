@@ -17,8 +17,8 @@ function adminQuizInfo(authUserId, quizId ) {
         return { error: 'AuthUserId is not a valid user.'};
     }
 
-    const quizValid = data.quizzes.find(quiz => quiz.quizId === quizId);
-    if (!quizValid) {
+    const quiz= data.quizzes.find(quiz => quiz.quizId === quizId);
+    if (!quiz) {
         return { error: 'Quiz ID does not refer to a valid quiz.' }
     }
 
