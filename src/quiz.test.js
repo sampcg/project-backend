@@ -39,8 +39,7 @@ describe('adminQuizNameUpdate', () => {
     
     test('Returns specific error message when user does not own the quiz', () => {
         const newDescription = 'Updated Quiz Description';
-        // Create a new user who doesn't own the quiz
-        const newUser = adminAuthRegister('another@example.com', 'password456', 'Alice', 'Smith');
+        const newUser = adminAuthRegister('another@example.com', 'password456', 'Zechen', 'Chu');
         const result = adminQuizDescriptionUpdate(newUser.authUserId, quizId, newDescription);
         expect(result).toEqual({ error: 'Quiz ID does not refer to a quiz that this user owns.' });
     });
