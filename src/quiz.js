@@ -140,19 +140,18 @@ export function adminQuizDescriptionUpdate( authUserId, quizId, description ) {
     let data = getData();
 
     // Check if user is valid
-    const userExists = data.users.some(user => user.userId === authUserId);
-    if (!userExists) {
+    const user = data.users.find(user => user.userId === authUserId);
+    if (!user) {
         return { error: 'AuthUserId is not a valid user.' };
     }
 
     // Check if quizId is valid
-    const quizExists = data.quizzes.some(quiz => quiz.quizId === quizId);
-    if (!quizExists) {
+    const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+    if (!quiz) {
         return { error: 'Quiz ID does not refer to a valid quiz.' };
     }
 
     // Check if user owns the quiz
-    const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.userId === authUserId);
     if (quiz.userId !== authUserId) {
         return { error: 'User does not own this quiz' };
     }

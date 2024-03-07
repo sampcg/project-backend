@@ -19,8 +19,11 @@ describe('adminQuizDescriptionUpdate', () => {
         user = adminAuthRegister(authEmail, authPassword, authNameFirst, authNameLast);
 
         const quizName = 'Quiz Name';
-        const quizDescription = ' Quiz Description'
-        const quiz = adminQuizCreate(user.authUserId, quizName, quizDescription)
+        const quizDescription = ' Quiz Description';
+        const quiz = adminQuizCreate(user.authUserId, quizName, quizDescription);
+        quizId = quiz.quizId;
+
+        authUserId = user.authUserId;
   
     });
 
@@ -50,10 +53,10 @@ describe('adminQuizDescriptionUpdate', () => {
     });
 
     test('Updates quiz description with valid description', () => {
-        const newDescription = 'New description for the quiz';
-        const result = adminQuizDescriptionUpdate(authUserId, quizId, newDescription);
         
-        // Assert that no error is returned
+        const newDescription = 'New descriptionfor the quiz';
+        const result = adminQuizDescriptionUpdate(authUserId, quizId, newDescription);
+
         expect(result).toEqual({});
     });
 });
