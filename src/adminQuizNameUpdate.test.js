@@ -1,6 +1,8 @@
 import { adminQuizNameUpdate } from './quiz.js';
 import {clear } from './other.js';
 import { adminAuthRegister } from './auth.js';
+import { adminQuizCreate } from './quiz.js';
+
 
 // Testing for adminQuizNameUpdate
 
@@ -9,7 +11,7 @@ beforeEach(() => {
 });
 
 describe('adminQuizNameUpdate', () => {
-    let user;
+    let user, authUserId, quizId;
 
     beforeEach(() => {
         // Mock user registration
@@ -18,6 +20,13 @@ describe('adminQuizNameUpdate', () => {
         const authNameFirst = 'Samuel';
         const authNameLast = 'Gray';
         user = adminAuthRegister(authEmail, authPassword, authNameFirst, authNameLast);
+
+        const quizName = 'Quiz Name';
+        const quizDescription = ' Quiz Description';
+        const quiz = adminQuizCreate(user.authUserId, quizName, quizDescription);
+        quizId = quiz.quizId;
+
+        authUserId = user.authUserId;
     });
 
     test('Invalid user ID', () => {
@@ -63,5 +72,13 @@ describe('adminQuizNameUpdate', () => {
         adminQuizNameUpdate(user.authUserId, quizId, 'New Quiz Name');
         // Attempt to update the name of the current quiz to the same name
         expect(adminQuizNameUpdate(user.authUserId, quizId, 'New Quiz Name')).toMatchObject({ error: expect.any(String) });
+    });
+
+
+    test('Name is successfully updated', () => {
+        const NewName2 = ' New name for the quiz';
+        const result = adminQuizNameUpdate(authUserId, quizId, NewName2);
+
+        expect(result).toEqual({})
     });
 });
