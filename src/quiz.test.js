@@ -3,12 +3,16 @@ import { clear } from './other.js';
 import { adminQuizCreate } from './quiz.js';
 import { adminQuizList } from './quiz.js';
 import { adminQuizRemove } from './quiz.js';
+import { adminQuizDescriptionUpdate } from './quiz.js';
+import { adminQuizInfo } from './quiz.js';
+import { adminQuizNameUpdate } from './quiz.js';
+
 
 beforeEach(() => {
     clear();
 });
 
-// adminQuizCreate Testing
+//////////////// Testing for AdminQuizCreate ///////////////////
 
 describe('adminQuizCreate', () => {
     let author;
@@ -98,7 +102,7 @@ describe('adminQuizCreate', () => {
     });
 });
 
-// adminQuizList testing
+//////////////// Testing for AdminQuizList ///////////////////
 
 describe('adminQuizList', () => {
     let author;
@@ -186,7 +190,7 @@ describe('adminQuizList', () => {
     });
 });
 
-// Testing adminQuizRemove
+//////////////// Testing for AdminQuizRemove ///////////////////
 
 describe('adminQuizRemove', () => {
     let author, quiz;
@@ -276,5 +280,214 @@ describe('adminQuizRemove', () => {
         adminQuizRemove(author2.authUserId, quiz2.quizId);
 
         expect(adminQuizList(author2.authUserId)).toStrictEqual({quizzes: []});
+    });
+});
+
+//////////////// Testing for AdminQuizDescription Update ///////////////////
+
+describe('adminQuizDescriptionUpdate', () => {
+    let user, authUserId, quizId;
+
+    beforeEach(() => {
+        const authEmail = 'aaa@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Samuel';
+        const authNameLast = 'Gray';
+        user = adminAuthRegister(authEmail, authPassword, authNameFirst, authNameLast);
+
+        const quizName = 'Quiz Name';
+        const quizDescription = ' Quiz Description';
+        const quiz = adminQuizCreate(user.authUserId, quizName, quizDescription);
+        quizId = quiz.quizId;
+
+        authUserId = user.authUserId;
+  
+    });
+
+    test('Invalid user ID', () => {
+        const newDescription = 'New quiz description';
+        const invalidUserId = user.authUserId + 1;
+        expect(adminQuizDescriptionUpdate(invalidUserId, user.authUserId, newDescription)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('Invalid quiz ID', () => {
+        const newDescription = 'New quiz description';
+        const invalidQuizId = 999; 
+        expect(adminQuizDescriptionUpdate(user.authUserId, invalidQuizId, newDescription)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('User does not own the quiz', () => {
+        const newDescription = 'New quiz description';
+        const anotherUser = adminAuthRegister('another@example.com', 'password', 'Michael', 'Hourn');
+        const quizId = 123; 
+        expect(adminQuizDescriptionUpdate(anotherUser.authUserId, quizId, newDescription)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('Description is more than 100 characters long', () => {
+        const longDescription = 'A'.repeat(101);
+        const quizId = 123; 
+        expect(adminQuizDescriptionUpdate(user.authUserId, quizId, longDescription)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('Updates quiz description with valid description', () => {
+        
+        const newDescription = 'New descriptionfor the quiz';
+        const result = adminQuizDescriptionUpdate(authUserId, quizId, newDescription);
+
+        expect(result).toEqual({});
+    });
+});
+
+
+
+//////////////// Testing for AdminQuizInfo ///////////////////////////////
+describe('adminQuizInfo', () =>  {
+    let authUserId, quizId;
+
+    beforeEach(() => {
+        const authEmail = 'aaa@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Samuel';
+        const authNameLast = 'Gray';
+        const user = adminAuthRegister(authEmail, authPassword, authNameFirst, authNameLast);
+        authUserId = user.authUserId;
+        
+        const quizName = 'Test Quiz';
+        const quizDescription = 'Quiz Description';
+        const quiz = adminQuizCreate(authUserId, quizName, quizDescription);
+        quizId = quiz.quizId;
+    });
+
+    test('Returns information about quiz when provided with valid authUserId', () => {
+        const expectedInfo = {
+            quizId: expect.any(Number),
+            name: expect.any(String),
+            timeCreated: expect.any(Number), 
+            timeLastEdited: expect.any(Number), 
+            description: expect.any(String)
+        };
+        const result = adminQuizInfo(authUserId, quizId);
+        expect(result).toEqual(expectedInfo);
+    });
+
+    test('Returns error message when authUserId is not a valid user', () => {
+        const invalidUserId = authUserId + 1;
+        const expectedError = { error: 'AuthUserId is not a valid user.' };
+        const result = adminQuizInfo(invalidUserId, quizId);
+        expect(result).toEqual(expectedError);
+    });
+
+    test('Returns error message when quizId does not refer to a valid quiz', () => {
+        const invalidQuizId = quizId + 1;
+        const expectedError = { error: 'Quiz ID does not refer to a valid quiz.' };
+        const result = adminQuizInfo(authUserId, invalidQuizId);
+        expect(result).toEqual(expectedError);
+    });
+
+    test('Returns error message when quizId does not refer to a quiz that this user owns', () => {
+        const user2Email = 'abc@bbb.com';
+        const user2Password = 'addcde12345';
+        const user2NameFirst = 'Hayden';
+        const user2NameLast = 'Smith';
+        const user2 = adminAuthRegister(user2Email, user2Password, user2NameFirst, user2NameLast);
+        
+        const quizName2 = 'Test Quiz2';
+        const quizDescription2 = 'Quiz Description2';
+        const quiz2 = adminQuizCreate(user2.authUserId, quizName2, quizDescription2);
+
+        const result = adminQuizInfo(authUserId, quiz2.quizId);
+        expect(result).toMatchObject({ error: 'Quiz ID does not refer to a quiz that this user owns.' });
+    });
+
+    test('Return type if no error', () => {
+        const result = adminQuizInfo(1, 1); // Assuming valid authUserId and quizId
+        if (result.error) {
+            // If an error is returned
+            expect(result).toEqual({ error: expect.any(String) });
+        } else {
+            // If quiz information is returned
+            expect(result).toEqual({
+                quizId: expect.any(Number),
+                name: expect.any(String),
+                timeCreated: expect.any(Number),
+                timeLastEdited: expect.any(Number),
+                description: expect.any(String)
+            });
+        }
+    });  
+});
+
+//////////////// Testing for AdminQuizNameUpdate ///////////////////
+
+describe('adminQuizNameUpdate', () => {
+    let user, authUserId, quizId;
+
+    beforeEach(() => {
+        // Mock user registration
+        const authEmail = 'aaa@bbb.com';
+        const authPassword = 'abcde12345';
+        const authNameFirst = 'Samuel';
+        const authNameLast = 'Gray';
+        user = adminAuthRegister(authEmail, authPassword, authNameFirst, authNameLast);
+
+        const quizName = 'Quiz Name';
+        const quizDescription = ' Quiz Description';
+        const quiz = adminQuizCreate(user.authUserId, quizName, quizDescription);
+        quizId = quiz.quizId;
+
+        authUserId = user.authUserId;
+    });
+
+    test('Invalid user ID', () => {
+        const newName = 'New Quiz Name';
+        const invalidUserId = user.authUserId + 1;
+        expect(adminQuizNameUpdate(invalidUserId, user.authUserId, newName)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('Invalid quiz ID', () => {
+        const newName = 'New Quiz Name';
+        const invalidQuizId = 999; 
+        expect(adminQuizNameUpdate(user.authUserId, invalidQuizId, newName)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('User does not own the quiz', () => {
+        const newName = 'New Quiz Name';
+        const anotherUser = adminAuthRegister('another@example.com', 'password', 'Michael', 'Hourn');
+        const quizId = 123; 
+        expect(adminQuizNameUpdate(anotherUser.authUserId, quizId, newName)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('Name contains invalid characters', () => {
+        const invalidName = 'Invalid Quiz Name!@#';
+        const quizId = 123; 
+        expect(adminQuizNameUpdate(user.authUserId, quizId, invalidName)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('Name is less than 3 characters long', () => {
+        const shortName = 'Q';
+        const quizId = 123; 
+        expect(adminQuizNameUpdate(user.authUserId, quizId, shortName)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('Name is more than 30 characters long', () => {
+        const longName = 'aaabbbcccdddeeefffggghhhiiijjjkkklllmmmnnnooo';
+        const quizId = 123;
+        expect(adminQuizNameUpdate(user.authUserId, quizId, longName)).toMatchObject({ error: expect.any(String) });
+    });
+
+    test('Name is already used by another quiz', () => {
+        
+        const quizId = 456; 
+        adminQuizNameUpdate(user.authUserId, quizId, 'New Quiz Name');
+        // Attempt to update the name of the current quiz to the same name
+        expect(adminQuizNameUpdate(user.authUserId, quizId, 'New Quiz Name')).toMatchObject({ error: expect.any(String) });
+    });
+
+
+    test('Name is successfully updated', () => {
+        const NewName2 = ' New name for the quiz';
+        const result = adminQuizNameUpdate(authUserId, quizId, NewName2);
+
+        expect(result).toEqual({})
     });
 });
