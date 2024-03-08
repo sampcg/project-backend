@@ -9,10 +9,10 @@ import { getData, setData } from "./dataStore";
 
 function clear() {
   setData({
-    users:[],
-    quizzes:[],
+    users: [],
+    quizzes: [],
   });
-    return { };
+  return {};
 }
 
-export{ clear };
+export { clear };
