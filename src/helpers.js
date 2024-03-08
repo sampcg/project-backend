@@ -9,7 +9,7 @@ import { getData } from "./dataStore";
  *                    - returns false if authUserId doesn't exist
  * 
  */
-export function isAuthUserValid(authUserId){
-    const data = getData();
-    return data.users.some((user) => authUserId === user.userId);
+export function isAuthUserValid(authUserId) {
+	const data = getData();
+	return data.users.some((user) => authUserId === user.userId);
 }
