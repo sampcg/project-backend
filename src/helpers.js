@@ -10,6 +10,6 @@ import { getData } from "./dataStore";
  * 
  */
 export function isAuthUserValid(authUserId) {
-	const data = getData();
-	return data.users.some((user) => authUserId === user.userId);
+  const data = getData();
+  return data.users.some((user) => authUserId === user.userId);
 }
