@@ -8,6 +8,7 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+import { clear } from './other';
 
 // Set up web app
 const app = express();
@@ -35,6 +36,10 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(echo(data));
 });
 
+// Reset the state of the application back to the start
+app.delete('/v1/clear', (req: Request, res: Response) => {
+  res.json(clear());
+});
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

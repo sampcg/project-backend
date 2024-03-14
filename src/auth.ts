@@ -1,6 +1,6 @@
 //This Imports the Database
 import { getData, setData } from './dataStore.js';
-import { isAuthUserValid, getUser } from "./helpers";
+import { isAuthUserValid, getUser } from "./helpers.js";
 import validator from "validator";
 
 //First Function By Abrar
