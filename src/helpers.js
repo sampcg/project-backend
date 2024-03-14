@@ -13,3 +13,7 @@ export function isAuthUserValid(authUserId) {
   const data = getData();
   return data.users.some((user) => authUserId === user.userId);
 }
+
+export function getUser(authUserId) {
+  return getData().users.find((user) => authUserId === user.userId);
+}

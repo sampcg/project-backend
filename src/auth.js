@@ -1,6 +1,6 @@
 //This Imports the Database
 import { getData, setData } from './dataStore.js';
-import { isAuthUserValid } from "./helpers";
+import { isAuthUserValid, getUser } from "./helpers";
 import validator from "validator";
 
 //First Function By Abrar
@@ -153,6 +153,10 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
     return { error: "Invalid last name" };
   }
   /** correct output */
+  let user = getUser(authUserId);
+  user.email = email;
+  user.nameFirst = nameFirst;
+  user.nameLast = nameLast;
   return {};
 }
 
@@ -166,7 +170,7 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
 
 export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
   const data = getData();
-  const user = data.users.find((u) => u.userId === authUserId);
+  const user = getUser(authUserId);
   /** AuthUserId is not a valid user */
   if (!isAuthUserValid(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
@@ -205,6 +209,8 @@ export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
     return { error: "New Password does not contain at least one number and at least one letter" };
   }
   /** correct output */
+  user.oldPassword = user.password;
+  user.password = newPassword;
   return {};
 }
 
