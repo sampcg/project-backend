@@ -1,18 +1,14 @@
-import { getData } from "./dataStore";
+import { getData } from './dataStore';
 
 /**
  * ============== helper functions============
- * 
+ *
  * Given Id of a user, check if this id is valid
  * @param {number} authUserId - user ID assigned to the user
- * @returns {boolean} - returns true if authUserId exists
- *                    - returns false if authUserId doesn't exist
- * 
+ * @returns {array} - returns the first element in the provided array if authUserId exists
+ *                  - returns undefined if authUserId doesn't exist
+ *
  */
-export function isAuthUserValid(authUserId) {
-  const data = getData();
-  return data.users.some((user) => authUserId === user.userId);
-}
 
 export function getUser(authUserId) {
   return getData().users.find((user) => authUserId === user.userId);

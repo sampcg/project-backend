@@ -1,6 +1,6 @@
 //This Imports the Database
 import { getData, setData } from './dataStore.js';
-import { isAuthUserValid, getUser } from "./helpers";
+import { getUser } from "./helpers";
 import validator from "validator";
 
 //First Function By Abrar
@@ -129,9 +129,9 @@ function adminUserDetails(authUserId) {
  * @returns {} - empty object
  */
 export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
-  let data = getData();
+  const data = getData();
   /** AuthUserId is not a valid user */
-  if (!isAuthUserValid(authUserId)) {
+  if (!getUser(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
   }
   /** Check for duplicate email */
@@ -169,10 +169,9 @@ export function adminUserDetailsUpdate(authUserId, email, nameFirst, nameLast) {
  */
 
 export function adminUserPasswordUpdate(authUserId, oldPassword, newPassword) {
-  const data = getData();
   const user = getUser(authUserId);
   /** AuthUserId is not a valid user */
-  if (!isAuthUserValid(authUserId)) {
+  if (!getUser(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
   }
   /** Old Password is not the correct old password */
