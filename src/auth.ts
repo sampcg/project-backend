@@ -1,5 +1,5 @@
 //This Imports the Database
-import { getData, setData } from './dataStore.js';
+import { getData, setData } from './dataStore';
 import { isAuthUserValid, getUser } from "./helpers";
 import validator from "validator";
 
@@ -47,7 +47,7 @@ function adminAuthRegister(email: string, password: string,
     password: password,
     numSuccessfulLogins: 0,
     numFailedPasswordsSinceLastLogin: 0,
-    oldPassword: null,
+    oldPassword: '',
     newPassword: password,
   };
 
@@ -92,7 +92,7 @@ function adminAuthLogin(email: string, password: string) {
 }
 
 //Third Function By Abrar
-function adminUserDetails(authUserId: number) {
+function adminUserDetails(authUserId: number | string) {
 
   let data = getData();
   let userDetails = null;
@@ -199,7 +199,7 @@ export function adminUserPasswordUpdate(authUserId: number, oldPassword: string,
   let hasLower = false;
   let hasUpper = false;
   for (const character of newPassword) {
-    if (!isNaN(character)) {
+    if (!isNaN(Number(character))) {
       hasNumber = true;
     } else if (character >= 'a' && character <= 'z') {
       hasLower = true;
