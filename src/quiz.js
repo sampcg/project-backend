@@ -12,7 +12,7 @@ export function adminQuizList(authUserId) {
 
   // Check if userId is valid
   if (!getUser(authUserId)) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
 
   // Creates array of quizzes to return
@@ -42,7 +42,7 @@ export function adminQuizCreate(authUserId, name, description) {
 
   // Check if user is valid
   if (!getUser(authUserId)) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
 
   // Check if name contains invalid characters
@@ -102,7 +102,7 @@ export function adminQuizRemove(authUserId, quizId) {
 
   // Check if user is valid
   if (!getUser(authUserId)) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
 
   // Check if quizId is valid
