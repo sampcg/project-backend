@@ -1,5 +1,5 @@
-import { getData, setData } from './dataStore.js'
-import { isAuthUserValid } from './helpers.js';
+import { getData, setData } from './dataStore.js';
+import { getUser } from './helpers.js';
 
 /**
  * Provides a list of all quizzed owned by the currently logged in user
@@ -11,7 +11,7 @@ export function adminQuizList(authUserId) {
   const data = getData();
 
   // Check if userId is valid
-  if (!isAuthUserValid(authUserId)) {
+  if (!getUser(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
   }
 
@@ -41,7 +41,7 @@ export function adminQuizCreate(authUserId, name, description) {
   const data = getData();
 
   // Check if user is valid
-  if (!isAuthUserValid(authUserId)) {
+  if (!getUser(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
   }
 
@@ -101,7 +101,7 @@ export function adminQuizRemove(authUserId, quizId) {
   const data = getData();
 
   // Check if user is valid
-  if (!isAuthUserValid(authUserId)) {
+  if (!getUser(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
   }
 
