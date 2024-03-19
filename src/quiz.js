@@ -1,4 +1,5 @@
-import { getData, setData } from './dataStore.js';
+import { getData, setData } from './dataStore.js'
+import { isAuthUserValid } from './helpers.js';
 
 /**
  * Provides a list of all quizzed owned by the currently logged in user
@@ -9,10 +10,9 @@ import { getData, setData } from './dataStore.js';
 export function adminQuizList(authUserId) {
   const data = getData();
 
-  // Checks if userId is valid
-  const userExists = data.users.some(user => user.userId === authUserId);
-  if (!userExists) {
-    return { error: 'Invalid user ID' };
+  // Check if userId is valid
+  if (!isAuthUserValid(authUserId)) {
+    return { error: "AuthUserId is not a valid user" };
   }
 
   // Creates array of quizzes to return
@@ -41,9 +41,8 @@ export function adminQuizCreate(authUserId, name, description) {
   const data = getData();
 
   // Check if user is valid
-  const userExists = data.users.some(user => user.userId === authUserId);
-  if (!userExists) {
-    return { error: 'Invalid user ID' };
+  if (!isAuthUserValid(authUserId)) {
+    return { error: "AuthUserId is not a valid user" };
   }
 
   // Check if name contains invalid characters
@@ -77,8 +76,8 @@ export function adminQuizCreate(authUserId, name, description) {
     quizId: newQuizId,
     name: name,
     description: description,
-    timeCreated: Date.now() / 1000,
-    timeLastEdited: Date.now() / 1000,
+    timeCreated: Math.round(Date.now() / 1000),
+    timeLastEdited: Math.round(Date.now() / 1000),
     userId: authUserId
   };
 
@@ -102,9 +101,8 @@ export function adminQuizRemove(authUserId, quizId) {
   const data = getData();
 
   // Check if user is valid
-  const userExists = data.users.some(user => user.userId === authUserId);
-  if (!userExists) {
-    return { error: 'Invalid user ID' };
+  if (!isAuthUserValid(authUserId)) {
+    return { error: "AuthUserId is not a valid user" };
   }
 
   // Check if quizId is valid
