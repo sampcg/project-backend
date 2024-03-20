@@ -10,6 +10,6 @@ import { getData } from './dataStore';
  *
  */
 
-export function getUser(authUserId) {
+export function getUser(authUserId: number) {
   return getData().users.find((user) => authUserId === user.userId);
 }

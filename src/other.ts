@@ -11,6 +11,7 @@ function clear(): object {
   setData({
     users: [],
     quizzes: [],
+    trash: []
   });
   return {};
 }
