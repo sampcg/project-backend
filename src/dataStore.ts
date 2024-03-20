@@ -1,13 +1,48 @@
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
-interface Data {
-
-  users: any[]; 
-  quizzes: any[]; 
+export interface Answer {
+  answer: string;
+  correct: boolean;
 }
 
-let data: { users: any[], quizzes: any[] } = {
+export interface Question {
+  question: string;
+  duration: number;
+  points: number;
+  answers: Answer[];
+}
+
+export interface User {
+  userId: number;
+  nameFirst: string;
+  nameLast: string;
+  email: string;
+  password: string;
+  numSuccessfulLogins: number;
+  numFailedPasswordsSinceLastLogin: number;
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface Quiz {
+  quizId: number;
+  name: string;
+  description: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  userId: number;
+  questions: Question[];
+}
+
+interface Data {
+  users: User[]; 
+  quizzes: Quiz[];
+  trash: Quiz[]; 
+}
+
+let data: { users: User[], quizzes: Quiz[], trash: Quiz[] } = {
   users: [],
   quizzes: [],
+  trash: [],
 };
 
 // YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY
