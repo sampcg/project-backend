@@ -1,25 +1,22 @@
-import { getData } from "./dataStore";
-import request, { HttpVerb } from 'sync-request';
+import { getData } from './dataStore';
+import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { User } from "./returnInterfaces";
+import { User } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
+
 /**
  * ============== helper functions============
- * 
+ *
  * Given Id of a user, check if this id is valid
  * @param {number} authUserId - user ID assigned to the user
- * @returns {boolean} - returns true if authUserId exists
- *                    - returns false if authUserId doesn't exist
- * 
+ * @returns {array} - returns the first element in the provided array if authUserId exists
+ *                  - returns undefined if authUserId doesn't exist
+ *
  */
-export function isAuthUserValid(authUserId: number) {
-  const data = getData();
-  return data.users.some((user) => authUserId === user.userId);
-}
 
-export const getUser = (authUserId: number): User => {
-  return getData().users.find((user) => authUserId === user.userId);
+export function getUser(authUserId: number): User {
+  return getData().users.find((user: { userId: number; }) => authUserId === user.userId);
 }
 
 /**
