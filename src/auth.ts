@@ -1,45 +1,43 @@
-//This Imports the Database
+// This Imports the Database
 import { getData, setData } from './dataStore';
-import { isAuthUserValid, getUser } from "./helpers";
-import validator from "validator";
+import { getUser } from './helpers';
+import validator from 'validator';
 
-//First Function By Abrar
+// First Function By Abrar
 function adminAuthRegister(email: string, password: string,
-  nameFirst: string, nameLast: string ) {
+  nameFirst: string, nameLast: string) {
+  const data = getData();
 
-  let data = getData();
-
-  var validator = require('validator');
-  //Next Line for special character checks
+  const validator = require('validator');
+  // Next Line for special character checks
   const specialChars = /[`!@#$%^&*()_+\=\[\]{};:"\\|,.<>\/?~]/;
 
   data.users = data.users || [];
 
-  for (let users of data.users) {
+  for (const users of data.users) {
     if (users.email === email) {
       return { error: 'Email is already used' };
     }
   }
 
   if (validator.isEmail(email) !== true) {
-    return { error: 'Email Not Valid' }
+    return { error: 'Email Not Valid' };
   } else if (specialChars.test(nameFirst) === true) {
-    return { error: 'Firstname contains invalid characters=' }
+    return { error: 'Firstname contains invalid characters=' };
   } else if (nameFirst.length < 2 || nameFirst.length > 20) {
-    return { error: 'Firstname is less than 2 or larger than 20 characters' }
+    return { error: 'Firstname is less than 2 or larger than 20 characters' };
   } else if (specialChars.test(nameLast) === true) {
-    return { error: 'Lastname contains invalid characters=' }
+    return { error: 'Lastname contains invalid characters=' };
   } else if (nameLast.length < 2 || nameLast.length > 20) {
-    return { error: 'Lastname is less than 2 or larger than 20 characters' }
+    return { error: 'Lastname is less than 2 or larger than 20 characters' };
   } else if (password.length < 8) {
-    return { error: 'Password length is less than 8 characters' }
-
+    return { error: 'Password length is less than 8 characters' };
   } else if (!/(?=.*\d)(?=.*[a-zA-Z])/.test(password)) {
-    return { error: 'Password must contain at least 1 letter and number' }
+    return { error: 'Password must contain at least 1 letter and number' };
   }
 
-  //Bit of Code that pushes the data after the filter
-  let new_data = {
+  // Bit of Code that pushes the data after the filter
+  const new_data = {
     userId: data.users.length,
     nameFirst: nameFirst,
     nameLast: nameLast,
@@ -53,17 +51,16 @@ function adminAuthRegister(email: string, password: string,
 
   data.users.push(new_data);
 
-  return { authUserId: (data.users.length - 1) }
+  return { authUserId: (data.users.length - 1) };
 }
 
-//Second Function By Abrar
+// Second Function By Abrar
 function adminAuthLogin(email: string, password: string) {
-
-  let data = getData();
+  const data = getData();
   let User_Id = null;
 
   let email_present = false;
-  for (let users of data.users) {
+  for (const users of data.users) {
     if (users.email === email) {
       email_present = true;
       break;
@@ -72,7 +69,7 @@ function adminAuthLogin(email: string, password: string) {
 
   let password_correct = false;
 
-  for (let users of data.users) {
+  for (const users of data.users) {
     if (users.email === email && users.password === password) {
       password_correct = true;
       User_Id = users.userId;
@@ -82,38 +79,32 @@ function adminAuthLogin(email: string, password: string) {
   }
 
   if (email_present === false) {
-    return { error: 'Email address does not exist' }
+    return { error: 'Email address does not exist' };
   } else if (password_correct === false) {
-
-    for (let user of data.users) {
-
+    for (const user of data.users) {
       if (email === user.email) {
-
         user.numFailedPasswordsSinceLastLogin++;
       }
     }
-    return { error: 'Password is not correct for the given email' }
+    return { error: 'Password is not correct for the given email' };
   }
 
-  for (let user of data.users) {
+  for (const user of data.users) {
     if (User_Id === user.userId) {
-
       user.numFailedPasswordsSinceLastLogin = 0;
     }
   }
 
-  return { authUserId: User_Id }
+  return { authUserId: User_Id };
 }
 
-//Third Function By Abrar
+// Third Function By Abrar
 function adminUserDetails(authUserId: number | string) {
-
-  let data = getData();
+  const data = getData();
   let userDetails = null;
   let id_present = false;
 
-
-  for (let users of data.users) {
+  for (const users of data.users) {
     if (users.userId === authUserId) {
       id_present = true;
       userDetails = {
@@ -130,12 +121,11 @@ function adminUserDetails(authUserId: number | string) {
   if (id_present === false) {
     return { error: 'AuthUserId is not a valid user' };
   } else {
-
     return { user: userDetails };
   }
 }
 
-/** 
+/**
  * Update the email and name of the admin user
  * @param {number} authUserId - unique identifier for admin user
  * @param {string} email - email of the user
@@ -143,40 +133,41 @@ function adminUserDetails(authUserId: number | string) {
  * @param {string} nameLast - last name of user
  * @returns {} - empty object
  */
-export function adminUserDetailsUpdate(authUserId: number, email : string, 
+export function adminUserDetailsUpdate(authUserId: number, email : string,
   nameFirst: string, nameLast: string) {
-  let data = getData();
+  const data = getData();
   /** AuthUserId is not a valid user */
-  if (!isAuthUserValid(authUserId)) {
-    return { error: "AuthUserId is not a valid user" };
+  if (!getUser(authUserId)) {
+    return { error: 'AuthUserId is not a valid user' };
   }
   /** Check for duplicate email */
   if (data.users.some((user) => user.email === email)) {
-    return { error: "Email is already in use" };
+    return { error: 'Email is already in use' };
   }
   /** Check for valid email */
   if (!validator.isEmail(email)) {
-    return { error: "Email is not valid" };
+    return { error: 'Email is not valid' };
   }
-  /** Check for invalid characters in nameFirst and if the first name length is valid*/
+  /** Check for invalid characters in nameFirst and if the first name length is valid */
   const namecharF = /(^[a-zA-Z]{1}[a-zA-Z\s'-]{0,18}[a-zA-Z]{1}$)/.test(nameFirst.trim());
   if (!namecharF) {
-    return { error: "Invalid first name" };
+    return { error: 'Invalid first name' };
   }
-  /** Check for invalid characters in nameLast and if the last name length is valid*/
+  /** Check for invalid characters in nameLast and if the last name length is valid */
   const namecharL = /(^[a-zA-Z]{1}[a-zA-Z\s'-]{0,18}[a-zA-Z]{1}$)/.test(nameLast.trim());
   if (!namecharL) {
-    return { error: "Invalid last name" };
+    return { error: 'Invalid last name' };
   }
   /** correct output */
-  let user = getUser(authUserId);
+  const user = getUser(authUserId);
   user.email = email;
   user.nameFirst = nameFirst;
   user.nameLast = nameLast;
+  setData(data);
   return {};
 }
 
-/** 
+/**
  * Updates the password of an admin user
  * @param {number} authUserId - unique identifier for admin user
  * @param {string} oldPassword - old password of user
@@ -184,29 +175,29 @@ export function adminUserDetailsUpdate(authUserId: number, email : string,
  * @returns {} - empty object
  */
 
-export function adminUserPasswordUpdate(authUserId: number, oldPassword: string, 
+export function adminUserPasswordUpdate(authUserId: number, oldPassword: string,
   newPassword: string) {
   const data = getData();
   const user = getUser(authUserId);
   /** AuthUserId is not a valid user */
-  if (!isAuthUserValid(authUserId)) {
-    return { error: "AuthUserId is not a valid user" };
+  if (!getUser(authUserId)) {
+    return { error: 'AuthUserId is not a valid user' };
   }
   /** Old Password is not the correct old password */
   if (oldPassword !== user.password) {
-    return { error: "Old Password is not the correct old password" };
+    return { error: 'Old Password is not the correct old password' };
   }
   /** Old Password and New Password match exactly */
   if (oldPassword === newPassword) {
-    return { error: "Old Password and New Password match exactly" };
+    return { error: 'Old Password and New Password match exactly' };
   }
   /** New Password has already been used before by this user */
   if (user.oldPassword === newPassword) {
-    return { error: "New Password has already been used before by this user" };
+    return { error: 'New Password has already been used before by this user' };
   }
   /** New Password is less than 8 characters */
   if (newPassword.length < 8) {
-    return { error: "New Password is less than 8 characters" };
+    return { error: 'New Password is less than 8 characters' };
   }
   /** New Password does not contain at least one number and at least one letter */
   let hasNumber = false;
@@ -223,16 +214,17 @@ export function adminUserPasswordUpdate(authUserId: number, oldPassword: string,
   }
 
   if (!(hasNumber && (hasLower || hasUpper))) {
-    return { error: "New Password does not contain at least one number and at least one letter" };
+    return { error: 'New Password does not contain at least one number and at least one letter' };
   }
   /** correct output */
   user.oldPassword = user.password;
   user.password = newPassword;
+  setData(getData());
   return {};
 }
 
-//This is exporting the data to auth.test.js
-//Also to the dataStore.js
-export { adminAuthRegister }
-export { adminAuthLogin }
-export { adminUserDetails }
+// This is exporting the data to auth.test.js
+// Also to the dataStore.js
+export { adminAuthRegister };
+export { adminAuthLogin };
+export { adminUserDetails };
