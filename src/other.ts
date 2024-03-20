@@ -11,6 +11,7 @@ export const clear = (): EmptyObject => {
   setData({
     users: [],
     quizzes: [],
+    trash: []
   });
   return {};
 };

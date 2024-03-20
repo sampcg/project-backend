@@ -1,19 +1,12 @@
-/* import { DataStore } from './dataInterfaces';
-import fs from 'fs';
+import { DataStore } from './dataInterfaces';
+// import fs from 'fs';
+// const DATABASE_FILE_PATH = './database.json';
 
-const DATABASE_FILE_PATH = './database.json';
-*/
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
-// let data: DataStore = {
-interface Data {
-
-  users: any[];
-  quizzes: any[];
-}
-
-let data: { users: any[], quizzes: any[] } = {
+let data: DataStore = {
   users: [],
   quizzes: [],
+  trash: [],
 };
 
 /** Use get() to access the data
@@ -52,12 +45,12 @@ Example usage
 */
 
 // Use get() to access the data
-function getData(): Data {
+function getData(): DataStore {
   return data;
 }
 
 // Use set(newData) to pass in the entire data object, with modifications made
-function setData(newData: Data): void {
+function setData(newData: DataStore): void {
   data = newData;
 }
 
