@@ -1,25 +1,43 @@
-import { getData, setData } from './dataStore.js';
-import { getUser } from './helpers.js';
+import { getData, setData, Question, User, Quiz } from './dataStore';
+import { getUser } from './helpers';
 
-/**
+// Error return type
+interface ErrorObject {
+    error: string;
+}
+
+/////////////////////           List all Quizzes           /////////////////////
+
+/** 
  * Provides a list of all quizzed owned by the currently logged in user
  * @param {number} authUserId - unique identifier for the user
  * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
  */
 
-export function adminQuizList(authUserId) {
+// AdminQuizList return type
+interface BriefQuizDetails {
+    quizId: number;
+    name: string;
+}
+
+interface AdminQuizListReturn {
+    quizzes: BriefQuizDetails[];
+}
+
+// Feature
+export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorObject => {
   const data = getData();
 
   // Check if userId is valid
   if (!getUser(authUserId)) {
-    return { error: 'AuthUserId is not a valid user' };
+    return { error: "AuthUserId is not a valid user" };
   }
 
   // Creates array of quizzes to return
   const quizzes = [];
 
-  // Pushes all quizzes with given user ID in data to array quizzes
-  for (const quiz of data.quizzes) {
+  // Pushes all quizzes with given user ID in data to array quizzes 
+  for (let quiz of data.quizzes) {
     if (quiz.userId === authUserId) {
       quizzes.push({ quizId: quiz.quizId, name: quiz.name });
     }
@@ -29,7 +47,10 @@ export function adminQuizList(authUserId) {
   return { quizzes: quizzes };
 }
 
-/**
+
+/////////////////////            Create a Quiz             /////////////////////
+
+/** 
  * Creates a quiz for the logged in user given basic details
  * @param {number} authUserId - unique identifier for admin user
  * @param {string} name - name for the quiz
@@ -37,18 +58,24 @@ export function adminQuizList(authUserId) {
  * @returns {{quizId: number}} - quizId
  */
 
-export function adminQuizCreate(authUserId, name, description) {
+// AdminQuizCreate return type 
+interface AdminQuizCreateReturn {
+    quizId: number;
+}
+
+// Feature
+export const adminQuizCreate = (authUserId: number, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
   const data = getData();
 
   // Check if user is valid
   if (!getUser(authUserId)) {
-    return { error: 'AuthUserId is not a valid user' };
+    return { error: "AuthUserId is not a valid user" };
   }
 
   // Check if name contains invalid characters
   const validName = /^[a-zA-Z0-9\s]*$/.test(name);
   if (!validName) {
-    return { error: 'Name contains invalid characters' };
+    return { error: 'Name contains invalid characters' }
   }
 
   // Check if name is less than 3 characters or greater than 30
@@ -56,7 +83,7 @@ export function adminQuizCreate(authUserId, name, description) {
     return { error: 'Name must be between 3 and 30 characters' };
   }
 
-  // Check if name there is already a quiz by that name
+  // Check if name there is already a quiz by that name 
   // makes sure case doesn't impact check
   const nameExists = data.quizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase());
   if (nameExists) {
@@ -71,6 +98,9 @@ export function adminQuizCreate(authUserId, name, description) {
   // Generate new quiz ID
   const newQuizId = data.quizzes.length + 1;
 
+  // Create an empty array for questions
+  const questions: any = [];
+
   // Create parameters for new quiz
   const newQuiz = {
     quizId: newQuizId,
@@ -78,7 +108,8 @@ export function adminQuizCreate(authUserId, name, description) {
     description: description,
     timeCreated: Math.round(Date.now() / 1000),
     timeLastEdited: Math.round(Date.now() / 1000),
-    userId: authUserId
+    userId: authUserId,
+    questions: questions
   };
 
   // Add quiz to data
@@ -88,7 +119,10 @@ export function adminQuizCreate(authUserId, name, description) {
   return {
     quizId: newQuizId
   };
-}
+};
+
+
+/////////////////////            Remove a Quiz             /////////////////////
 
 /**
  * Removes a quiz given author and quiz IDs
@@ -97,12 +131,16 @@ export function adminQuizCreate(authUserId, name, description) {
  * @returns { } - empty object
  */
 
-export function adminQuizRemove(authUserId, quizId) {
+// AdminQuizRemove return type
+interface AdminQuizRemoveReturn {}
+
+// Feature
+export const adminQuizRemove = (authUserId: number, quizId: number): AdminQuizRemoveReturn | ErrorObject => {
   const data = getData();
 
   // Check if user is valid
   if (!getUser(authUserId)) {
-    return { error: 'AuthUserId is not a valid user' };
+    return { error: "AuthUserId is not a valid user" };
   }
 
   // Check if quizId is valid
@@ -122,16 +160,24 @@ export function adminQuizRemove(authUserId, quizId) {
 
   // Return empty object
   return {};
-}
+};
+
+
+/////////////////////        Update name of a Quiz         /////////////////////
 
 /**
  * Updates the name of the relevant quiz
  * @param {number} authUserId - unique identifier for an authorated user
- * @param {number} quizId - unique identifier for quiz
+ * @param {number} quizId - unique identifier for quiz 
  * @param {string} name - updated name for relevant quiz
  * @returns {} an empty object
  */
-export function adminQuizNameUpdate(authUserId, quizId, name) {
+
+// adminQuizNameUpdate return type
+interface AdminQuizNameUpdateReturn {}
+
+// Feature
+export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: string): AdminQuizNameUpdateReturn | ErrorObject => {
   const data = getData();
 
   // Find the user by authUserId
@@ -154,7 +200,7 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   // Validate the name
   const validName = /^[a-zA-Z0-9\s]*$/.test(name);
   if (!validName) {
-    return { error: 'Name contains invalid characters' };
+    return { error: 'Name contains invalid characters' }
   }
 
   if (name.length < 3 || name.length > 30) {
@@ -167,21 +213,27 @@ export function adminQuizNameUpdate(authUserId, quizId, name) {
   if (quizWithSameName) {
     return { error: 'Name is already used by the current logged in user for another quiz.' };
   }
-  quiz.timeLastEdited = Date.now() / 1000;
+  quiz.timeLastEdited = Math.round(Date.now() / 1000);
   quiz.name = name;
   return {};
-}
+};
+
+
+/////////////////////     Update description of a Quiz     /////////////////////
 
 /**
  * Updates the description of the relevant quiz
  * @param {number} authUserId - unique identifier for an authorated user
- * @param {number} quizId - unique identifier for quiz
+ * @param {number} quizId - unique identifier for quiz 
  * @param {string} description - updated name for relevant quiz
  * @returns {} an empty object
  */
-// Update the description of the relevant quiz.
 
-export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+// AdminQuizDescriptionUpdate return type
+interface AdminQuizDescriptionUpdateReturn {}
+
+// Feature
+export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, description: string): AdminQuizDescriptionUpdateReturn | ErrorObject => {
   const data = getData();
 
   // Check if user is valid
@@ -208,22 +260,35 @@ export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
   quiz.description = description;
 
   // Update the last edited time
-  quiz.timeLastEdited = Date.now() / 1000;
+  quiz.timeLastEdited = Math.round(Date.now() / 1000);
 
   // Save the updated data
   setData(data);
   // Return empty object
   return {};
-}
+};
+
+
+/////////////////////       Show all info of a Quiz        /////////////////////
 
 /**
  * Program to get all of the relevant information about the current quiz
  * @param {number} authUserId - unique identifier for an authorated user
- * @param {number} quizId - unique identifier for quiz
+ * @param {number} quizId - unique identifier for quiz 
  * @returns {quizId: number, name: string, timeCreated: number, timeLastEdited: number, description: string}
  */
 
-export function adminQuizInfo(authUserId, quizId) {
+// AdminQuizInfo return type
+interface AdminQuizInfoReturn {
+    quizId: number;
+    name: string;
+    description: string;
+    timeCreated: number;
+    timeLastEdited: number;
+}
+
+// Feature
+export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfoReturn | ErrorObject => {
   const data = getData();
 
   const user = data.users.find(user => user.userId === authUserId);
@@ -234,18 +299,18 @@ export function adminQuizInfo(authUserId, quizId) {
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
+    return { error: 'Quiz ID does not refer to a valid quiz.' }
   }
 
   if (quiz.userId !== authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.' }
   }
 
   return {
     quizId: quiz.quizId,
     name: quiz.name,
     timeCreated: quiz.timeCreated,
-    timeLastEdited: Date.now() / 1000,
+    timeLastEdited: Math.round(Date.now() / 1000),
     description: quiz.description
   };
-}
+};
