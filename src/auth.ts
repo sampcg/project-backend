@@ -76,6 +76,7 @@ function adminAuthLogin(email: string, password: string) {
     if (users.email === email && users.password === password) {
       password_correct = true;
       User_Id = users.userId;
+      users.numSuccessfulLogins++;
       break;
     }
   }
@@ -83,10 +84,23 @@ function adminAuthLogin(email: string, password: string) {
   if (email_present === false) {
     return { error: 'Email address does not exist' }
   } else if (password_correct === false) {
+
+    for (let user of data.users) {
+
+      if (email === user.email) {
+
+        user.numFailedPasswordsSinceLastLogin++;
+      }
+    }
     return { error: 'Password is not correct for the given email' }
   }
 
+  for (let user of data.users) {
+    if (User_Id === user.userId) {
 
+      user.numFailedPasswordsSinceLastLogin = 0;
+    }
+  }
 
   return { authUserId: User_Id }
 }

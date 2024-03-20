@@ -356,6 +356,47 @@ describe('adminUserDetails', () => {
 
   })
 
+  test('Checking if AuthUserDetails giving correct number of successfull logins', () => {
+    clear();
+    const authEmail: string = 'blah@email.com';
+    const authPassword: string = 'password1YAY';
+    const authNameFirst: string = 'john';
+    const authNameLast: string = 'smith';
+
+    const result = adminAuthRegister(authEmail, authPassword, authNameFirst, authNameLast);
+    const authID = result.authUserId;
+
+    adminAuthLogin(authEmail, authPassword);
+
+    expect(adminUserDetails(authID)).toStrictEqual({ user: { userId: authID, email: 'blah@email.com', name: 'john smith', numSuccessfulLogins: 1,
+      numFailedPasswordsSinceLastLogin: 0 } });
+
+    adminAuthLogin(authEmail, authPassword);
+
+    expect(adminUserDetails(authID)).toStrictEqual({ user: { userId: authID, email: 'blah@email.com', name: 'john smith', numSuccessfulLogins: 2,
+        numFailedPasswordsSinceLastLogin: 0 } });
+
+    adminAuthLogin(authEmail, 'WrongPassword1');
+
+    expect(adminUserDetails(authID)).toStrictEqual({ user: { userId: authID, email: 'blah@email.com', name: 'john smith', numSuccessfulLogins: 2,
+        numFailedPasswordsSinceLastLogin: 1 } });
+
+    adminAuthLogin(authEmail, 'WrongPassword2');
+
+    expect(adminUserDetails(authID)).toStrictEqual({ user: { userId: authID, email: 'blah@email.com', name: 'john smith', numSuccessfulLogins: 2,
+        numFailedPasswordsSinceLastLogin: 2 } });
+
+
+    adminAuthLogin(authEmail, authPassword);
+
+    expect(adminUserDetails(authID)).toStrictEqual({ user: { userId: authID, email: 'blah@email.com', name: 'john smith', numSuccessfulLogins: 3,
+      numFailedPasswordsSinceLastLogin: 0 } });
+    
+  })
+
+  
+
+
 });
 
 //END OF AUTH USER DETAILS
