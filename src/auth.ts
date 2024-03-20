@@ -10,7 +10,7 @@ function adminAuthRegister(email: string, password: string,
 
   const validator = require('validator');
   // Next Line for special character checks
-  const specialChars = /[`!@#$%^&*()_+\=\[\]{};:"\\|,.<>\/?~]/;
+  const specialChars = /[`!@#$%^&*()_+=[\]{};:"\\|,.<>/?~]/;
 
   data.users = data.users || [];
 
@@ -37,7 +37,7 @@ function adminAuthRegister(email: string, password: string,
   }
 
   // Bit of Code that pushes the data after the filter
-  const new_data = {
+  const newData = {
     userId: data.users.length,
     nameFirst: nameFirst,
     nameLast: nameLast,
@@ -49,7 +49,7 @@ function adminAuthRegister(email: string, password: string,
     newPassword: password,
   };
 
-  data.users.push(new_data);
+  data.users.push(newData);
 
   return { authUserId: (data.users.length - 1) };
 }
@@ -57,30 +57,30 @@ function adminAuthRegister(email: string, password: string,
 // Second Function By Abrar
 function adminAuthLogin(email: string, password: string) {
   const data = getData();
-  let User_Id = null;
+  let newUserId = null;
 
-  let email_present = false;
+  let emailPresent = false;
   for (const users of data.users) {
     if (users.email === email) {
-      email_present = true;
+      emailPresent = true;
       break;
     }
   }
 
-  let password_correct = false;
+  let passwordCorrect = false;
 
   for (const users of data.users) {
     if (users.email === email && users.password === password) {
-      password_correct = true;
-      User_Id = users.userId;
+      passwordCorrect = true;
+      newUserId = users.userId;
       users.numSuccessfulLogins++;
       break;
     }
   }
 
-  if (email_present === false) {
+  if (emailPresent === false) {
     return { error: 'Email address does not exist' };
-  } else if (password_correct === false) {
+  } else if (passwordCorrect === false) {
     for (const user of data.users) {
       if (email === user.email) {
         user.numFailedPasswordsSinceLastLogin++;
@@ -90,23 +90,23 @@ function adminAuthLogin(email: string, password: string) {
   }
 
   for (const user of data.users) {
-    if (User_Id === user.userId) {
+    if (newUserId === user.userId) {
       user.numFailedPasswordsSinceLastLogin = 0;
     }
   }
 
-  return { authUserId: User_Id };
+  return { authUserId: newUserId };
 }
 
 // Third Function By Abrar
 function adminUserDetails(authUserId: number | string) {
   const data = getData();
   let userDetails = null;
-  let id_present = false;
+  let idPresent = false;
 
   for (const users of data.users) {
     if (users.userId === authUserId) {
-      id_present = true;
+      idPresent = true;
       userDetails = {
         userId: users.userId,
         name: users.nameFirst + ' ' + users.nameLast,
@@ -118,7 +118,7 @@ function adminUserDetails(authUserId: number | string) {
     }
   }
 
-  if (id_present === false) {
+  if (idPresent === false) {
     return { error: 'AuthUserId is not a valid user' };
   } else {
     return { user: userDetails };
@@ -177,7 +177,6 @@ export function adminUserDetailsUpdate(authUserId: number, email : string,
 
 export function adminUserPasswordUpdate(authUserId: number, oldPassword: string,
   newPassword: string) {
-  const data = getData();
   const user = getUser(authUserId);
   /** AuthUserId is not a valid user */
   if (!getUser(authUserId)) {

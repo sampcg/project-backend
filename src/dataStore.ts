@@ -34,9 +34,9 @@ export interface Quiz {
 }
 
 interface Data {
-  users: User[]; 
+  users: User[];
   quizzes: Quiz[];
-  trash: Quiz[]; 
+  trash: Quiz[];
 }
 
 let data: { users: User[], quizzes: Quiz[], trash: Quiz[] } = {
