@@ -333,7 +333,6 @@ describe('adminQuizDescriptionUpdate', () => {
   });
 
   test('Updates quiz description with valid description', () => {
-
     const newDescription = 'New descriptionfor the quiz';
     const result = adminQuizDescriptionUpdate(authUserId, quizId, newDescription);
 

@@ -1,5 +1,5 @@
 import { getData, setData, Question, User, Quiz } from './dataStore';
-import { isAuthUserValid } from './helpers';
+import { getUser } from './helpers';
 
 // Error return type
 interface ErrorObject {
@@ -29,7 +29,7 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorOb
   const data = getData();
 
   // Check if userId is valid
-  if (!isAuthUserValid(authUserId)) {
+  if (!getUser(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
   }
 
@@ -68,7 +68,7 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
   const data = getData();
 
   // Check if user is valid
-  if (!isAuthUserValid(authUserId)) {
+  if (!getUser(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
   }
 
@@ -139,7 +139,7 @@ export const adminQuizRemove = (authUserId: number, quizId: number): AdminQuizRe
   const data = getData();
 
   // Check if user is valid
-  if (!isAuthUserValid(authUserId)) {
+  if (!getUser(authUserId)) {
     return { error: "AuthUserId is not a valid user" };
   }
 
