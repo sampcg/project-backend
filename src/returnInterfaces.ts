@@ -44,4 +44,3 @@ export interface Trash {
   timeCreated: number;
   timeLastEdited: number;
 }
-
