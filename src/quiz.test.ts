@@ -185,7 +185,7 @@ describe('adminQuizList', () => {
 
   test('Lists no quizzes by second user', () => {
     const author2: any = adminAuthRegister('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-    const quiz: any = adminQuizCreate(author.authUserId, 'Quiz', '');
+    adminQuizCreate(author.authUserId, 'Quiz', '');
 
     expect(adminQuizList(author2.authUserId)).toStrictEqual({ quizzes: [] });
   });
