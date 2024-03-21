@@ -1,10 +1,10 @@
 
 import request from 'sync-request-curl';
-import { port, url } from '/config.json';
-import { ErrorObject } from '/returnInterfaces';
-import { User } from '/returnInterfaces';
-import { Quiz } from '/returnInterfaces';
-import { Trash } from '/returnInterfaces';
+import { port, url } from './config.json';
+import { ErrorObject } from './returnInterfaces';
+import { User } from './returnInterfaces';
+import { Quiz } from './returnInterfaces';
+import { Trash } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -17,7 +17,7 @@ beforeEach(() => {
 
     //This is the correct output for AdminAuthRegister
     test('Correct status code and return value', () => {
-      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: {
           email: 'aaa@bbb.com', 
           password: 'abcde12345',
@@ -28,7 +28,7 @@ beforeEach(() => {
 
       expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
 
-      const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
       expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
     });
 
@@ -68,12 +68,12 @@ beforeEach(() => {
     ]) (
       'Checking for valid emails and already used or not',
       ({ email, password, nameFirst, nameLast }) => {
-        const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+        let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
           json: {
             email, password, nameFirst, nameLast}
         });
         expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-        const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+        AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
         expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
   
       });
@@ -118,12 +118,12 @@ beforeEach(() => {
     ]) (
       'Checking for invalid characters firstName',
       ({ email, password, nameFirst, nameLast }) => {
-        const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+        let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
           json: {
             email, password, nameFirst, nameLast}
         });
         expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-        const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+        AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
         expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
   
     });
@@ -146,12 +146,12 @@ beforeEach(() => {
     ]) (
       'Checking length of firstName, errors expected return',
       ({ email, password, nameFirst, nameLast }) => {
-        const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+        let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
           json: {
             email, password, nameFirst, nameLast}
         });
         expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-        const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+        AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
         expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
   
     });
@@ -174,12 +174,12 @@ beforeEach(() => {
     ]) (
       'Checking length of firstName, pass expected return',
       ({ email, password, nameFirst, nameLast }) => {
-        const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+        let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
           json: {
             email, password, nameFirst, nameLast}
         });
         expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-        const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+        AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
         expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
   
     });
@@ -225,12 +225,12 @@ beforeEach(() => {
     ]) (
       'Checking for invalid character lastName',
       ({ email, password, nameFirst, nameLast }) => {
-        const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+        let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
           json: {
             email, password, nameFirst, nameLast}
         });
         expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-        const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+        AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
         expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
   
     });
@@ -253,12 +253,12 @@ beforeEach(() => {
 
     'Checking length of lastName, error expected return',
     ({ email, password, nameFirst, nameLast }) => {
-      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: {
           email, password, nameFirst, nameLast}
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
       expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
 
   });
@@ -280,12 +280,12 @@ beforeEach(() => {
 
   'Checking length of lastName, pass expected return',
   ({ email, password, nameFirst, nameLast }) => {
-    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email, password, nameFirst, nameLast}
     });
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-    const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+    AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
     expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
   });
 
@@ -331,18 +331,18 @@ beforeEach(() => {
    
   'Checking length of password, error return expected',
   ({ email, password, nameFirst, nameLast }) => {
-    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email, password, nameFirst, nameLast}
     });
     expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-    const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+    AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
     expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
   });
 
 
   test('Checking length of password, error return expected', () => {
-    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: '17aaa@bbb.com', 
         password: 'a1234567',
@@ -353,7 +353,7 @@ beforeEach(() => {
 
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
 
-    const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+    AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
     expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
   });
 
@@ -375,12 +375,12 @@ beforeEach(() => {
   ]) (
     'Checking length of password, error return expected',
   ({ email, password, nameFirst, nameLast }) => {
-    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email, password, nameFirst, nameLast}
     });
     expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-    const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+    AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
     expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
   });
 
@@ -400,12 +400,12 @@ beforeEach(() => {
   ]) (
     'Checking length of password, error return expected',
   ({ email, password, nameFirst, nameLast }) => {
-    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email, password, nameFirst, nameLast}
     });
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-    const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+    AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
     expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
   });
   
