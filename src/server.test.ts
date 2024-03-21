@@ -79,12 +79,56 @@ beforeEach(() => {
       });
 
     test.each([
+      {
+        email: '1aaa@bbb.com', 
+        password: 'abcde12345',
+        nameFirst: 'Abrar!',
+        nameLast: 'Hourn'
+      },
+      {
+        email: '2aa@bbb.com', 
+        password: 'abcde12345',
+        nameFirst: 'Abrar#',
+        nameLast: 'Hourn'
+      },
+      {
+        email: '3aa@bbb.com', 
+        password: 'abcde12345',
+        nameFirst: 'Sam(parameters)',
+        nameLast: 'Hourn'
+      },
+      {
+        email: '4aa@bbb.com', 
+        password: 'abcde12345',
+        nameFirst: 'Michael@',
+        nameLast: 'Hourn'
+      },
+      {
+        email: '5aa@bbb.com', 
+        password: 'abcde12345',
+        nameFirst: 'Micha*l',
+        nameLast: 'Hourn'
+      },
+      {
+        email: '6aa@bbb.com', 
+        password: 'abcde12345',
+        nameFirst: '9+10=21',
+        nameLast: 'Hourn'
+      }
+    ]) (
+      'Checking for invalid characters firstName',
+      ({ email, password, nameFirst, nameLast }) => {
+        const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+          json: {
+            email, password, nameFirst, nameLast}
+        });
+        expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
+        const AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
+        expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+  
+      });
 
-      
-
-
-    ])
-
+    
 
   });
   
