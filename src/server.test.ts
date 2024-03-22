@@ -393,3 +393,66 @@ describe('Testing POST /v1/admin/auth/register', () => {
 });
 
 // END OF AUTH REGISTER TESTING
+
+// BEGINNING OF AUTH LOGIN TESTING
+
+describe('Testing POST /v1/admin/auth/login', () => {
+
+  test('Checking for Emails that dont exist', () => {
+
+    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aaa@bbb.com',
+        password: 'abcde12345',
+        nameFirst: 'Michael',
+        nameLast: 'Hourn'
+      }
+    });
+
+    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+
+    const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
+
+    expect(AuthLoginResponse.statusCode).toStrictEqual(200);
+    const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ authUserId: expect.any(Number)});
+
+    const AuthLoginResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'fake@email.com', password: 'abcde12345'}});
+
+    expect(AuthLoginResponse2.statusCode).toStrictEqual(400);
+    const AuthLoginJSON2 = JSON.parse(AuthLoginResponse2.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ error: expect.any(String)});
+  });
+
+  test('Checking for incorrect password', () => {
+
+    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aaa1@bbb.com',
+        password: 'abcde12345',
+        nameFirst: 'Michael',
+        nameLast: 'Hourn'
+      }
+    });
+
+    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+
+    const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa1@bbb.com', password: 'abcde12345'}});
+
+    expect(AuthLoginResponse.statusCode).toStrictEqual(200);
+    const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ authUserId: expect.any(Number)});
+
+    const AuthLoginResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa1@bbb.com', password: 'IncorrectPassword1'}});
+
+    expect(AuthLoginResponse2.statusCode).toStrictEqual(400);
+    const AuthLoginJSON2 = JSON.parse(AuthLoginResponse2.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ error: expect.any(String)});
+  });
+  
+});
+// END OF AUTH LOGIN TESTING
