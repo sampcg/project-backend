@@ -410,6 +410,7 @@ describe('Testing POST /v1/admin/auth/login', () => {
     });
 
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
 
     const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
@@ -438,6 +439,7 @@ describe('Testing POST /v1/admin/auth/login', () => {
     });
 
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
 
     const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa1@bbb.com', password: 'abcde12345'}});
@@ -456,3 +458,53 @@ describe('Testing POST /v1/admin/auth/login', () => {
   
 });
 // END OF AUTH LOGIN TESTING
+
+// BEGINNING OF AUTH USER DETAILS
+
+describe('Testing GET /v1/admin/user/details', () => {
+
+  test('Checking if AuthUserId is valid', () => {
+
+    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aaa@bbb.com',
+        password: 'abcde12345',
+        nameFirst: 'Michael',
+        nameLast: 'Hourn'
+      }
+    });
+
+    expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
+    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+
+    //First Test of Passing
+    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    { json: { userId: AuthRegisterJSON.userId }});
+    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
+    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    expect (AuthUserDetailsJSON).toStrictEqual({ user: expect.any(Object) });
+
+    //Now checking by passing incorrect authId
+    const AuthUserDetailsResponse2 = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    { json: { userId: 24234234 }});
+    expect(AuthUserDetailsResponse2.statusCode).toStrictEqual(401);
+    const AuthUserDetailsJSON2 = JSON.parse(AuthUserDetailsResponse2.body.toString());
+    expect (AuthUserDetailsJSON2).toStrictEqual({ error: expect.any(String) });
+
+    //Now checking by passing incorrect authId
+    const AuthUserDetailsResponse3 = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    { json: { userId: 'Hello, World!' }});
+    expect(AuthUserDetailsResponse3.statusCode).toStrictEqual(401);
+    const AuthUserDetailsJSON3 = JSON.parse(AuthUserDetailsResponse3.body.toString());
+    expect (AuthUserDetailsJSON3).toStrictEqual({ error: expect.any(String) });
+
+  });
+
+
+
+
+
+
+
+
+});
