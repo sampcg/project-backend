@@ -16,7 +16,7 @@ beforeEach(() => {
 describe('Testing POST /v1/admin/auth/register', () => {
   // This is the correct output for AdminAuthRegister
   test('Correct status code and return value', () => {
-    let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'aaa@bbb.com',
         password: 'abcde12345',
@@ -27,8 +27,8 @@ describe('Testing POST /v1/admin/auth/register', () => {
 
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
 
-    AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-    expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
+    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    expect(AuthRegisterJSON).toStrictEqual({ authUserId: expect.any(Number) });
   });
 
   // 2)Checking for valid email structure
@@ -67,12 +67,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
   ])(
     'Checking for valid emails and already used or not',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ error: expect.any(String) });
     });
   // 3) NameFirst contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes
   test.each([
@@ -115,12 +115,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
   ])(
     'Checking for invalid characters firstName',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ error: expect.any(String) });
     });
 
   // 4)NameFirst is less than 2 characters or more than 20 characters (pt. 1/2)
@@ -141,12 +141,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
   ])(
     'Checking length of firstName, errors expected return',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ error: expect.any(String) });
     });
 
   // 4)NameFirst is less than 2 characters or more than 20 characters (pt. 2/2)
@@ -167,12 +167,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
   ])(
     'Checking length of firstName, pass expected return',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ authUserId: expect.any(Number) });
     });
   // 5)NameLast contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes.
   test.each([
@@ -216,12 +216,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
   ])(
     'Checking for invalid character lastName',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ error: expect.any(String) });
     });
 
   // 6)NameLast is less than 2 characters or more than 20 characters. (pt. 1/2)
@@ -242,12 +242,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
 
     'Checking length of lastName, error expected return',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ error: expect.any(String) });
     });
   // 6)NameLast is less than 2 characters or more than 20 characters. (pt. 2/2)
   test.each([
@@ -267,12 +267,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
 
     'Checking length of lastName, pass expected return',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ authUserId: expect.any(Number) });
     });
 
   // 7) Password is less than 8 characters.
@@ -317,12 +317,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
 
     'Checking length of password, error return expected',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ error: expect.any(String) });
     });
 
   test('Checking length of password, error return expected', () => {
@@ -337,8 +337,8 @@ describe('Testing POST /v1/admin/auth/register', () => {
 
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
 
-    AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-    expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
+    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    expect(AuthRegisterJSON).toStrictEqual({ authUserId: expect.any(Number) });
   });
 
   // 8)Password does not contain at least one number and at least one letter (pt. 1/2)
@@ -359,12 +359,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
   ])(
     'Checking length of password, error return expected',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ error: expect.any(String) });
     });
 
   test.each([
@@ -383,13 +383,76 @@ describe('Testing POST /v1/admin/auth/register', () => {
   ])(
     'Checking length of password, error return expected',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ authUserId: expect.any(Number) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ authUserId: expect.any(Number) });
     });
 });
 
 // END OF AUTH REGISTER TESTING
+
+// BEGINNING OF AUTH LOGIN TESTING
+
+describe('Testing POST /v1/admin/auth/login', () => {
+
+  test('Checking for Emails that dont exist', () => {
+
+    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aaa@bbb.com',
+        password: 'abcde12345',
+        nameFirst: 'Michael',
+        nameLast: 'Hourn'
+      }
+    });
+
+    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+
+    const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
+
+    expect(AuthLoginResponse.statusCode).toStrictEqual(200);
+    const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ authUserId: expect.any(Number)});
+
+    const AuthLoginResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'fake@email.com', password: 'abcde12345'}});
+
+    expect(AuthLoginResponse2.statusCode).toStrictEqual(400);
+    const AuthLoginJSON2 = JSON.parse(AuthLoginResponse2.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ error: expect.any(String)});
+  });
+
+  test('Checking for incorrect password', () => {
+
+    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aaa1@bbb.com',
+        password: 'abcde12345',
+        nameFirst: 'Michael',
+        nameLast: 'Hourn'
+      }
+    });
+
+    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+
+    const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa1@bbb.com', password: 'abcde12345'}});
+
+    expect(AuthLoginResponse.statusCode).toStrictEqual(200);
+    const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ authUserId: expect.any(Number)});
+
+    const AuthLoginResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa1@bbb.com', password: 'IncorrectPassword1'}});
+
+    expect(AuthLoginResponse2.statusCode).toStrictEqual(400);
+    const AuthLoginJSON2 = JSON.parse(AuthLoginResponse2.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ error: expect.any(String)});
+  });
+  
+});
+// END OF AUTH LOGIN TESTING
