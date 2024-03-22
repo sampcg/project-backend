@@ -514,13 +514,15 @@ describe('Testing GET /v1/admin/user/details', () => {
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
 
-    //
-    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    let AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
+
+    let AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
     { json: { userId: AuthRegisterJSON.userId }});
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    let AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
     expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: authID,
+      userId: AuthRegisterJSON.userId,
       email: 'blah@email.com',
       name: 'john smith',
       numSuccessfulLogins: 1,
@@ -528,14 +530,15 @@ describe('Testing GET /v1/admin/user/details', () => {
     }
     });
 
-    adminAuthLogin('aaa@bbb.com', 'abcde12345');
+    AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
 
-    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
     { json: { userId: AuthRegisterJSON.userId }});
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
     expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: authID,
+      userId: AuthRegisterJSON.userId,
       email: 'blah@email.com',
       name: 'john smith',
       numSuccessfulLogins: 2,
@@ -543,14 +546,15 @@ describe('Testing GET /v1/admin/user/details', () => {
     }
     });
 
-    adminAuthLogin('aaa@bbb.com', 'WrongPassword1');
+    AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa@bbb.com', password: 'WrongPassword1'}});
 
-    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
     { json: { userId: AuthRegisterJSON.userId }});
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
     expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: authID,
+      userId: AuthRegisterJSON.userId,
       email: 'blah@email.com',
       name: 'john smith',
       numSuccessfulLogins: 2,
@@ -558,14 +562,15 @@ describe('Testing GET /v1/admin/user/details', () => {
     }
     });
 
-    adminAuthLogin('aaa@bbb.com', 'WrongPassword2');
+    AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa@bbb.com', password: 'WrongPassword2'}});
 
-    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
     { json: { userId: AuthRegisterJSON.userId }});
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
     expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: authID,
+      userId: AuthRegisterJSON.userId,
       email: 'blah@email.com',
       name: 'john smith',
       numSuccessfulLogins: 2,
@@ -574,14 +579,15 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
 
 
-    adminAuthLogin('aaa@bbb.com', 'abcde12345');
+    AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+    { json: { email: 'aaa@bbb.com', password: 'abcde12345' }});
 
-    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
     { json: { userId: AuthRegisterJSON.userId }});
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
     expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: authID,
+      userId: AuthRegisterJSON.userId,
       email: 'blah@email.com',
       name: 'john smith',
       numSuccessfulLogins: 3,
