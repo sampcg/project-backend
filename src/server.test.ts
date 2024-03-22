@@ -500,11 +500,94 @@ describe('Testing GET /v1/admin/user/details', () => {
 
   });
 
+  test('Checking if AuthUserDetails giving correct number of successfull logins', () => {
+
+    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aaa@bbb.com',
+        password: 'abcde12345',
+        nameFirst: 'Michael',
+        nameLast: 'Hourn'
+      }
+    });
+
+    expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
+    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+
+    //
+    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    { json: { userId: AuthRegisterJSON.userId }});
+    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
+    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    expect (AuthUserDetailsJSON).toStrictEqual({user: {
+      userId: authID,
+      email: 'blah@email.com',
+      name: 'john smith',
+      numSuccessfulLogins: 1,
+      numFailedPasswordsSinceLastLogin: 0
+    }
+    });
+
+    adminAuthLogin('aaa@bbb.com', 'abcde12345');
+
+    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    { json: { userId: AuthRegisterJSON.userId }});
+    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
+    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    expect (AuthUserDetailsJSON).toStrictEqual({user: {
+      userId: authID,
+      email: 'blah@email.com',
+      name: 'john smith',
+      numSuccessfulLogins: 2,
+      numFailedPasswordsSinceLastLogin: 0
+    }
+    });
+
+    adminAuthLogin('aaa@bbb.com', 'WrongPassword1');
+
+    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    { json: { userId: AuthRegisterJSON.userId }});
+    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
+    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    expect (AuthUserDetailsJSON).toStrictEqual({user: {
+      userId: authID,
+      email: 'blah@email.com',
+      name: 'john smith',
+      numSuccessfulLogins: 2,
+      numFailedPasswordsSinceLastLogin: 1
+    }
+    });
+
+    adminAuthLogin('aaa@bbb.com', 'WrongPassword2');
+
+    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    { json: { userId: AuthRegisterJSON.userId }});
+    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
+    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    expect (AuthUserDetailsJSON).toStrictEqual({user: {
+      userId: authID,
+      email: 'blah@email.com',
+      name: 'john smith',
+      numSuccessfulLogins: 2,
+      numFailedPasswordsSinceLastLogin: 2
+    }
+    });
 
 
+    adminAuthLogin('aaa@bbb.com', 'abcde12345');
 
-
-
-
+    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
+    { json: { userId: AuthRegisterJSON.userId }});
+    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
+    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
+    expect (AuthUserDetailsJSON).toStrictEqual({user: {
+      userId: authID,
+      email: 'blah@email.com',
+      name: 'john smith',
+      numSuccessfulLogins: 3,
+      numFailedPasswordsSinceLastLogin: 0
+    }
+    });
+  });
 
 });
