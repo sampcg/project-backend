@@ -1,326 +1,250 @@
-import request from 'sync-request-curl';
+import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
 import  { ErrorObject, User, Quiz, Trash } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
+const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
+
+const requestHelper = (method: HttpVerb, path: string, payload: object) => {
+    let qs = {};
+    let json= {};
+    if (['GET', 'DELETE'].includes(method)) {
+        qs = payload;
+    } else {
+        json = payload;
+    }
+    const res = request(method, SERVER_URL + path, { qs, json, timeout: 20000 });
+    const bodyString = res.body.toString();
+    let bodyObject: any;
+    try {
+        bodyObject = JSON.parse(bodyString)
+    } catch (error: any) {
+        bodyObject = {
+            error: `Server responded with ${res.statusCode}, but body is not JSON. Given: ${bodyString}. Reason: ${error.message}.`
+        };
+    }
+    if ('error' in bodyObject) {
+        return { status: res.statusCode, ...bodyObject };
+    }
+    return bodyObject;
+};
+
+//////////////////////////// Wrapper Functions /////////////////////////////////
+
+const requestRegisterAuth = (email: string, password: string, nameFirst: string, nameLast: string) => {
+    return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
+};
+
+const requestAuthLogin = (email: string, password: string) => {
+    return requestHelper('POST', '/v1/admin/auth/login', { email, password });
+};
+
+const requestAuthLogout = (token: number) => {
+    return requestHelper('POST', '/v1/admin/auth/logout', { token });
+};
+
+const requestQuizCreate = (token: number, name: string, description: string) => {
+    return requestHelper('POST', '/v1/admin/quiz', { token, name, description });
+};
+
+const requestQuizList = (token: number) => {
+    return requestHelper('GET', '/v1/admin/quiz/list', { token });
+};
+
+const requestQuizRemove = (token: number, quizId: number) => {
+    return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId })
+};
+
+const requestTrashList = (token: number) => {
+    return requestHelper('GET', '/v1/admin/quiz/trash', { token });
+};
+
+const requestClear = () => {
+    return requestHelper('DELETE', '/v1/clear', {});
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 beforeEach(() => {
-    request('DELETE', `${SERVER_URL}/v1/clear`);
+    requestClear();
 });
 
-//////////////// Testing for AdminQuizCreate ///////////////////
+////////////////////        Testing for Creating Quiz       ////////////////////
 
 describe('Testing POST /v1/admin/quiz', () => {
-    
-    // Testing errors
-    test('Invalid Author User ID', () => {
-        const authRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
-        });
-        const authRegisterJSON = JSON.parse(authRegisterResponse.body.toString());
-        const authLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
-
-
-        const quizName = 'Quiz Name';
-        const quizDescription = 'Quiz Description';
-
-        const quizCreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: authRegisterJSON.userId + 1, name: quizName, description: quizDescription } });
-
-        expect(quizCreateResponse.statusCode).toStrictEqual(401);
+    let author: {token: number} ;
+    beforeEach(() => {
+        author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+        requestAuthLogin('aaa@bbb.com', 'abcde12345');
     });
 
-    test('Name contains invalid characters', () => {
-        const authRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+    const quizName = 'Quiz Name';
+    const quizDescription = 'Quiz Description';
+
+    describe('Testing: Error Cases', () => {
+        const invalidQuizName = 'aB1 -';
+        const shortQuizName = 'a';
+        const longQuizName = '123456789 123456789 123456789 123456789';
+        const longQuizDescription = '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789';
+
+        test('Invalid token', () => {
+            expect(requestQuizCreate(author.token + 1, quizName, quizDescription)).toStrictEqual(makeCustomErrorForTest(401))
         });
-        const authRegisterJSON = JSON.parse(authRegisterResponse.body.toString());
-        const authLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
 
+        test.each([
+            { token: author.token, name: invalidQuizName, description: quizDescription }, // Invalid Characters
+            { token: author.token, name: shortQuizName, description: quizDescription }, // Name less than 3 characters
+            { token: author.token, name: longQuizName, description: quizDescription }, // Name greater than 30 characters
+            { token: author.token, name: quizName, description: longQuizDescription }, // Description is greater than 100 characters
+        ])('token=$token, name=$name, description=$description', ({ token, name, description }) => {
+            expect(requestQuizCreate(token, name, description)).toStrictEqual(makeCustomErrorForTest(400));
+        });
 
-        const quizName = 'aB1 -';
-        const quizDescription = 'Quiz Description';
-
-        const quizCreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: authRegisterJSON.userId, name: quizName, description: quizDescription } });
-
-        expect(quizCreateResponse.statusCode).toStrictEqual(401);
+        test('Testing name already in use', () => {
+            const quizName = 'Quiz Name';
+            const quizDescription = 'Quiz Description';
+            requestQuizCreate(author.token, quizName, quizDescription);
+            requestAuthLogout(author.token);
+            
+            const author2 = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+            requestAuthLogin('ccc@ddd.com', '12345abcde');
+    
+            expect(requestQuizCreate(author2.token, quizName, quizDescription)).toStrictEqual(makeCustomErrorForTest(400))
+        });
     });
 
-    test('Name is less than 3 characters long', () => {
-        const authRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+    describe('Testing: Successful cases', () => {
+        test.each([
+            {token: author.token, name: quizName, description: quizDescription}, // General Case
+            {token: author.token, name: quizName, description: ''} // Empty description
+        ])('token=$token, name=$name, description=$description', ({ token, name, description }) => {
+            const quiz = requestQuizCreate(token, name, description);
+            expect(quiz).toStrictEqual({quizId: quiz.quizId});
         });
-        const authRegisterJSON = JSON.parse(authRegisterResponse.body.toString());
-        const authLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
 
-
-        const quizName = 'a';
-        const quizDescription = 'Quiz Description';
-
-        const quizCreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: authRegisterJSON.userId, name: quizName, description: quizDescription } });
-        
-        expect(quizCreateResponse.statusCode).toStrictEqual(401);
-      });
-    
-      test('Name is more than 30 characters long', () => {
-        const authRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+        test('Create multiple quizzes', () => {
+            const quiz2Name = 'Quiz 2 Name';
+            const quiz1 = requestQuizCreate(author.token, quizName, quizDescription);
+            const quiz2 = requestQuizCreate(author.token, quiz2Name, quizDescription);
+            expect(quiz1).toStrictEqual(quiz1.quizId);
+            expect(quiz2).toStrictEqual(quiz2.quizId);
+            expect(quiz1).not.toStrictEqual(quiz2);
         });
-        const authRegisterJSON = JSON.parse(authRegisterResponse.body.toString());
-        const authLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
 
+        test('Create quiz with another author', () => {
+            const quiz1 = requestQuizCreate(author.token, quizName, quizDescription);
 
-        const quizName = '123456789 123456789 123456789 123456789';
-        const quizDescription = 'Quiz Description';
+            requestAuthLogout(author.token);
 
-        const quizCreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: authRegisterJSON.userId, name: quizName, description: quizDescription } });
-        
-        expect(quizCreateResponse.statusCode).toStrictEqual(401);
-      });
-    
-      test('Name is already used by another quiz', () => {
-        const authRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+            const author2 = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+            requestAuthLogin('ccc@ddd.com', '12345abcde');
+            const quiz2Name = 'Quiz 2 Name';
+            const quiz2 = requestQuizCreate(author2.token, quiz2Name, quizDescription);
+            
+            expect(quiz1).toStrictEqual(quiz1.quizId);
+            expect(quiz2).toStrictEqual(quiz2.quizId);
+            expect(quiz1).not.toStrictEqual(quiz2);
         });
-        const authRegisterJSON = JSON.parse(authRegisterResponse.body.toString());
-        const authLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
+    });
+});
 
 
-        const quizName = '123456789 123456789 123456789 123456789';
-        const quizDescription = 'Quiz Description';
+////////////////////        Testing for Removing Quiz       ////////////////////
 
-        request('POST', `${SERVER_URL}/va/admin/quiz`, 
-        { json: { userId: authRegisterJSON.userId, name: quizName, description: quizDescription }});
+describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
+    let author: {token: number}, quiz: {quizId: number};
+    beforeEach(() => {
+        author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+        requestAuthLogin('aaa@bbb.com', 'abcde12345');
+        quiz = requestQuizCreate(author.token, 'Quiz Name', '');
+    });
 
-        const quiz2CreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: authRegisterJSON.userId, name: quizName, description: quizDescription } });
-        
-        expect(quiz2CreateResponse.statusCode).toStrictEqual(401);
-      });
-
-      test('Name is already used by another quiz by another author', () => {
-        // Create 1st user
-        const auth1RegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+    describe('Testing: Error Cases', () => {
+        test('Invalid token (does not exist)', () => {
+            expect(requestQuizRemove(author.token + 1, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401))
         });
-        const auth1RegisterJSON = JSON.parse(auth1RegisterResponse.body.toString());
-        // Login to 1st user
-        request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
-        
-        // Create quiz with 1st user
-        const quizName = 'Quiz Name';
-        const quizDescription = 'Quiz Description';
 
-        request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: auth1RegisterJSON.userId, name: quizName, description: quizDescription } });
-
-        // Logout from 1st user
-        request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
-        { json: { userId: auth1RegisterJSON.userId } });
-
-        // Create and login 2nd user
-        const auth2RegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'ccc@ddd.com',
-                password: '12345abcde',
-                nameFirst: 'John',
-                nameLast: 'Doe'
-            }
+        test('Invalid quizId (does not exist)', () => {
+            expect(requestQuizRemove(author.token, quiz.quizId + 1)).toStrictEqual(makeCustomErrorForTest(403));
         });
-        const auth2RegisterJSON = JSON.parse(auth2RegisterResponse.body.toString());
 
-        request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'ccc@ddd.com', password: '12345abcde' } });
-
-        // Create 2nd quiz with same name as 1st with 2nd user
-        const quiz2CreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: auth2RegisterJSON.userId, name: quizName, description: quizDescription } });
-        
-        expect(quiz2CreateResponse.statusCode).toStrictEqual(401);
-      });
-    
-      test('Description is more than 100 characters', () => {
-        const authRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+        test('Invalid token (does not correlate to given quiz)', () => {
+            requestAuthLogout(author.token);
+            const author2: {token: number} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+            requestAuthLogin('ccc@ddd.com', '12345abcde');
+            const quiz2: {quizId: number} =  requestQuizCreate(author2.token, 'Quiz Name', '');
+            expect(requestQuizRemove(author.token, quiz2.quizId)).toStrictEqual(makeCustomErrorForTest(403))
         });
-        const authRegisterJSON = JSON.parse(authRegisterResponse.body.toString());
-        request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
+    });
 
-        const quizName = 'Quiz Name';
-        const quizDescription = '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789';
-        
-        const quizCreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: authRegisterJSON.userId, name: quizName, description: quizDescription } });
-        
-        expect(quizCreateResponse.statusCode).toStrictEqual(401);
-      });
-
-
-    // Testing correct outputs
-    test('adminQuizCreate has correct response', () => {
-        const authRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+    describe('Testing: Successful Cases', () => {
+        test('Deletes 1 of 1', () => {
+            const QuizRemoveResponse: {} = requestQuizRemove(author.token, quiz.quizId)
+            expect(QuizRemoveResponse).toStrictEqual({});
+            expect(requestQuizList(author.token)).toStrictEqual({quizzes: []})
         });
-        const authRegisterJSON = JSON.parse(authRegisterResponse.body.toString());
-        request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
 
-        const quizName = 'Quiz Name';
-        const quizDescription = 'Quiz Description';
-
-        const quizCreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: authRegisterJSON.userId, name: quizName, description: quizDescription } });
-        
-        expect(quizCreateResponse.statusCode).toStrictEqual(200);
-      });
-    
-      test('adminQuizCreate works with empty description', () => {
-        const authRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+        test('Deletes 1st of 2', () => {
+            const quiz2: {quizId: number}= requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
+            requestQuizRemove(author.token, quiz.quizId);
+            expect(requestQuizList(author.token)).toStrictEqual({
+                quizzes: [
+                    {
+                        quizId: quiz2.quizId,
+                        name: 'Quiz 2 Des'
+                    }
+                ]
+            });
+            expect(requestTrashList(author.token)).toStrictEqual({
+                trash: [
+                    {
+                        quizId: quiz.quizId,
+                        name: ''
+                    }
+                ]
+            });
         });
-        const authRegisterJSON = JSON.parse(authRegisterResponse.body.toString());
-        request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
 
-        const quizName = 'Quiz Name';
-        const quizDescription = '';
-
-        const quizCreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: authRegisterJSON.userId, name: quizName, description: quizDescription } });
-
-        const quizCreateJSON = JSON.parse(quizCreateResponse.body.toString());
-        expect (quizCreateJSON).toStrictEqual(
-            {
-                quizId: quizCreateJSON.quizId,
-                name: quizName,
-                description: quizDescription,
-                timeCreated: expect.any(Number),
-                timeLastEdited: expect.any(Number),
-                userId: authRegisterJSON.userId,
-                questions: []
-            }
-        );
-      });
-    
-      test('Second adminQuizCreate works', () => {
-        const auth1RegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'aaa@bbb.com',
-                password: 'abcde12345',
-                nameFirst: 'Michael',
-                nameLast: 'Hourn'
-            }
+        test('Deletes 2nd of 2', () => {
+            const quiz2: {quizId: number}= requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
+            requestQuizRemove(author.token, quiz2.quizId);
+            expect(requestQuizList(author.token)).toStrictEqual({
+                quizzes: [
+                    {
+                        quizId: quiz.quizId,
+                        name: ''
+                    }
+                ]
+            });
+            expect(requestTrashList(author.token)).toStrictEqual({
+                trash: [
+                    {
+                        quizId: quiz2.quizId,
+                        name: 'Quiz 2 Des'
+                    }
+                ]
+            });
         });
-        const auth1RegisterJSON = JSON.parse(auth1RegisterResponse.body.toString());
-        request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
 
-        const quiz1Name = 'Quiz Name';
-        const quizDescription = 'Quiz Description';
-
-        const quiz1CreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: auth1RegisterJSON.userId, name: quiz1Name, description: quizDescription } });
-
-        const quiz1CreateJSON = JSON.parse(quiz1CreateResponse.body.toString());
-        expect(quiz1CreateJSON).toStrictEqual(
-            {
-                quizId: quiz1CreateJSON.quizId,
-                name: quiz1Name,
-                description: quizDescription,
-                timeCreated: expect.any(Number),
-                timeLastEdited: expect.any(Number),
-                userId: auth1RegisterJSON.userId,
-                questions: []
-            }
-        );
-        
-        request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
-        { json: { userId: auth1RegisterJSON.userId } });
-
-
-        const auth2RegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-            json: {
-                email: 'ccc@ddd.com',
-                password: '12345abcde',
-                nameFirst: 'John',
-                nameLast: 'Doe'
-            }
+        test('Deletes 2 of 2', () => {
+            const quiz2: {quizId: number}= requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
+            requestQuizRemove(author.token, quiz.quizId);
+            expect(requestQuizList(author.token)).toStrictEqual({ quizzes: [] });
+            expect(requestTrashList(author.token)).toStrictEqual({
+                trash: [
+                    {
+                        quizId: quiz.quizId,
+                        name: ''
+                    },
+                    {
+                        quizId: quiz2.quizId,
+                        name: 'Quiz 2 Des'
+                    }
+                ]
+            });
         });
-        const auth2RegisterJSON = JSON.parse(auth2RegisterResponse.body.toString());
-        request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-        { json: { email: 'ccc@ddd.com', password: '12345abcde' } });
+    });
+});
 
-        const quiz2Name = 'Quiz Name';
-
-        const quiz2CreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
-        { json: { userId: auth2RegisterJSON.userId, name: quiz2Name, description: quizDescription } });
-
-        const quiz2CreateJSON = JSON.parse(quiz2CreateResponse.body.toString());
-        expect(quiz2CreateJSON).toStrictEqual(
-            {
-                quizId: quiz2CreateJSON.quizId,
-                name: quiz2Name,
-                description: quizDescription,
-                timeCreated: expect.any(Number),
-                timeLastEdited: expect.any(Number),
-                userId: auth2RegisterJSON.userId,
-                questions: []
-            }
-        );
-      });
-})
+////////////////////       Testing for Listing Quizzes      ////////////////////
