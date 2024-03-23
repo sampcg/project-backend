@@ -1,4 +1,4 @@
-import { getData, setData, Question, User, Quiz } from './dataStore';
+import { getData, setData } from './dataStore';
 import { getUser } from './helpers';
 
 // Error return type
@@ -6,6 +6,7 @@ interface ErrorObject {
     error: string;
 }
 
+type EmptyObject = Record<string, never>;
 /// //////////////////           List all Quizzes           /////////////////////
 
 /**
@@ -128,12 +129,8 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
  * @returns { } - empty object
  */
 
-// AdminQuizRemove return type
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface AdminQuizRemoveReturn {}
-
 // Feature
-export const adminQuizRemove = (authUserId: number, quizId: number): AdminQuizRemoveReturn | ErrorObject => {
+export const adminQuizRemove = (authUserId: number, quizId: number): EmptyObject | ErrorObject => {
   const data = getData();
 
   // Check if user is valid
@@ -170,11 +167,8 @@ export const adminQuizRemove = (authUserId: number, quizId: number): AdminQuizRe
  * @returns {} an empty object
  */
 
-// adminQuizNameUpdate return type
-interface AdminQuizNameUpdateReturn {}
-
 // Feature
-export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: string): AdminQuizNameUpdateReturn | ErrorObject => {
+export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: string): EmptyObject | ErrorObject => {
   const data = getData();
 
   // Find the user by authUserId
@@ -225,11 +219,8 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
  * @returns {} an empty object
  */
 
-// AdminQuizDescriptionUpdate return type
-interface AdminQuizDescriptionUpdateReturn {}
-
 // Feature
-export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, description: string): AdminQuizDescriptionUpdateReturn | ErrorObject => {
+export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, description: string): EmptyObject | ErrorObject => {
   const data = getData();
 
   // Check if user is valid

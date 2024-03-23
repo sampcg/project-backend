@@ -282,7 +282,7 @@ describe('adminAuthLogin', () => {
     const authNameFirst = 'Michael';
     const authNameLast = 'Hourn';
 
-    const authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
+    adminAuthRegister(authEmail, authPassword, authNameFirst,
       authNameLast);
 
     expect(adminAuthLogin(authEmail, authPassword)).toStrictEqual({ authUserId: expect.any(Number) });
@@ -298,7 +298,7 @@ describe('adminAuthLogin', () => {
     const authNameFirst = 'Michael';
     const authNameLast = 'Hourn';
 
-    const authID = adminAuthRegister(authEmail, authPassword, authNameFirst,
+    adminAuthRegister(authEmail, authPassword, authNameFirst,
       authNameLast);
 
     expect(adminAuthLogin(authEmail, authPassword)).toStrictEqual({ authUserId: expect.any(Number) });
