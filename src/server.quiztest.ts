@@ -70,6 +70,92 @@ beforeEach(() => {
     requestClear();
 });
 
+
+////////////////////       Testing for Listing Quizzes      ////////////////////
+
+describe('Testing GET /v1/admin/quiz/list', () => {
+    let author: {token: number} ;
+    beforeEach(() => {
+        author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+        requestAuthLogin('aaa@bbb.com', 'abcde12345');
+    });
+
+    test('Testing: Error Case - Invalid token', () => {
+        expect(requestQuizList(author.token + 1)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    describe('Testing: Successful cases', () => {
+        test('Empty list', () => {
+            expect(requestQuizList(author.token)).toStrictEqual({ quizzes: [] });
+        });
+
+        test.todo('1 quiz', () => {
+            const quiz1: {quizId: number} = requestQuizCreate(author.token, 'Quiz 1', 'a'); 
+            expect(requestQuizList(author.token)).toStrictEqual({
+                quizzes: [
+                    {
+                        quizId: quiz1.quizId,
+                        name: 'a'
+                    }
+                ]
+            });
+        });
+
+        test.todo('3 quizzes', () => {
+            const quiz1: {quizId: number} = requestQuizCreate(author.token, 'Quiz 1', 'a');
+            const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 1', 'b');
+            const quiz3: {quizId: number} = requestQuizCreate(author.token, 'Quiz 1', 'c');
+
+            expect(requestQuizList(author.token)).toStrictEqual({
+                quizzes: [
+                    {
+                        quizId: quiz1.quizId,
+                        name: 'a'
+                    },
+                    {
+                        quizId: quiz2.quizId,
+                        name: 'b'
+                    },
+                    {
+                        quizId: quiz3.quizId,
+                        name: 'c'
+                    }
+                ]
+            });
+        });
+
+        test.todo('Quizzes logged by another author', () => {
+            const quiz1: {quizId: number} = requestQuizCreate(author.token, 'Quiz 1', 'a');
+            requestAuthLogout(author.token);
+
+            const author2: {token: number} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+            requestAuthLogin('ccc@ddd.com', '12345abcde');
+            
+            const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 2', 'b');
+            const quiz3: {quizId: number} = requestQuizCreate(author.token, 'Quiz 3', 'c');
+            const quiz4: {quizId: number} = requestQuizCreate(author.token, 'Quiz 4', 'd');
+
+            expect(requestQuizList(author2.token)).toStrictEqual({
+                quizzes: [
+                    {
+                        quizId: quiz2.quizId,
+                        name: 'b'
+                    },
+                    {
+                        quizId: quiz3.quizId,
+                        name:'c'
+                    },
+                    {
+                        quizId: quiz4.quizId,
+                        name: 'd'
+                    }
+                ]
+            });
+        });
+    });
+});
+
+
 ////////////////////        Testing for Creating Quiz       ////////////////////
 
 describe('Testing POST /v1/admin/quiz', () => {
@@ -121,6 +207,14 @@ describe('Testing POST /v1/admin/quiz', () => {
         ])('token=$token, name=$name, description=$description', ({ token, name, description }) => {
             const quiz = requestQuizCreate(token, name, description);
             expect(quiz).toStrictEqual({quizId: quiz.quizId});
+            expect(requestQuizList(author.token)).toStrictEqual({
+                quizzes: [
+                    {
+                        quizId: quiz.quizId,
+                        name: quizName
+                    }
+                ]
+            });
         });
 
         test('Create multiple quizzes', () => {
@@ -129,7 +223,18 @@ describe('Testing POST /v1/admin/quiz', () => {
             const quiz2 = requestQuizCreate(author.token, quiz2Name, quizDescription);
             expect(quiz1).toStrictEqual(quiz1.quizId);
             expect(quiz2).toStrictEqual(quiz2.quizId);
-            expect(quiz1).not.toStrictEqual(quiz2);
+            expect(requestQuizList(author.token)).toStrictEqual({
+                quizzes: [
+                    {
+                        quizId: quiz1.quizId,
+                        name: quizName
+                    },
+                    {
+                        quizId: quiz2.quizId,
+                        name: quiz2Name
+                    }
+                ]
+            });
         });
 
         test('Create quiz with another author', () => {
@@ -246,5 +351,3 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
         });
     });
 });
-
-////////////////////       Testing for Listing Quizzes      ////////////////////
