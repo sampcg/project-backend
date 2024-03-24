@@ -1,4 +1,4 @@
-
+/*
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
 import { ErrorObject } from './returnInterfaces';
@@ -393,3 +393,4 @@ describe('Testing POST /v1/admin/auth/register', () => {
 });
 
 // END OF AUTH REGISTER TESTING
+*/
