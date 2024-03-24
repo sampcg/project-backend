@@ -14,7 +14,6 @@ tests:
   stage: checks
   only:
     - master
-    - merge_requests
   script:
     - SERVER_LOG=$(mktemp)
     - npm run start >& $SERVER_LOG &
@@ -30,7 +29,6 @@ typecheck:
     - npm run tsc
   only:
     - master
-    - merge_requests
 
 linting:
   stage: checks
@@ -38,4 +36,3 @@ linting:
     - npm run lint
   only:
     - master
-    - merge_requests
