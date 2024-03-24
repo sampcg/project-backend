@@ -12,8 +12,6 @@ before_script:
 
 tests:
   stage: checks
-  only:
-    - master
   script:
     - SERVER_LOG=$(mktemp)
     - npm run start >& $SERVER_LOG &
@@ -27,12 +25,8 @@ typecheck:
   stage: checks
   script:
     - npm run tsc
-  only:
-    - master
 
 linting:
   stage: checks
   script:
     - npm run lint
-  only:
-    - master
