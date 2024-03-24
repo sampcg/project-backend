@@ -7,21 +7,6 @@ cache:
 stages:
   - checks
 
-testing:
-  stage: checks
-  script: 
-    - npm run test
-
-typecheck:
-  stage: checks
-  script:
-    - npm run tsc
-
-linting:
-  stage: checks
-  script:
-    - npm run lint
-
 before_script:
   - npm install
 
@@ -39,3 +24,18 @@ tests:
     - sleep 2
     - cat $SERVER_LOG
 
+typecheck:
+  stage: checks
+  script:
+    - npm run tsc
+  only:
+    - master
+    - merge_requests
+
+linting:
+  stage: checks
+  script:
+    - npm run lint
+  only:
+    - master
+    - merge_requests
