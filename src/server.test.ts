@@ -1,3 +1,7 @@
+test('Remove this test and uncomment the sample tests further below', () => {
+  expect(1 + 1).toEqual(2);
+});
+
 /*
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
