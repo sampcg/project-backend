@@ -2,6 +2,7 @@ export type EmptyObject = Record<string, never>;
 
 export interface ErrorObject {
   error: string;
+  Code?: number;
 }
 export interface Answer {
   answer: string;
