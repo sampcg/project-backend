@@ -145,12 +145,12 @@ describe('Testing POST /v1/admin/auth/register', () => {
   ])(
     'Checking length of firstName, errors expected return',
     ({ email, password, nameFirst, nameLast }) => {
-      let AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
         json: { email, password, nameFirst, nameLast }
       });
       expect(AuthRegisterResponse.statusCode).toStrictEqual(400);
-      AuthRegisterResponse = JSON.parse(AuthRegisterResponse.body.toString());
-      expect(AuthRegisterResponse).toStrictEqual({ error: expect.any(String) });
+      const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+      expect(AuthRegisterJSON).toStrictEqual({ error: expect.any(String) });
     });
 
   // 4)NameFirst is less than 2 characters or more than 20 characters (pt. 2/2)
@@ -397,6 +397,10 @@ describe('Testing POST /v1/admin/auth/register', () => {
 });
 
 // END OF AUTH REGISTER TESTING
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> master
 
 // BEGINNING OF AUTH LOGIN TESTING
 
@@ -414,7 +418,10 @@ describe('Testing POST /v1/admin/auth/login', () => {
     });
 
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+<<<<<<< HEAD
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
+=======
+>>>>>>> master
 
     const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
@@ -443,7 +450,10 @@ describe('Testing POST /v1/admin/auth/login', () => {
     });
 
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+<<<<<<< HEAD
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
+=======
+>>>>>>> master
 
     const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa1@bbb.com', password: 'abcde12345'}});
@@ -459,9 +469,9 @@ describe('Testing POST /v1/admin/auth/login', () => {
     const AuthLoginJSON2 = JSON.parse(AuthLoginResponse2.body.toString());
     expect (AuthLoginJSON).toStrictEqual({ error: expect.any(String)});
   });
-  
 });
 // END OF AUTH LOGIN TESTING
+<<<<<<< HEAD
 
 // BEGINNING OF AUTH USER DETAILS
 
@@ -581,7 +591,6 @@ describe('Testing GET /v1/admin/user/details', () => {
       numFailedPasswordsSinceLastLogin: 2
     }
     });
-
 
     AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa@bbb.com', password: 'abcde12345' }});
