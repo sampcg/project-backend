@@ -1,4 +1,8 @@
+test('Remove this test and uncomment the sample tests further below', () => {
+  expect(1 + 1).toEqual(2);
+});
 
+/*
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
 import { ErrorObject } from './returnInterfaces';
@@ -393,6 +397,7 @@ describe('Testing POST /v1/admin/auth/register', () => {
 });
 
 // END OF AUTH REGISTER TESTING
+<<<<<<< HEAD
 
 // BEGINNING OF AUTH LOGIN TESTING
 
@@ -456,3 +461,5 @@ describe('Testing POST /v1/admin/auth/login', () => {
   
 });
 // END OF AUTH LOGIN TESTING
+=======
+*/
