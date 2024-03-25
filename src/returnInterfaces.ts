@@ -17,6 +17,7 @@ export interface Question {
 }
 export interface User {
   userId: number;
+  token: string;
   nameFirst: string;
   nameLast: string;
   email: string;
@@ -44,9 +45,4 @@ export interface Trash {
   description: string;
   timeCreated: number;
   timeLastEdited: number;
-}
-
-export interface Token {
-  sessionId: string | number;
-  userId: number;
 }

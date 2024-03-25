@@ -37,14 +37,19 @@ function adminAuthRegister(email: string, password: string,
     return { error: 'Password must contain at least 1 letter and number' };
   }
 
+  const randomString = require('randomized-string');
+  const random_token = randomString.generate(8);
+
+
   // Bit of Code that pushes the data after the filter
   const newData = {
     userId: data.users.length,
+    token: random_token,
     nameFirst: nameFirst,
     nameLast: nameLast,
     email: email,
     password: password,
-    numSuccessfulLogins: 0,
+    numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
     oldPassword: '',
     newPassword: password,
@@ -52,18 +57,8 @@ function adminAuthRegister(email: string, password: string,
 
   data.users.push(newData);
 
-  const randomString = require('randomized-string');
-  const random_token = randomString.generate(8);
 
-
-  const NewToken = {
-    sessionId: random_token,
-    userId: newData.userId
-  }
-
-  data.token.push(NewToken);
-
-  return { token: NewToken.sessionId };
+  return { token: newData.token };
 }
 
 // Second Function By Abrar
@@ -84,7 +79,7 @@ function adminAuthLogin(email: string, password: string) {
   for (const users of data.users) {
     if (users.email === email && users.password === password) {
       passwordCorrect = true;
-      newUserId = users.userId;
+      newUserId = users.token;
       users.numSuccessfulLogins++;
       break;
     }
@@ -93,24 +88,17 @@ function adminAuthLogin(email: string, password: string) {
   if (emailPresent === false) {
     return { error: 'Email address does not exist' };
   } else if (passwordCorrect === false) {
-    for (const user of data.users) {
-      if (email === user.email) {
-        user.numFailedPasswordsSinceLastLogin++;
+      for (const user of data.users) {
+        if (email === user.email) {
+          user.numFailedPasswordsSinceLastLogin++;
+        }
       }
-    }
     return { error: 'Password is not correct for the given email' };
   }
 
   for (const user of data.users) {
-    if (newUserId === user.userId) {
+    if (newUserId === user.token) {
       user.numFailedPasswordsSinceLastLogin = 0;
-    }
-  }
-
-  for (const token of data.token) {
-    if (newUserId === token.userId) {
-      newUserId = token.sessionId;
-      break;
     }
   }
 
@@ -118,21 +106,20 @@ function adminAuthLogin(email: string, password: string) {
 }
 
 // Third Function By Abrar
-function adminUserDetails(authUserId: any) {
+function adminUserDetails(authUserId: string | number) {
   const data = getData();
   let userDetails = null;
   let idPresent = false;
 
-  for (const token of data.token) {
-    if (token.sessionId === authUserId) {
-      authUserId = token.userId;
+  for (const users of data.users) {
+    if (users.token === authUserId) {
       idPresent = true;
       break;
     }
   }
 
   for (const users of data.users) {
-    if (users.userId === authUserId) {
+    if (users.token === authUserId) {
       userDetails = {
         userId: users.userId,
         name: users.nameFirst + ' ' + users.nameLast,

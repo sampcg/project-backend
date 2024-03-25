@@ -4,5 +4,4 @@ export interface DataStore {
   users: User[],
   quizzes: Quiz[],
   trash: Trash[],
-  token: Token
 }
