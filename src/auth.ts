@@ -2,6 +2,7 @@
 import { getData, setData } from './dataStore';
 import { getUser } from './helpers';
 import validator from 'validator';
+import randomString from 'randomized-string';
 
 // First Function By Abrar
 function adminAuthRegister(email: string, password: string,
@@ -51,7 +52,18 @@ function adminAuthRegister(email: string, password: string,
 
   data.users.push(newData);
 
-  return { authUserId: (data.users.length - 1) };
+  const randomString = require('randomized-string');
+  const random_token = randomString.generate(8);
+
+
+  const NewToken = {
+    sessionId: random_token,
+    userId: newData.userId
+  }
+
+  data.token.push(NewToken);
+
+  return { token: NewToken.sessionId };
 }
 
 // Second Function By Abrar
@@ -95,18 +107,32 @@ function adminAuthLogin(email: string, password: string) {
     }
   }
 
-  return { authUserId: newUserId };
+  for (const token of data.token) {
+    if (newUserId === token.userId) {
+      newUserId = token.sessionId;
+      break;
+    }
+  }
+
+  return { token: newUserId };
 }
 
 // Third Function By Abrar
-function adminUserDetails(authUserId: number | string) {
+function adminUserDetails(authUserId: any) {
   const data = getData();
   let userDetails = null;
   let idPresent = false;
 
+  for (const token of data.token) {
+    if (token.sessionId === authUserId) {
+      authUserId = token.userId;
+      idPresent = true;
+      break;
+    }
+  }
+
   for (const users of data.users) {
     if (users.userId === authUserId) {
-      idPresent = true;
       userDetails = {
         userId: users.userId,
         name: users.nameFirst + ' ' + users.nameLast,

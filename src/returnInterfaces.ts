@@ -45,3 +45,8 @@ export interface Trash {
   timeCreated: number;
   timeLastEdited: number;
 }
+
+export interface Token {
+  sessionId: string | number;
+  userId: number;
+}

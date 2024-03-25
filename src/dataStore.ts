@@ -7,6 +7,7 @@ let data: DataStore = {
   users: [],
   quizzes: [],
   trash: [],
+  token:[]
 };
 
 /** Use get() to access the data

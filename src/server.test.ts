@@ -2,7 +2,7 @@ test('Remove this test and uncomment the sample tests further below', () => {
   expect(1 + 1).toEqual(2);
 });
 
-/*
+///*
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
 import { ErrorObject } from './returnInterfaces';
@@ -397,10 +397,6 @@ describe('Testing POST /v1/admin/auth/register', () => {
 });
 
 // END OF AUTH REGISTER TESTING
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> master
 
 // BEGINNING OF AUTH LOGIN TESTING
 
@@ -418,10 +414,7 @@ describe('Testing POST /v1/admin/auth/login', () => {
     });
 
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
-<<<<<<< HEAD
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-=======
->>>>>>> master
 
     const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
@@ -450,10 +443,7 @@ describe('Testing POST /v1/admin/auth/login', () => {
     });
 
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
-<<<<<<< HEAD
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-=======
->>>>>>> master
 
     const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa1@bbb.com', password: 'abcde12345'}});
@@ -471,7 +461,7 @@ describe('Testing POST /v1/admin/auth/login', () => {
   });
 });
 // END OF AUTH LOGIN TESTING
-<<<<<<< HEAD
+
 
 // BEGINNING OF AUTH USER DETAILS
 
@@ -610,4 +600,15 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 
 });
-*/
+
+// BEGINNING OF AUTH LOGOUT TESTING
+
+describe('Testing POST /v1/admin/auth/logout', () => {
+
+  
+
+
+
+});
+
+//*/
