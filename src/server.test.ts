@@ -462,7 +462,6 @@ describe('Testing POST /v1/admin/auth/login', () => {
 });
 // END OF AUTH LOGIN TESTING
 
-
 // BEGINNING OF AUTH USER DETAILS
 
 describe('Testing GET /v1/admin/user/details', () => {
@@ -665,7 +664,6 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
     const AuthUserId = AuthRegisterJSON.token;
-    
     //Now have to create a quiz using the UserId
     let AdminQuizCreateResponse = request('POST', `${SERVER_URL}/v1/admin/quiz`,
     { json: { token: AuthRegisterJSON.token, name: 'Question 1',
@@ -746,7 +744,6 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
 
     expect(AdminQuizQuestionDuplicateJSON).toStrictEqual({error: expect.any(String)})
 
-
     //Logging Out User
     const AuthLogoutResponse = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
     { json: { token: AuthRegisterJSON.token }});
@@ -762,7 +759,5 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
     expect(AdminQuizQuestionDuplicateJSON).toStrictEqual({error: expect.any(String)})
   });
 
-
 });
-
 */

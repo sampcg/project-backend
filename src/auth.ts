@@ -37,14 +37,12 @@ function adminAuthRegister(email: string, password: string,
     return { error: 'Password must contain at least 1 letter and number' };
   }
 
-  const randomString = require('randomized-string');
-  const random_token = randomString.generate(8);
-
+  const randomToken = randomString.generate(8);
 
   // Bit of Code that pushes the data after the filter
   const newData = {
     userId: data.users.length,
-    token: random_token,
+    token: randomToken,
     nameFirst: nameFirst,
     nameLast: nameLast,
     email: email,
@@ -56,7 +54,6 @@ function adminAuthRegister(email: string, password: string,
   };
 
   data.users.push(newData);
-
 
   return { token: newData.token };
 }
@@ -88,11 +85,11 @@ function adminAuthLogin(email: string, password: string) {
   if (emailPresent === false) {
     return { error: 'Email address does not exist' };
   } else if (passwordCorrect === false) {
-      for (const user of data.users) {
-        if (email === user.email) {
-          user.numFailedPasswordsSinceLastLogin++;
-        }
+    for (const user of data.users) {
+      if (email === user.email) {
+        user.numFailedPasswordsSinceLastLogin++;
       }
+    }
     return { error: 'Password is not correct for the given email' };
   }
 
