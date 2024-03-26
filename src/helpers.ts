@@ -13,3 +13,11 @@ import { getData } from './dataStore';
 export function getUser(authUserId: number) {
   return getData().users.find((user) => authUserId === user.userId);
 }
+
+export function getQuiz(quizId: number) {
+  return getData().quizzes.find((quiz) => quizId === quiz.quizId);
+}
+
+export function getTrash(quizId: number) {
+  return getData().trash.find((trash) => quizId === trash.quizId);
+}

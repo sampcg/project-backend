@@ -1,12 +1,9 @@
-import { getData, setData } from './dataStore';
-import { getUser } from './helpers';
+import { getData, setData, Data, Question } from './dataStore';
+import { getUser, getQuiz, getTrash } from './helpers';
+import { ErrorObject, EmptyObject } from './returnInterfaces';
 
 // Error return type
-interface ErrorObject {
-    error: string;
-}
 
-type EmptyObject = Record<string, never>;
 /// //////////////////           List all Quizzes           /////////////////////
 
 /**
@@ -52,7 +49,7 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorOb
 
 /**
  * Creates a quiz for the logged in user given basic details
- * @param {number} authUserId - unique identifier for admin user
+ * @param {number} token - unique identifier for session
  * @param {string} name - name for the quiz
  * @param {string} description - description of the quiz
  * @returns {{quizId: number}} - quizId
@@ -64,52 +61,62 @@ interface AdminQuizCreateReturn {
 }
 
 // Feature
-export const adminQuizCreate = (authUserId: number, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
-  const data = getData();
+export const adminQuizCreate = (token: string, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
+  const data: Data = getData();
+  const user = data.users.find((user) => token === user.token);
 
-  // Check if user is valid
-  if (!getUser(authUserId)) {
-    return { error: 'AuthUserId is not a valid user' };
+  if (!user) {
+    return { error: 'Invalid token', code: 401 };
   }
 
+  const authUserId: number = user.userId;
+
   // Check if name contains invalid characters
-  const validName = /^[a-zA-Z0-9\s]*$/.test(name);
+  const validName: boolean = /^[a-zA-Z0-9\s]*$/.test(name);
   if (!validName) {
-    return { error: 'Name contains invalid characters' };
+    return { error: 'Name contains invalid characters', code: 400 };
   }
 
   // Check if name is less than 3 characters or greater than 30
   if (name.length < 3 || name.length > 30) {
-    return { error: 'Name must be between 3 and 30 characters' };
+    return { error: 'Name must be between 3 and 30 characters', code: 400 };
   }
 
   // Check if name there is already a quiz by that name
   // makes sure case doesn't impact check
-  const nameExists = data.quizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase());
+  const nameExists: boolean = data.quizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase());
   if (nameExists) {
-    return { error: 'invalid input' };
+    return { error: 'invalid input', code: 400 };
   }
 
   // Check the length of the description
   if (description.length > 100) {
-    return { error: 'Description must be 100 characters or less' };
+    return { error: 'Description must be 100 characters or less', code: 400 };
   }
 
-  // Generate new quiz ID
-  const newQuizId = data.quizzes.length + 1;
+  // Generate a unique random quiz ID
+  let newQuizId: number = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  while (getQuiz(newQuizId) || getTrash(newQuizId)) {
+    newQuizId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  }
 
   // Create an empty array for questions
-  const questions: any = [];
+  const questions: Question[] = [];
+
+  // Grab the time
+  const time: number = Math.round(Date.now() / 1000);
 
   // Create parameters for new quiz
   const newQuiz = {
     quizId: newQuizId,
+    userId: authUserId,
     name: name,
     description: description,
-    timeCreated: Math.round(Date.now() / 1000),
-    timeLastEdited: Math.round(Date.now() / 1000),
-    userId: authUserId,
-    questions: questions
+    timeCreated: time,
+    timeLastEdited: time,
+    numQuestions: 0,
+    questions: questions,
+    duration: 0
   };
 
   // Add quiz to data

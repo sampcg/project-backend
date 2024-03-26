@@ -8,6 +8,7 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+import { adminQuizCreate } from './quiz';
 
 // Set up web app
 const app = express();
@@ -33,6 +34,15 @@ const HOST: string = process.env.IP || '127.0.0.1';
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
+});
+
+app.post('/v1/admin/quiz', (req: Request, res: Response) => {
+  const { token, name, description } = req.body;
+  const result = adminQuizCreate(token, name, description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
 });
 
 // ====================================================================
