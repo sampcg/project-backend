@@ -10,11 +10,13 @@ import path from 'path';
 import process from 'process';
 
 import { clear } from './other';
+
 import { 
   adminQuizList,
   adminQuizCreate,
   adminQuizRemove
 } from './quiz';
+
 import { adminQuestionCreate } from './question';
 
 // Set up web app
@@ -79,8 +81,8 @@ app.delete('/v1/quiz/:quizid', (req: Request, res: Response) => {
 // Create a question
 app.post('/v1/admin/quiz/:quizid/:question', (req: Request, res: Response) => {
   const { quizid } = req.params;
-  const { token, question, duration, points, answers } = req.body;
-  const result = adminQuestionCreate(token, parseInt(quizid), question, duration, points, answers);
+  const { body } = req.body;
+  const result = adminQuestionCreate(parseInt(quizid), body);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }

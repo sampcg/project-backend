@@ -5,14 +5,23 @@ import { DataStore } from './dataInterfaces'
 
 /////////////////////           Create a Question           /////////////////////
 
+interface AdminQuestionCreateRequestBody {
+    token: string;
+    questionBody: {
+        question: string;
+        duration: number;
+        points: number;
+        answers: Answer[];
+    };
+}
+
 interface AdminQuestionCreateReturn {
     questionId: number;
 }
 
-export const adminQuestionCreate = (
-    token: string, quizId: number, question: string, duration: number, points: number, answers: { answer: string, correct: boolean}[]
-    ): AdminQuestionCreateReturn | ErrorObject => {
-
+export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateRequestBody): AdminQuestionCreateReturn | ErrorObject => {
+    const { token, questionBody } = body;
+    const { question, duration, points, answers } = questionBody;
     const data: DataStore = getData();
     
     // Check if token is valid
