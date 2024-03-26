@@ -15,6 +15,7 @@ import {
   adminQuizCreate,
   adminQuizRemove
 } from './quiz';
+import { adminQuestionCreate } from './question';
 
 // Set up web app
 const app = express();
@@ -65,14 +66,26 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 
 
 // Send quiz to trash
-app.delete('./v1/quiz/:quizid', (req: Request, res: Response) => {
+app.delete('/v1/quiz/:quizid', (req: Request, res: Response) => {
   const { token, quizid } = req.params;
   const result = adminQuizRemove(token, parseInt(quizid as string))
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
-})
+});
+
+
+// Create a question
+app.post('/v1/admin/quiz/:quizid/:question', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { token, question, duration, points, answers } = req.body;
+  const result = adminQuestionCreate(token, parseInt(quizid), question, duration, points, answers);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
 
 
 // Reset the state of the application back to the start

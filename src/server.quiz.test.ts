@@ -553,13 +553,13 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 1',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: true
               },
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 2',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: false
               }
             ]
@@ -593,13 +593,13 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 1',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: true
               },
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 2',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: false
               }
             ]
@@ -613,13 +613,13 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 1',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: true
               },
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 2',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: false
               }
             ]
@@ -660,13 +660,13 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 1',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: true
               },
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 2',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: false
               }
             ]
@@ -680,13 +680,13 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 1',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: true
               },
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 2',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: false
               }
             ]
@@ -780,13 +780,13 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 1',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: true
               },
               {
                 answerId: expect.any(Number),
                 answer: 'Answer 2',
-                colour: 'red',
+                colour: expect.any(String),
                 correct: false
               }
             ]

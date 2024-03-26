@@ -51,3 +51,9 @@ export function getQuiz(quizId: number) {
 export function getTrash(quizId: number) {
   return getData().trash.find((trash) => quizId === trash.quizId);
 }
+
+// Function to generate a random colour using a random index
+export function getRandomColour(): string {
+  const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'orange'];
+  return colors[Math.floor(Math.random() * colors.length)];
+}

@@ -36,6 +36,7 @@ export interface Quiz {
   timeCreated: number;
   timeLastEdited: number;
   questions: Question[];
+  duration: number;
 }
 
 export interface Trash {
