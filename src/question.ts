@@ -5,14 +5,22 @@ import { DataStore } from './dataInterfaces'
 
 /////////////////////           Create a Question           /////////////////////
 
+interface AdminQuestionCreateBody {
+    token: string;
+    questionBody: {
+        question: string;
+        duration: number;
+        points: number;
+        answers: Answer[];
+    }
+}
+
 interface AdminQuestionCreateReturn {
     questionId: number;
 }
 
-export const adminQuestionCreate = (
-    token: string, quizId: number, question: string, duration: number, points: number, answers: { answer: string, correct: boolean}[]
-    ): AdminQuestionCreateReturn | ErrorObject => {
-
+export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateBody): AdminQuestionCreateReturn | ErrorObject => {
+    const {token, questionBody} = body;
     const data: DataStore = getData();
     
     // Check if token is valid
@@ -27,6 +35,9 @@ export const adminQuestionCreate = (
     if (quizIndex === -1) {
         return { error: 'Invalid quizID', code: 403};
     }
+
+    // Extract question body
+    const { question, duration, points, answers } = questionBody;
 
     // Check if question is < 5 or > 50 characters
     if (question.length < 5 || question.length > 50) {
@@ -118,3 +129,10 @@ export const adminQuestionCreate = (
 };
 
 /////////////////////           Delete a Question           /////////////////////
+
+interface AdminQuestionRemoveReturn {} 
+
+export const adminQuestionRemove = (token: string, quizId: number, questionId: number): AdminQuestionRemoveReturn | ErrorObject => {
+    
+    return {};
+}
