@@ -30,6 +30,16 @@ const HOST: string = process.env.IP || '127.0.0.1';
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
 
+app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  
+  const result = adminAuthRegister(req.body.email, req.body.password, req.body.nameFirst, req.body.nameLast);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  res.json(result);
+
+});
+
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
