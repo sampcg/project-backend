@@ -1,8 +1,3 @@
-test('Remove this test and uncomment the sample tests further below', () => {
-  expect(1 + 1).toEqual(2);
-});
-
-/*
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
 import { ErrorObject } from './returnInterfaces';
@@ -12,9 +7,9 @@ import { Trash } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
-beforeEach(() => {
-  request('DELETE', `${SERVER_URL}/v1/clear`);
-});
+// beforeEach(() => {
+//   request('DELETE', `${SERVER_URL}/v1/clear`);
+// });
 
 //  BEGINNING OF TESTING ADMIN AUTH REGISTER  //
 describe('Testing POST /v1/admin/auth/register', () => {
@@ -623,7 +618,7 @@ describe('Testing POST /v1/admin/auth/logout', () => {
     { json: { token: AuthRegisterJSON.token }});
     expect(AuthLogoutResponse.statusCode).toStrictEqual(200);
     const AuthLogoutJSON = JSON.parse(AuthLogoutResponse.body.toString());
-    expect (AuthUserDetailsJSON).toStrictEqual({});
+    expect (AuthLogoutJSON).toStrictEqual({});
 
     //Now Trying to logout with no valid token stored
 
@@ -631,7 +626,7 @@ describe('Testing POST /v1/admin/auth/logout', () => {
     { json: { token: AuthRegisterJSON.token }});
     expect(AuthLogoutResponse2.statusCode).toStrictEqual(401);
     const AuthLogoutJSON2 = JSON.parse(AuthLogoutResponse2.body.toString());
-    expect (AuthUserDetailsJSON2).toStrictEqual({ error: expect.any(String) });
+    expect (AuthLogoutJSON2).toStrictEqual({ error: expect.any(String) });
 
     let AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
@@ -640,7 +635,7 @@ describe('Testing POST /v1/admin/auth/logout', () => {
     { json: { token: AuthRegisterJSON.token }});
     expect(AuthLogoutResponse3.statusCode).toStrictEqual(200);
     const AuthLogoutJSON3 = JSON.parse(AuthLogoutResponse3.body.toString());
-    expect (AuthUserDetailsJSON3).toStrictEqual({});
+    expect (AuthLogoutJSON3).toStrictEqual({});
   });
 });
 
@@ -760,4 +755,3 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
   });
 
 });
-*/
