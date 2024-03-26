@@ -2,6 +2,7 @@ export type EmptyObject = Record<string, never>;
 
 export interface ErrorObject {
   error: string;
+  Code?: number;
 }
 export interface Answer {
   answer: string;
@@ -16,6 +17,7 @@ export interface Question {
 }
 export interface User {
   userId: number;
+  token: string;
   nameFirst: string;
   nameLast: string;
   email: string;
