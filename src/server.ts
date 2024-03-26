@@ -8,7 +8,12 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+
 import { clear } from './other';
+import { 
+  adminQuizList,
+  adminQuizCreate
+} from './quiz';
 
 // Set up web app
 const app = express();
@@ -36,10 +41,31 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(echo(data));
 });
 
+
+// Retrieve a list of quizzes
+app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
+  const { token } = req.params;
+  const result = adminQuizList(token);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error })
+  }
+});
+
+// Create a quiz
+app.post('/v1/admin/quiz', (req: Request, res: Response) => {
+  const { token, name, description } = req.body;
+  const result = adminQuizCreate(token, name, description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

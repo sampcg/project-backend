@@ -28,6 +28,7 @@ export function getUser(authUserId: number): User {
  *
  * @return {object} An object containing the status code and response body of the request.
  */
+
 export const createRequest = (method: HttpVerb, path: string, payload: object) => {
   let qs = {};
   let json = {};
@@ -43,3 +44,10 @@ export const createRequest = (method: HttpVerb, path: string, payload: object) =
 export const clear = () => {
   return createRequest('DELETE', '/v1/clear', {});
 };
+export function getQuiz(quizId: number) {
+  return getData().quizzes.find((quiz) => quizId === quiz.quizId);
+}
+
+export function getTrash(quizId: number) {
+  return getData().trash.find((trash) => quizId === trash.quizId);
+}
