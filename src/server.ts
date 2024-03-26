@@ -10,6 +10,14 @@ import path from 'path';
 import process from 'process';
 import { clear } from './other';
 
+import {
+  adminAuthRegister,
+  // adminAuthLogin,
+  // adminUserDetails,
+  // adminUserDetailsUpdate,
+  // adminUserPasswordUpdate
+} from './auth';
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -29,6 +37,14 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
+
+app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  const result = adminAuthRegister(req.body.email, req.body.password, req.body.nameFirst, req.body.nameLast);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  res.json(result);
+});
 
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
