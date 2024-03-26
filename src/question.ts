@@ -1,26 +1,27 @@
 import { getData, setData } from './dataStore';
 import { getRandomColour } from './helpers';
-import { Question, ErrorObject, EmptyObject, Answer } from './returnInterfaces';
+import { Question, ErrorObject, Answer, Quiz } from './returnInterfaces';
 import { DataStore } from './dataInterfaces'
 
 /////////////////////           Create a Question           /////////////////////
 
-interface AdminQuestionCreateBody {
+interface AdminQuestionCreateRequestBody {
     token: string;
     questionBody: {
         question: string;
         duration: number;
         points: number;
         answers: Answer[];
-    }
+    };
 }
 
 interface AdminQuestionCreateReturn {
     questionId: number;
 }
 
-export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateBody): AdminQuestionCreateReturn | ErrorObject => {
-    const {token, questionBody} = body;
+export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateRequestBody): AdminQuestionCreateReturn | ErrorObject => {
+    const { token, questionBody } = body;
+    const { question, duration, points, answers } = questionBody;
     const data: DataStore = getData();
     
     // Check if token is valid
@@ -35,9 +36,6 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateBod
     if (quizIndex === -1) {
         return { error: 'Invalid quizID', code: 403};
     }
-
-    // Extract question body
-    const { question, duration, points, answers } = questionBody;
 
     // Check if question is < 5 or > 50 characters
     if (question.length < 5 || question.length > 50) {
@@ -121,7 +119,7 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateBod
     // Update time last edited of quiz
     data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
 
-    // set data to dataStore
+    // Update the dataStore
     setData(data);
 
     // Return questionId
@@ -133,6 +131,38 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateBod
 interface AdminQuestionRemoveReturn {} 
 
 export const adminQuestionRemove = (token: string, quizId: number, questionId: number): AdminQuestionRemoveReturn | ErrorObject => {
-    
+    const data = getData();
+
+    // Find the user by token
+    // Check if token is valid
+    const user = data.users.find((user) => token === user.token);
+    if (!user) {
+        return { error: 'Invalid token', code: 401 };
+    }
+
+    // Validate quizID and ownership
+    // findIndex will return -1 if not found or userID doesn't match
+    const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === user.userId);
+    if (quizIndex === -1) {
+        return { error: 'Invalid quizID', code: 403};
+    }
+
+    // Get the quiz using quizIndex
+    const quiz: Quiz = data.quizzes[quizIndex];
+
+    // Find the question index by questionId
+    const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+    if (questionIndex === -1) {
+        return { error: 'Invalid questionID', code: 400 };
+    }
+
+    // Remove the question from the quiz
+    quiz.questions.splice(questionIndex, 1);
+
+    // Update the timeLastEdited property of the quiz
+    quiz.timeLastEdited = Date.now();
+
+    // Update the dataStore
+    setData(data);
     return {};
 }
