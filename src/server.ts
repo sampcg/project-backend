@@ -12,7 +12,8 @@ import process from 'process';
 import { clear } from './other';
 import { 
   adminQuizList,
-  adminQuizCreate
+  adminQuizCreate,
+  adminQuizRemove
 } from './quiz';
 
 // Set up web app
@@ -51,6 +52,7 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   }
 });
 
+
 // Create a quiz
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
@@ -60,6 +62,18 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   }
   res.json(result);
 });
+
+
+// Send quiz to trash
+app.delete('./v1/quiz/:quizid', (req: Request, res: Response) => {
+  const { token, quizid } = req.params;
+  const result = adminQuizRemove(token, parseInt(quizid as string))
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+})
+
 
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {
