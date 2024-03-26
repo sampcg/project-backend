@@ -2,7 +2,6 @@
 import { getData, setData } from './dataStore';
 import { getUser } from './helpers';
 import validator from 'validator';
-import randomString from 'randomized-string';
 
 // First Function By Abrar
 function adminAuthRegister(email: string, password: string,
@@ -37,6 +36,7 @@ function adminAuthRegister(email: string, password: string,
     return { error: 'Password must contain at least 1 letter and number' };
   }
 
+  const randomString = require('randomized-string');
   const randomToken = randomString.generate(8);
 
   // Bit of Code that pushes the data after the filter
