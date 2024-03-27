@@ -1,49 +1,54 @@
 import { getData } from './dataStore';
 import { DataStore } from './dataInterfaces';
-import { getQuiz, getTrash } from './helpers';
+import { getUser, getQuiz, getTrash, decodeToken } from './helpers';
 import { ErrorObject, Question } from './returnInterfaces';
 
 // Error return type
 
 /// //////////////////           List all Quizzes           /////////////////////
 
-// /**
-//  * Provides a list of all quizzed owned by the currently logged in user
-//  * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
-//  */
+/**
+ * Provides a list of all quizzed owned by the currently logged in user
+ * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
+ */
 
-// // AdminQuizList return type
-// interface BriefQuizDetails {
-//     quizId: number;
-//     name: string;
-// }
+// AdminQuizList return type
+interface BriefQuizDetails {
+    quizId: number;
+    name: string;
+}
 
-// interface AdminQuizListReturn {
-//     quizzes: BriefQuizDetails[];
-// }
+interface AdminQuizListReturn {
+    quizzes: BriefQuizDetails[];
+}
 
-// // Feature
-// export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorObject => {
-//   const data = getData();
+// Feature
+export const adminQuizList = (token: string): AdminQuizListReturn | ErrorObject => {
+  const data = getData();
 
-//   // Check if userId is valid
-//   if (!getUser(authUserId)) {
-//     return { error: 'AuthUserId is not a valid user' };
-//   }
+  // Check to see if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
-//   // Creates array of quizzes to return
-//   const quizzes = [];
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
-//   // Pushes all quizzes with given user ID in data to array quizzes
-//   for (const quiz of data.quizzes) {
-//     if (quiz.userId === authUserId) {
-//       quizzes.push({ quizId: quiz.quizId, name: quiz.name });
-//     }
-//   }
+  // Creates array of quizzes to return
+  const quizzes = [];
 
-//   // Returns object containing array of all quizzes owned by user
-//   return { quizzes: quizzes };
-// };
+  // Pushes all quizzes with given user ID in data to array quizzes
+  for (const quiz of data.quizzes) {
+    if (quiz.userId === originalToken.userId) {
+      quizzes.push({ quizId: quiz.quizId, name: quiz.name });
+    }
+  }
+
+  // Returns object containing array of all quizzes owned by user
+  return { quizzes: quizzes };
+};
 
 // /// //////////////////            Create a Quiz             /////////////////////
 
@@ -63,12 +68,13 @@ interface AdminQuizCreateReturn {
 // Feature
 export const adminQuizCreate = (token: string, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
   const data: DataStore = getData();
-  const inputToken: Token = decodeURIComponent(JSON.parse(token));
-  const authUserId: number = inputToken.userId;
 
-  const user = data.users.find((user) => authUserId === user.userId);
-
-  if (!user) {
+  // Check to see if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
+  if (!getUser(originalToken.userId)) {
     return { error: 'Invalid token', code: 401 };
   }
 
@@ -110,11 +116,11 @@ export const adminQuizCreate = (token: string, name: string, description: string
   // Create parameters for new quiz
   const newQuiz = {
     quizId: newQuizId,
-    userId: authUserId,
+    userId: originalToken.userId,
     name: name,
-    description: description,
     timeCreated: time,
     timeLastEdited: time,
+    description: description,
     numQuestions: 0,
     questions: questions,
     duration: 0

@@ -1,7 +1,7 @@
 import { getData } from './dataStore';
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { User } from './returnInterfaces';
+import { User, Token } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -26,6 +26,23 @@ export function getQuiz(quizId: number) {
 export function getTrash(quizId: number) {
   return getData().trash.find((trash) => quizId === trash.quizId);
 }
+
+export function decodeToken(encodedToken: string): Token | null {
+  try {
+    const decodedToken = decodeURIComponent(encodedToken);
+    const tokenObject = JSON.parse(decodedToken);
+    // Check if the tokenObject has sessionId and userId properties
+    if ('sessionId' in tokenObject && 'userId' in tokenObject) {
+      return tokenObject as Token;
+    } else {
+      throw new Error('Invalid token');
+    }
+  } catch (error) {
+    console.error('Invalid token');
+    return null;
+  }
+}
+
 /**
  * Creates a request with the specified HTTP method, path, and payload.
  *

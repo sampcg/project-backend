@@ -20,7 +20,7 @@ import {
   // adminUserPasswordUpdate
 } from './auth';
 
-import { adminQuizCreate } from './quiz';
+import { adminQuizCreate, adminQuizList } from './quiz';
 
 // Set up web app
 const app = express();
@@ -98,6 +98,16 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(echo(data));
 });
 
+app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminQuizList(token);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Create a quiz
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
   const result = adminQuizCreate(token, name, description);

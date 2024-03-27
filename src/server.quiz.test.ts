@@ -40,11 +40,11 @@ const requestHelper = (method: HttpVerb, path: string, payload: object) => {
 const requestRegisterAuth = (email: string, password: string, nameFirst: string, nameLast: string) => {
   return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
 };
-
+/*
 const requestAuthLogin = (email: string, password: string) => {
   return requestHelper('POST', '/v1/admin/auth/login', { email, password });
 };
-
+*/
 const requestAuthLogout = (token: string) => {
   return requestHelper('POST', '/v1/admin/auth/logout', { token });
 };
@@ -86,7 +86,6 @@ const requestClear = () => {
 beforeEach(() => {
   requestClear();
 });
-
 /*
 /// /////////////////       Testing for Listing Quizzes      ////////////////////
 
@@ -94,11 +93,11 @@ describe('Testing GET /v1/admin/quiz/list', () => {
   let author: {token: string};
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-    requestAuthLogin('aaa@bbb.com', 'abcde12345');
   });
 
   test('Testing: Error Case - Invalid token', () => {
-    expect(requestQuizList(author.token + 1)).toStrictEqual(makeCustomErrorForTest(401));
+    const invalidToken = author.token + 'Math.random()';
+    expect(requestQuizList(invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
   describe('Testing: Successful cases', () => {
@@ -112,7 +111,7 @@ describe('Testing GET /v1/admin/quiz/list', () => {
         quizzes: [
           {
             quizId: quiz1.quizId,
-            name: 'a'
+            name: 'Quiz 1'
           }
         ]
       });
@@ -120,22 +119,22 @@ describe('Testing GET /v1/admin/quiz/list', () => {
 
     test('3 quizzes', () => {
       const quiz1: {quizId: number} = requestQuizCreate(author.token, 'Quiz 1', 'a');
-      const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 1', 'b');
-      const quiz3: {quizId: number} = requestQuizCreate(author.token, 'Quiz 1', 'c');
+      const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 2', 'b');
+      const quiz3: {quizId: number} = requestQuizCreate(author.token, 'Quiz 3', 'c');
 
       expect(requestQuizList(author.token)).toStrictEqual({
         quizzes: [
           {
             quizId: quiz1.quizId,
-            name: 'a'
+            name: 'Quiz 1'
           },
           {
             quizId: quiz2.quizId,
-            name: 'b'
+            name: 'Quiz 2'
           },
           {
             quizId: quiz3.quizId,
-            name: 'c'
+            name: 'Quiz 3'
           }
         ]
       });
@@ -146,25 +145,24 @@ describe('Testing GET /v1/admin/quiz/list', () => {
       requestAuthLogout(author.token);
 
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      requestAuthLogin('ccc@ddd.com', '12345abcde');
 
-      const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 2', 'b');
-      const quiz3: {quizId: number} = requestQuizCreate(author.token, 'Quiz 3', 'c');
-      const quiz4: {quizId: number} = requestQuizCreate(author.token, 'Quiz 4', 'd');
+      const quiz2: {quizId: number} = requestQuizCreate(author2.token, 'Quiz 2', 'b');
+      const quiz3: {quizId: number} = requestQuizCreate(author2.token, 'Quiz 3', 'c');
+      const quiz4: {quizId: number} = requestQuizCreate(author2.token, 'Quiz 4', 'd');
 
       expect(requestQuizList(author2.token)).toStrictEqual({
         quizzes: [
           {
             quizId: quiz2.quizId,
-            name: 'b'
+            name: 'Quiz 2'
           },
           {
             quizId: quiz3.quizId,
-            name: 'c'
+            name: 'Quiz 3'
           },
           {
             quizId: quiz4.quizId,
-            name: 'd'
+            name: 'Quiz 4'
           }
         ]
       });
@@ -172,14 +170,12 @@ describe('Testing GET /v1/admin/quiz/list', () => {
   });
 });
 */
-
 /// /////////////////        Testing for Creating Quiz       ////////////////////
 
 describe('Testing POST /v1/admin/quiz', () => {
   let author: {token: string}, quizName: string, quizDescription: string;
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-
     // Standard values
     quizName = 'Quiz Name';
     quizDescription = 'Quiz Description';
@@ -187,6 +183,7 @@ describe('Testing POST /v1/admin/quiz', () => {
 
   describe('Testing: Error Cases', () => {
     test('Invalid token', () => {
+      console.log('error case');
       expect(requestQuizCreate(author.token + 1, quizName, quizDescription)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
