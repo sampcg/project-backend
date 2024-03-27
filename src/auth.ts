@@ -89,6 +89,7 @@ function adminAuthLogin(email: string, password: string) {
       passwordCorrect = true;
       newUserId = users.userId;
       users.numSuccessfulLogins++;
+      users.numFailedPasswordsSinceLastLogin = 0;
       break;
     }
   }
@@ -121,14 +122,13 @@ function adminAuthLogin(email: string, password: string) {
 }
 
 // Third Function By Abrar
-function adminUserDetails(authUserId: string | number) {
+function adminUserDetails(authUserId: string) {
   const data = getData();
   let userDetails = null;
   let idPresent = false;
 
   // Must decode the Token first, then parse()
-  const decodedToken = decodeURIComponent(authUserId.toString());
-  const originalToken = JSON.parse(decodedToken);
+  const originalToken = JSON.parse(decodeURIComponent(authUserId));
 
   for (const users of data.users) {
     if (users.userId === originalToken.userId) {
@@ -160,7 +160,6 @@ export function adminAuthLogout(authUserId: string | number) {
   //  Getting data from dataStore
   const data = getData();
   let idPresent = false;
-
 
   const decodedToken = decodeURIComponent(JSON.stringify(authUserId));
   const originalToken = JSON.parse(decodedToken);
