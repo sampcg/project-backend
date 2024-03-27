@@ -1,124 +1,139 @@
-// import { getData, setData } from './dataStore';
-// import { getUser } from './helpers';
+import { getData } from './dataStore';
+import { DataStore } from './dataInterfaces';
+import { getUser, getQuiz, getTrash, decodeToken } from './helpers';
+import { ErrorObject, Question } from './returnInterfaces';
 
-// // Error return type
-// interface ErrorObject {
-//     error: string;
-// }
+// Error return type
 
-// type EmptyObject = Record<string, never>;
-// /// //////////////////           List all Quizzes           /////////////////////
+/// //////////////////           List all Quizzes           /////////////////////
 
-// /**
-//  * Provides a list of all quizzed owned by the currently logged in user
-//  * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
-//  */
+/**
+ * Provides a list of all quizzed owned by the currently logged in user
+ * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
+ */
 
-// // AdminQuizList return type
-// interface BriefQuizDetails {
-//     quizId: number;
-//     name: string;
-// }
+// AdminQuizList return type
+interface BriefQuizDetails {
+    quizId: number;
+    name: string;
+}
 
-// interface AdminQuizListReturn {
-//     quizzes: BriefQuizDetails[];
-// }
+interface AdminQuizListReturn {
+    quizzes: BriefQuizDetails[];
+}
 
-// // Feature
-// export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorObject => {
-//   const data = getData();
+// Feature
+export const adminQuizList = (token: string): AdminQuizListReturn | ErrorObject => {
+  const data = getData();
 
-//   // Check if userId is valid
-//   if (!getUser(authUserId)) {
-//     return { error: 'AuthUserId is not a valid user' };
-//   }
+  // Check to see if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
-//   // Creates array of quizzes to return
-//   const quizzes = [];
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
-//   // Pushes all quizzes with given user ID in data to array quizzes
-//   for (const quiz of data.quizzes) {
-//     if (quiz.userId === authUserId) {
-//       quizzes.push({ quizId: quiz.quizId, name: quiz.name });
-//     }
-//   }
+  // Creates array of quizzes to return
+  const quizzes = [];
 
-//   // Returns object containing array of all quizzes owned by user
-//   return { quizzes: quizzes };
-// };
+  // Pushes all quizzes with given user ID in data to array quizzes
+  for (const quiz of data.quizzes) {
+    if (quiz.userId === originalToken.userId) {
+      quizzes.push({ quizId: quiz.quizId, name: quiz.name });
+    }
+  }
+
+  // Returns object containing array of all quizzes owned by user
+  return { quizzes: quizzes };
+};
 
 // /// //////////////////            Create a Quiz             /////////////////////
 
-// /**
-//  * Creates a quiz for the logged in user given basic details
-//  * @param {number} authUserId - unique identifier for admin user
-//  * @param {string} name - name for the quiz
-//  * @param {string} description - description of the quiz
-//  * @returns {{quizId: number}} - quizId
-//  */
+/**
+ * Creates a quiz for the logged in user given basic details
+ * @param {number} token - unique identifier for session
+ * @param {string} name - name for the quiz
+ * @param {string} description - description of the quiz
+ * @returns {{quizId: number}} - quizId
+ */
 
-// // AdminQuizCreate return type
-// interface AdminQuizCreateReturn {
-//     quizId: number;
-// }
+// AdminQuizCreate return type
+interface AdminQuizCreateReturn {
+    quizId: number;
+}
 
-// // Feature
-// export const adminQuizCreate = (authUserId: number, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
-//   const data = getData();
+// Feature
+export const adminQuizCreate = (token: string, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
+  const data: DataStore = getData();
 
-//   // Check if user is valid
-//   if (!getUser(authUserId)) {
-//     return { error: 'AuthUserId is not a valid user' };
-//   }
+  // Check to see if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
-//   // Check if name contains invalid characters
-//   const validName = /^[a-zA-Z0-9\s]*$/.test(name);
-//   if (!validName) {
-//     return { error: 'Name contains invalid characters' };
-//   }
+  // Check if name contains invalid characters
+  const validName: boolean = /^[a-zA-Z0-9\s]*$/.test(name);
+  if (!validName) {
+    return { error: 'Name contains invalid characters', code: 400 };
+  }
 
-//   // Check if name is less than 3 characters or greater than 30
-//   if (name.length < 3 || name.length > 30) {
-//     return { error: 'Name must be between 3 and 30 characters' };
-//   }
+  // Check if name is less than 3 characters or greater than 30
+  if (name.length < 3 || name.length > 30) {
+    return { error: 'Name must be between 3 and 30 characters', code: 400 };
+  }
 
-//   // Check if name there is already a quiz by that name
-//   // makes sure case doesn't impact check
-//   const nameExists = data.quizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase());
-//   if (nameExists) {
-//     return { error: 'invalid input' };
-//   }
+  // Check if name there is already a quiz by that name
+  // makes sure case doesn't impact check
+  const nameExists: boolean = data.quizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase());
+  if (nameExists) {
+    return { error: 'invalid input', code: 400 };
+  }
 
-//   // Check the length of the description
-//   if (description.length > 100) {
-//     return { error: 'Description must be 100 characters or less' };
-//   }
+  // Check the length of the description
+  if (description.length > 100) {
+    return { error: 'Description must be 100 characters or less', code: 400 };
+  }
 
-//   // Generate new quiz ID
-//   const newQuizId = data.quizzes.length + 1;
+  // Generate a unique random quiz ID
+  let newQuizId: number = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  while (getQuiz(newQuizId) || getTrash(newQuizId)) {
+    newQuizId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  }
 
-//   // Create an empty array for questions
-//   const questions: any = [];
+  // Create an empty array for questions
+  const questions: Question[] = [];
 
-//   // Create parameters for new quiz
-//   const newQuiz = {
-//     quizId: newQuizId,
-//     name: name,
-//     description: description,
-//     timeCreated: Math.round(Date.now() / 1000),
-//     timeLastEdited: Math.round(Date.now() / 1000),
-//     userId: authUserId,
-//     questions: questions
-//   };
+  // Grab the time
+  const time: number = Math.round(Date.now() / 1000);
 
-//   // Add quiz to data
-//   data.quizzes.push(newQuiz);
+  // Create parameters for new quiz
+  const newQuiz = {
+    quizId: newQuizId,
+    userId: originalToken.userId,
+    name: name,
+    timeCreated: time,
+    timeLastEdited: time,
+    description: description,
+    numQuestions: 0,
+    questions: questions,
+    duration: 0
+  };
 
-//   // Return quizId
-//   return {
-//     quizId: newQuizId
-//   };
-// };
+  // Add quiz to data
+  data.quizzes.push(newQuiz);
+
+  // Return quizId
+  return {
+    quizId: newQuizId
+  };
+};
 
 // /// //////////////////            Remove a Quiz             /////////////////////
 

@@ -2,7 +2,7 @@ export type EmptyObject = Record<string, never>;
 
 export interface ErrorObject {
   error: string;
-  Code?: number;
+  code?: number;
 }
 export interface Answer {
   answer: string;
@@ -32,11 +32,12 @@ export interface Quiz {
   userId: number;
   quizId: number;
   name: string;
-  description: string;
   timeCreated: number;
   timeLastEdited: number;
+  description: string;
+  numQuestions: number;
   questions: Question[];
-  numberofquestions: number;
+  duration: number;
 }
 
 export interface Trash {
