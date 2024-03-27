@@ -1,4 +1,9 @@
 import { getData } from './dataStore';
+import request, { HttpVerb } from 'sync-request-curl';
+import { port, url } from './config.json';
+import { User } from './returnInterfaces';
+
+const SERVER_URL = `${url}:${port}`;
 
 /**
  * ============== helper functions============
@@ -10,8 +15,8 @@ import { getData } from './dataStore';
  *
  */
 
-export function getUser(authUserId: number) {
-  return getData().users.find((user) => authUserId === user.userId);
+export function getUser(authUserId: number): User {
+  return getData().users.find((user: { userId: number; }) => authUserId === user.userId);
 }
 
 export function getQuiz(quizId: number) {
@@ -21,3 +26,27 @@ export function getQuiz(quizId: number) {
 export function getTrash(quizId: number) {
   return getData().trash.find((trash) => quizId === trash.quizId);
 }
+/**
+ * Creates a request with the specified HTTP method, path, and payload.
+ *
+ * @param {HttpVerb} method - The HTTP method to use for the request.
+ * @param {string} path - The path for the request.
+ * @param {object} payload - The payload to send with the request.
+ *
+ * @return {object} An object containing the status code and response body of the request.
+ */
+export const createRequest = (method: HttpVerb, path: string, payload: object) => {
+  let qs = {};
+  let json = {};
+  json = payload;
+  if (['GET', 'DELETE'].includes(method)) {
+    qs = payload;
+  }
+  const res = request(method, SERVER_URL + path, { qs, json, timeout: 10000 });
+  const responseBody = JSON.parse(res.body.toString());
+  return { statusCode: res.statusCode, body: responseBody };
+};
+
+export const clear = () => {
+  return createRequest('DELETE', '/v1/clear', {});
+};

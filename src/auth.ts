@@ -36,14 +36,18 @@ function adminAuthRegister(email: string, password: string,
     return { error: 'Password must contain at least 1 letter and number' };
   }
 
+  const randomString = require('randomized-string');
+  const randomToken = randomString.generate(8);
+
   // Bit of Code that pushes the data after the filter
   const newData = {
     userId: data.users.length,
+    token: randomToken,
     nameFirst: nameFirst,
     nameLast: nameLast,
     email: email,
     password: password,
-    numSuccessfulLogins: 0,
+    numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
     oldPassword: '',
     newPassword: password,
@@ -51,7 +55,7 @@ function adminAuthRegister(email: string, password: string,
 
   data.users.push(newData);
 
-  return { authUserId: (data.users.length - 1) };
+  return { token: newData.token };
 }
 
 // Second Function By Abrar
@@ -72,7 +76,7 @@ function adminAuthLogin(email: string, password: string) {
   for (const users of data.users) {
     if (users.email === email && users.password === password) {
       passwordCorrect = true;
-      newUserId = users.userId;
+      newUserId = users.token;
       users.numSuccessfulLogins++;
       break;
     }
@@ -90,23 +94,28 @@ function adminAuthLogin(email: string, password: string) {
   }
 
   for (const user of data.users) {
-    if (newUserId === user.userId) {
+    if (newUserId === user.token) {
       user.numFailedPasswordsSinceLastLogin = 0;
     }
   }
 
-  return { authUserId: newUserId };
+  return { token: newUserId };
 }
 
 // Third Function By Abrar
-function adminUserDetails(authUserId: number | string) {
+function adminUserDetails(authUserId: string | number) {
   const data = getData();
   let userDetails = null;
   let idPresent = false;
 
   for (const users of data.users) {
-    if (users.userId === authUserId) {
+    if (users.token === authUserId) {
       idPresent = true;
+      break;
+    }
+  }
+  for (const users of data.users) {
+    if (users.token === authUserId) {
       userDetails = {
         userId: users.userId,
         name: users.nameFirst + ' ' + users.nameLast,
@@ -117,12 +126,31 @@ function adminUserDetails(authUserId: number | string) {
       break;
     }
   }
-
   if (idPresent === false) {
     return { error: 'AuthUserId is not a valid user' };
   } else {
     return { user: userDetails };
   }
+}
+
+//  Fourth Function By Abrar
+export function adminAuthLogout(authUserId: string | number) {
+  //  Getting data from dataStore
+  const data = getData();
+  let idPresent = false;
+
+  //  Going to check if the given token is valid
+  for (const users of data.users) {
+    if (authUserId === users.token) {
+      idPresent = true;
+      users.token = '';
+      break;
+    }
+  }
+  if (idPresent === false) {
+    return { error: 'Token is empty or invalid' };
+  }
+  return {};
 }
 
 /**
