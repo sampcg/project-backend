@@ -68,7 +68,7 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
 // Third Function By Abrar
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token: string = req.query.token; // Assuming token is passed in the request body
+  const token: string = req.query.token as string; // Assuming token is passed in the request body
 
   const result = adminUserDetails(token);
   // Checking if the result contains an error
