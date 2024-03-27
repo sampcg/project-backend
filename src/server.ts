@@ -68,7 +68,7 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
 // Third Function By Abrar
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token: string = req.query.token as string;
+  const token: string = req.query.token as string; // Assuming token is passed in the request body
 
   const result = adminUserDetails(token);
   // Checking if the result contains an error
@@ -81,9 +81,9 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
 
 // Fourth Function By Abrar
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
-  const { authUserId } = req.body;
+  const token: string = req.body.token;
 
-  const result = adminAuthLogout(authUserId);
+  const result = adminAuthLogout(token); // Corrected: Pass 'token' instead of 'authUserId'
   // Checking if the result contains an error
   if ('error' in result) {
     return res.status(401).json(result);
@@ -91,7 +91,6 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 
   res.json(result);
 });
-
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
