@@ -114,7 +114,6 @@ function adminUserDetails(authUserId: string | number) {
       break;
     }
   }
-
   for (const users of data.users) {
     if (users.token === authUserId) {
       userDetails = {
@@ -127,12 +126,31 @@ function adminUserDetails(authUserId: string | number) {
       break;
     }
   }
-
   if (idPresent === false) {
     return { error: 'AuthUserId is not a valid user' };
   } else {
     return { user: userDetails };
   }
+}
+
+//  Fourth Function By Abrar
+export function adminAuthLogout(authUserId: string | number) {
+  //  Getting data from dataStore
+  const data = getData();
+  let idPresent = false;
+
+  //  Going to check if the given token is valid
+  for (const users of data.users) {
+    if (authUserId === users.token) {
+      idPresent = true;
+      users.token = '';
+      break;
+    }
+  }
+  if (idPresent === false) {
+    return { error: 'Token is empty or invalid' };
+  }
+  return {};
 }
 
 /**
