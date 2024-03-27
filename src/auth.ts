@@ -114,7 +114,6 @@ function adminUserDetails(authUserId: string | number) {
       break;
     }
   }
-
   for (const users of data.users) {
     if (users.token === authUserId) {
       userDetails = {
@@ -127,7 +126,6 @@ function adminUserDetails(authUserId: string | number) {
       break;
     }
   }
-
   if (idPresent === false) {
     return { error: 'AuthUserId is not a valid user' };
   } else {
