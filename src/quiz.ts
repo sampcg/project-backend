@@ -63,13 +63,14 @@ interface AdminQuizCreateReturn {
 // Feature
 export const adminQuizCreate = (token: string, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
   const data: DataStore = getData();
-  const user = data.users.find((user) => token === user.token);
+  const inputToken: Token = decodeURIComponent(JSON.parse(token));
+  const authUserId: number = inputToken.userId;
+
+  const user = data.users.find((user) => authUserId === user.userId);
 
   if (!user) {
     return { error: 'Invalid token', code: 401 };
   }
-
-  const authUserId: number = user.userId;
 
   // Check if name contains invalid characters
   const validName: boolean = /^[a-zA-Z0-9\s]*$/.test(name);

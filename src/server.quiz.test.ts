@@ -179,7 +179,6 @@ describe('Testing POST /v1/admin/quiz', () => {
   let author: {token: string}, quizName: string, quizDescription: string;
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-    requestAuthLogin('aaa@bbb.com', 'abcde12345');
 
     // Standard values
     quizName = 'Quiz Name';
@@ -218,7 +217,6 @@ describe('Testing POST /v1/admin/quiz', () => {
       requestAuthLogout(author.token);
 
       const author2 = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      requestAuthLogin('ccc@ddd.com', '12345abcde');
 
       expect(requestQuizCreate(author2.token, quizName, quizDescription)).toStrictEqual(makeCustomErrorForTest(400));
     });
@@ -283,7 +281,7 @@ describe('Testing POST /v1/admin/quiz', () => {
       requestAuthLogout(author.token);
 
       const author2 = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      requestAuthLogin('ccc@ddd.com', '12345abcde');
+
       const quiz2Name = 'Quiz 2 Name';
       const quiz2 = requestQuizCreate(author2.token, quiz2Name, quizDescription);
 
