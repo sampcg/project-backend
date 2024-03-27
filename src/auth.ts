@@ -165,7 +165,6 @@ export function adminAuthLogout(authUserId: string | number) {
   const data = getData();
   let idPresent = false;
 
-
   const decodedToken = decodeURIComponent(JSON.stringify(authUserId));
   const originalToken = JSON.parse(decodedToken);
 
