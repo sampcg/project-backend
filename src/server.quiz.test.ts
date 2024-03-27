@@ -4,11 +4,12 @@ import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
-
+/*
 interface Answer {
     answer: string;
     correct: boolean;
 }
+*/
 
 const requestHelper = (method: HttpVerb, path: string, payload: object) => {
   let qs = {};
@@ -51,7 +52,7 @@ const requestAuthLogout = (token: string) => {
 const requestQuizCreate = (token: string, name: string, description: string) => {
   return requestHelper('POST', '/v1/admin/quiz', { token, name, description });
 };
-
+/*
 const requestQuizList = (token: string) => {
   return requestHelper('GET', '/v1/admin/quiz/list', { token });
 };
@@ -75,7 +76,7 @@ const requestQuestionCreate = (token: string, quizId: number, question: string, 
 const requestQuestionDelete = (token: string, quizId: number, questionId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}/question/${questionId}`, { token, quizId, questionId });
 };
-
+*/
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
 };
@@ -254,13 +255,12 @@ describe('Testing POST /v1/admin/quiz', () => {
       */
     });
 
-
     test('Create multiple quizzes', () => {
       const quiz2Name = 'Quiz 2 Name';
       const quiz1 = requestQuizCreate(author.token, quizName, quizDescription);
       const quiz2 = requestQuizCreate(author.token, quiz2Name, quizDescription);
-      expect(quiz1).toStrictEqual(quiz1.quizId);
-      expect(quiz2).toStrictEqual(quiz2.quizId);
+      expect(quiz1).toStrictEqual({ quizId: quiz1.quizId });
+      expect(quiz2).toStrictEqual({ quizId: quiz2.quizId });
       /*
       expect(requestQuizList(author.token)).toStrictEqual({
         quizzes: [
@@ -287,8 +287,8 @@ describe('Testing POST /v1/admin/quiz', () => {
       const quiz2Name = 'Quiz 2 Name';
       const quiz2 = requestQuizCreate(author2.token, quiz2Name, quizDescription);
 
-      expect(quiz1).toStrictEqual(quiz1.quizId);
-      expect(quiz2).toStrictEqual(quiz2.quizId);
+      expect(quiz1).toStrictEqual({ quizId: quiz1.quizId });
+      expect(quiz2).toStrictEqual({ quizId: quiz2.quizId });
       expect(quiz1).not.toStrictEqual(quiz2);
     });
   });

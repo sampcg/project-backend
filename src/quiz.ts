@@ -1,7 +1,7 @@
-import { getData, setData } from './dataStore';
-import { DataStore } from './dataInterfaces'; 
-import { getUser, getQuiz, getTrash } from './helpers';
-import { ErrorObject, EmptyObject, Question } from './returnInterfaces';
+import { getData } from './dataStore';
+import { DataStore } from './dataInterfaces';
+import { getQuiz, getTrash } from './helpers';
+import { ErrorObject, Question } from './returnInterfaces';
 
 // Error return type
 
