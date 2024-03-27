@@ -18,7 +18,6 @@ export interface Question {
 }
 export interface User {
   userId: number;
-  token: string;
   nameFirst: string;
   nameLast: string;
   email: string;

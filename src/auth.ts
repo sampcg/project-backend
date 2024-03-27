@@ -99,6 +99,7 @@ function adminAuthLogin(email: string, password: string) {
     for (const user of data.users) {
       if (email === user.email) {
         user.numFailedPasswordsSinceLastLogin++;
+        break;
       }
     }
     return { error: 'Password is not correct for the given email' };
@@ -126,7 +127,7 @@ function adminUserDetails(authUserId: string | number) {
   let idPresent = false;
 
   // Must decode the Token first, then parse()
-  const decodedToken = decodeURIComponent(authUserId);
+  const decodedToken = decodeURIComponent(authUserId.toString());
   const originalToken = JSON.parse(decodedToken);
 
   for (const users of data.users) {
@@ -160,7 +161,8 @@ export function adminAuthLogout(authUserId: string | number) {
   const data = getData();
   let idPresent = false;
 
-  const decodedToken = decodeURIComponent(authUserId);
+
+  const decodedToken = decodeURIComponent(JSON.stringify(authUserId));
   const originalToken = JSON.parse(decodedToken);
 
   //  Going to check if the given token is valid
