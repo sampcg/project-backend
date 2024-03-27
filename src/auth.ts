@@ -1,6 +1,7 @@
 // This Imports the Database
 import { getData, setData } from './dataStore';
 import { getUser } from './helpers';
+import { Token } from './returnInterfaces';
 import validator from 'validator';
 
 // First Function By Abrar
@@ -57,7 +58,7 @@ function adminAuthRegister(email: string, password: string,
   const randomString = require('randomized-string');
   const randomSession = randomString.generate(8);
 
-  const newToken = {
+  const newToken: Token = {
     userId: newData.userId,
     sessionId: randomSession
   };

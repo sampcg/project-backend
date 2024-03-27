@@ -8,6 +8,7 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+
 import { clear } from './other';
 
 import {
@@ -18,6 +19,8 @@ import {
   // adminUserDetailsUpdate,
   // adminUserPasswordUpdate
 } from './auth';
+
+import { adminQuizCreate, adminQuizList } from './quiz';
 
 // Set up web app
 const app = express();
@@ -93,6 +96,25 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
+});
+
+app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminQuizList(token);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Create a quiz
+app.post('/v1/admin/quiz', (req: Request, res: Response) => {
+  const { token, name, description } = req.body;
+  const result = adminQuizCreate(token, name, description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
 });
 
 // Reset the state of the application back to the start
