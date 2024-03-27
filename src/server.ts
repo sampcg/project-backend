@@ -41,6 +41,7 @@ const HOST: string = process.env.IP || '127.0.0.1';
 
 // First Function By Abrar
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  // const { email, password, nameFirst, nameLast } = req.body;
   const result = adminAuthRegister(req.body.email, req.body.password, req.body.nameFirst, req.body.nameLast);
   if ('error' in result) {
     return res.status(400).json(result);
@@ -64,9 +65,9 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
 // Third Function By Abrar
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const { authUserId } = req.params;
+  const { token } = req.query;
 
-  const result = adminUserDetails(authUserId);
+  const result = adminUserDetails(token);
   // Checking if the result contains an error
   if ('error' in result) {
     return res.status(401).json(result);
@@ -87,7 +88,6 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 
   res.json(result);
 });
-
 
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
