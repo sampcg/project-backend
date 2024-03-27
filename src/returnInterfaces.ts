@@ -14,6 +14,7 @@ export interface Question {
   duration: number;
   points: number;
   answers: Answer[];
+  position: number;
 }
 export interface User {
   userId: number;
@@ -36,6 +37,7 @@ export interface Quiz {
   timeCreated: number;
   timeLastEdited: number;
   questions: Question[];
+  numberofquestions: number;
 }
 
 export interface Trash {
