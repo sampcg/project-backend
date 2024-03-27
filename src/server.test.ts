@@ -488,14 +488,14 @@ describe('Testing GET /v1/admin/user/details', () => {
 
     //Now checking by passing incorrect authId
     const AuthUserDetailsResponse2 = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: 24234234 }});
+    { json: { authUserId: 24234234 }});
     expect(AuthUserDetailsResponse2.statusCode).toStrictEqual(401);
     const AuthUserDetailsJSON2 = JSON.parse(AuthUserDetailsResponse2.body.toString());
     expect (AuthUserDetailsJSON2).toStrictEqual({ error: expect.any(String) });
 
     //Now checking by passing incorrect authId
     const AuthUserDetailsResponse3 = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: 'Hello, World!' }});
+    { json: { authUserId: 'Hello, World!' }});
     expect(AuthUserDetailsResponse3.statusCode).toStrictEqual(401);
     const AuthUserDetailsJSON3 = JSON.parse(AuthUserDetailsResponse3.body.toString());
     expect (AuthUserDetailsJSON3).toStrictEqual({ error: expect.any(String) });
