@@ -126,22 +126,31 @@ function adminAuthLogin(email: string, password: string) {
 }
 
 // Third Function By Abrar
-function adminUserDetails(authUserId: string) {
+function adminUserDetails(token: any) {
   const data = getData();
   let userDetails = null;
   let idPresent = false;
 
   // Must decode the Token first, then parse()
-  const originalToken = JSON.parse(decodeURIComponent(authUserId));
+// const originalToken: object = decodeURIComponent(authUserId);
+let originalToken;
+try {
+    const decodedAuthUserId = decodeURIComponent(token);
+    originalToken = JSON.parse(decodedAuthUserId);
+} catch (error) {
+    console.error('Error parsing token:', error);
+    return { error: 'Invalid token format' };
+}
 
+const actualUserId: number = originalToken.userId;
   for (const users of data.users) {
-    if (users.userId === originalToken.userId) {
+    if (users.userId === actualUserId) {
       idPresent = true;
       break;
     }
   }
   for (const users of data.users) {
-    if (users.userId === originalToken.userId) {
+    if (users.userId === actualUserId) {
       userDetails = {
         userId: users.userId,
         name: users.nameFirst + ' ' + users.nameLast,
