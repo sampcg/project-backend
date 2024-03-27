@@ -36,13 +36,12 @@ function adminAuthRegister(email: string, password: string,
     return { error: 'Password must contain at least 1 letter and number' };
   }
 
-  const randomString = require('randomized-string');
-  const randomToken = randomString.generate(8);
+  // const randomString = require('randomized-string');
+  // const randomToken = randomString.generate(8);
 
   // Bit of Code that pushes the data after the filter
   const newData = {
     userId: data.users.length,
-    token: randomToken,
     nameFirst: nameFirst,
     nameLast: nameLast,
     email: email,
@@ -55,7 +54,23 @@ function adminAuthRegister(email: string, password: string,
 
   data.users.push(newData);
 
-  return { token: newData.token };
+  const randomString = require('randomized-string');
+  const randomSession = randomString.generate(8);
+
+  const newToken = {
+    userId: newData.userId,
+    sessionId: randomSession
+  };
+
+  if (!Array.isArray(data.token)) {
+    data.token = []; // Initialize data.token as an empty array
+  }
+
+  data.token.push(newToken);
+
+  const returnToken = encodeURIComponent(JSON.stringify(newToken));
+
+  return { token: returnToken };
 }
 
 // Second Function By Abrar
@@ -76,8 +91,9 @@ function adminAuthLogin(email: string, password: string) {
   for (const users of data.users) {
     if (users.email === email && users.password === password) {
       passwordCorrect = true;
-      newUserId = users.token;
+      newUserId = users.userId;
       users.numSuccessfulLogins++;
+      users.numFailedPasswordsSinceLastLogin = 0;
       break;
     }
   }
@@ -88,34 +104,44 @@ function adminAuthLogin(email: string, password: string) {
     for (const user of data.users) {
       if (email === user.email) {
         user.numFailedPasswordsSinceLastLogin++;
+        break;
       }
     }
     return { error: 'Password is not correct for the given email' };
   }
 
-  for (const user of data.users) {
-    if (newUserId === user.token) {
-      user.numFailedPasswordsSinceLastLogin = 0;
-    }
-  }
+  const randomString = require('randomized-string');
+  const randomSession = randomString.generate(8);
 
-  return { token: newUserId };
+  const newToken = {
+    userId: newUserId,
+    sessionId: randomSession
+  };
+
+  data.token.push(newToken);
+
+  const returnToken = encodeURIComponent(JSON.stringify(newToken));
+
+  return { token: returnToken };
 }
 
 // Third Function By Abrar
-function adminUserDetails(authUserId: string | number) {
+function adminUserDetails(authUserId: string) {
   const data = getData();
   let userDetails = null;
   let idPresent = false;
 
+  // Must decode the Token first, then parse()
+  const originalToken = JSON.parse(decodeURIComponent(authUserId));
+
   for (const users of data.users) {
-    if (users.token === authUserId) {
+    if (users.userId === originalToken.userId) {
       idPresent = true;
       break;
     }
   }
   for (const users of data.users) {
-    if (users.token === authUserId) {
+    if (users.userId === originalToken.userId) {
       userDetails = {
         userId: users.userId,
         name: users.nameFirst + ' ' + users.nameLast,
@@ -139,14 +165,19 @@ export function adminAuthLogout(authUserId: string | number) {
   const data = getData();
   let idPresent = false;
 
+  const decodedToken = decodeURIComponent(JSON.stringify(authUserId));
+  const originalToken = JSON.parse(decodedToken);
+
   //  Going to check if the given token is valid
-  for (const users of data.users) {
-    if (authUserId === users.token) {
+  for (let i = 0; i < data.token.length; i++) {
+    if (data.token[i].sessionId === originalToken.sessionId) {
       idPresent = true;
-      users.token = '';
+      // Remove the originalToken from the data.token array
+      data.token.splice(i, 1);
       break;
     }
   }
+
   if (idPresent === false) {
     return { error: 'Token is empty or invalid' };
   }
