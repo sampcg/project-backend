@@ -62,6 +62,10 @@ function adminAuthRegister(email: string, password: string,
     sessionId: randomSession
   };
 
+  if (!Array.isArray(data.token)) {
+    data.token = []; // Initialize data.token as an empty array
+  }
+
   data.token.push(newToken);
 
   const returnToken = encodeURIComponent(JSON.stringify(newToken));
@@ -160,6 +164,7 @@ export function adminAuthLogout(authUserId: string | number) {
   //  Getting data from dataStore
   const data = getData();
   let idPresent = false;
+
 
   const decodedToken = decodeURIComponent(JSON.stringify(authUserId));
   const originalToken = JSON.parse(decodedToken);
