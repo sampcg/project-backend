@@ -479,9 +479,16 @@ describe('Testing GET /v1/admin/user/details', () => {
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
 
     console.log(AuthRegisterJSON.token);
+
+    const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+      { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
+
+    expect(AuthLoginResponse.statusCode).toStrictEqual(200);
+    const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
+
     //First Test of Passing
     const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { authUserId: AuthRegisterJSON.token }});
+    { json: { authUserId: AuthLoginJSON.token }});
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
     const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
     expect (AuthUserDetailsJSON).toStrictEqual({ user: expect.any(Object) });
