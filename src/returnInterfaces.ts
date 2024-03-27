@@ -14,10 +14,10 @@ export interface Question {
   duration: number;
   points: number;
   answers: Answer[];
+  position: number;
 }
 export interface User {
   userId: number;
-  token: string;
   nameFirst: string;
   nameLast: string;
   email: string;
@@ -32,10 +32,12 @@ export interface Quiz {
   userId: number;
   quizId: number;
   name: string;
-  description: string;
   timeCreated: number;
   timeLastEdited: number;
+  description: string;
+  numQuestions: number;
   questions: Question[];
+  duration: number;
 }
 
 export interface Trash {
@@ -45,4 +47,9 @@ export interface Trash {
   description: string;
   timeCreated: number;
   timeLastEdited: number;
+}
+
+export interface Token {
+  userId: number;
+  sessionId: string;
 }
