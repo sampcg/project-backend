@@ -31,7 +31,9 @@ import {
   adminQuizInfo
 } from './quiz';
 
+import { adminTrashList } from './trash';
 import { adminQuestionCreate } from './question';
+import { getTrash } from './helpers';
 
 // Set up web app
 const app = express();
@@ -138,6 +140,15 @@ app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   save();
   return res.json(echo(data));
+});
+
+app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminTrashList(token);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
 });
 
 // Create a list of quizzes
