@@ -1,7 +1,7 @@
 
 import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
-import { getUser, getQuiz, getTrash, decodeToken } from './helpers';
+import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUserByEmail } from './helpers';
 import { ErrorObject, EmptyObject, Quiz, QuizInfo, Question } from './returnInterfaces';
 
 // Error return type
@@ -350,4 +350,58 @@ export const adminQuizInfo = (token: string, quizId: number): QuizInfo | ErrorOb
   };
 
   return adminQuizInfoReturn;
+};
+
+export interface AdminQuizTransfer {
+  token: string;
+  userEmail: string;
+}
+
+/**
+* <Transfers a quiz to another user>
+*
+* @param {string} token
+* @param {number} quizId
+* @param {string} userEmail
+* @returns {token: string, userEmail: string,}
+**/
+export const adminQuizTransfer = (quizId: number, token: string, userEmail: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  const originalToken = decodeToken(token);
+  validateTokenStructure(token);
+  if (!originalToken) {
+    return { error: 'Token is empty or invalid', code: 401 };
+  }
+  if (!getUser(originalToken.userId)) {
+    return { error: 'User with the provided token does not exist', code: 401 };
+  }
+  const user = getUser(originalToken.userId);
+  const quiz = getQuiz(quizId);
+  // Check for valid quiz
+  if (!quiz) {
+    return { error: 'Quiz ID does not refer to a valid quiz!', code: 400 };
+  }
+  // quiz does not refers to the user
+  if (quiz.userId !== originalToken.userId) {
+    return { error: 'You do not own this quiz!', code: 403 };
+  }
+  // Check if userEmail is a real user
+  if (!getUserByEmail(userEmail)) {
+    return { error: 'User is not a real user!', code: 400 };
+  }
+  // userEmail is the current logged in user
+  if (user.email === userEmail) {
+    return { error: 'User email cannot be the current logged in user!', code: 400 };
+  }
+  // Quiz ID refers to a quiz that has a name that is already used by the target user
+  const targetUserId = getUserByEmail(userEmail).userId;
+  const targetQuiz = data.quizzes.some((quiz) => targetUserId === quiz.userId);
+  if (quiz.name === targetQuiz) {
+    return { error: 'Quiz ID refers to a quiz that has a name that is already used by the target user', code: 400 };
+  }
+  quiz.timeLastEdited = Date.now();
+
+  setData(data);
+
+  return {};
 };
