@@ -19,7 +19,8 @@ import {
 
 import {
   adminQuestionCreate,
-  adminQuestionUpdate
+  adminQuestionUpdate,
+  adminQuestionMove
 } from './question';
 
 beforeEach(() => {
@@ -48,36 +49,36 @@ const ERROR = { error: expect.any(String) }
 /// //////////////////           Update a Question           /////////////////////
 describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   //Declare Variables
-  let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, quizUpdate: {quizId: number};
+  let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number};
   let question: string, duration: number, points: number, answers: AnswerInput[];
 
   // Before each test, creates a test linked to a user
   beforeEach(() => {
-    let author = adminAuthRegister('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-    let quiz = adminQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
-    answers =
-        [{
-          answer: 'Answer 1',
-          correct: true
-        },
-        {
-          answer: 'Answer 2',
-          correct: false
-        }];
-    
-  const questionBody: QuestionBody = {
-    question: 'Question 1',
-    duration: 5,
-    points: 5,
-    answers: [
-      { answer: 'Answer 1', correct: true },
-      { answer: 'Answer 2', correct: false }
-    ]
-  };
+    author = adminAuthRegister('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = adminQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+    answers = [
+      {
+        answer: 'Answer 1',
+        correct: true
+      },
+      {
+        answer: 'Answer 2',
+        correct: false
+      }
+    ];
+  
+    const questionBody: QuestionBody = {
+      question: 'Question 1',
+      duration: 5,
+      points: 5,
+      answers: [
+        { answer: 'Answer 1', correct: true },
+        { answer: 'Answer 2', correct: false }
+      ]
+    };
     const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
-    const question1 = adminQuestionCreate(quiz.quizId, testBody);
+    question1 = adminQuestionCreate(quiz.quizId, testBody);
   });
-
 
   describe('Testing Error Cases', () => {
     test('QuestionId is invalid', () => {
@@ -245,7 +246,7 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       const author2: {token: string} = adminAuthRegister('ccc@ddd.com', '12345abcde', 'John', 'Doe');
       const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers };
       const testBody: CreateQuestionBody = { token: author2.token, questionBody: questionBody };
-      expect(adminQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(403));
+      expect(adminQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(Error);
     });
   });
 
@@ -260,4 +261,75 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 });
 
+/// /////////////////      Testing for Moving Question     ////////////////////
+describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}/move', () => {
+  //Declare Variables
+  let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, position: {newPosition: number};
+  let question: string, duration: number, points: number, answers: AnswerInput[];
 
+  // Before each test, creates a test linked to a user
+  beforeEach(() => {
+    let author = adminAuthRegister('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    let quiz = adminQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+    answers =
+        [{
+          answer: 'Answer 1',
+          correct: true
+        },
+        {
+          answer: 'Answer 2',
+          correct: false
+        }];
+    
+  const questionBody: QuestionBody = {
+    question: 'Question 1',
+    duration: 5,
+    points: 5,
+    answers: [
+      { answer: 'Answer 1', correct: true },
+      { answer: 'Answer 2', correct: false }
+    ]
+  };
+    const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
+    let question1 = adminQuestionCreate(quiz.quizId, testBody);
+    position = { newPosition: 1 };
+  });
+
+
+  describe('Testing Error Cases', () => {
+    test('QuestionId is invalid', () => {
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers };
+      const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
+      expect(adminQuestionMove(quiz.quizId, question1.questionId + 1, position.newPosition, testBody)).toStrictEqual(Error);
+    });
+
+    test('NewPosition is less than 0', () => {
+      expect(adminQuestionMove(author.token, quiz.quizId, question1.questionId, -1)).toStrictEqual(Error);
+    });
+
+    test('NewPosition is the position of the current question', () => {
+      const currentPosition = position.newPosition;
+      expect(adminQuestionMove(quiz.quizId, question1.questionId, currentPosition, testBody)).toStrictEqual(Error);
+    });
+
+    test('Token is invalid', () => {
+      expect(adminQuestionMove(quiz.quizId, question1.questionId, position.newPosition, testBody)).toStrictEqual(Error);
+    });
+  
+    test('Valid token, but quizID is invalid', () => {
+      expect(adminQuestionMove(quiz.quizId + 1, question1.questionId, position.newPosition, testBody)).toStrictEqual(Error);
+    });
+
+    test('Valid token, but user does not own quiz', () => {
+      adminAuthLogout(author.token);
+      const author2: {token: string} = adminAuthRegister('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      adminAuthLogin('ccc@ddd.com', '12345abcde');
+      expect(adminQuestionMove(author2.token, quiz.quizId, question1.questionId, position.newPosition)).toStrictEqual(Error);
+    });
+  });
+  describe('Testing Success Cases', () => {
+    test('Question Successfully moves to a new position', () => {
+      expect(adminQuestionMove(quiz.quizId, question1.questionId, position.newPosition, testBody)).toStrictEqual(expect.any(Number));
+    })
+  })
+});
