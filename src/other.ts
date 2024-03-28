@@ -1,19 +1,18 @@
-
+import { setData } from './dataStore';
+import { EmptyObject } from './returnInterfaces';
 /**
   * Reset the state of the application back to the start.
   *
   * @param { } - no parameters
   * @returns { } -  empty object
 */
-import { setData } from './dataStore';
 
-function clear(): object {
+export const clear = (): EmptyObject => {
   setData({
     users: [],
     quizzes: [],
-    trash: []
+    trash: [],
+    token: []
   });
   return {};
-}
-
-export { clear };
+};

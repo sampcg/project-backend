@@ -2,6 +2,7 @@ export type EmptyObject = Record<string, never>;
 
 export interface ErrorObject {
   error: string;
+  code?: number;
 }
 export interface Answer {
   answer: string;
@@ -13,6 +14,7 @@ export interface Question {
   duration: number;
   points: number;
   answers: Answer[];
+  position: number;
 }
 export interface User {
   userId: number;
@@ -30,10 +32,12 @@ export interface Quiz {
   userId: number;
   quizId: number;
   name: string;
-  description: string;
   timeCreated: number;
   timeLastEdited: number;
+  description: string;
+  numQuestions: number;
   questions: Question[];
+  duration: number;
 }
 
 export interface Trash {
@@ -43,4 +47,9 @@ export interface Trash {
   description: string;
   timeCreated: number;
   timeLastEdited: number;
+}
+
+export interface Token {
+  userId: number;
+  sessionId: string;
 }

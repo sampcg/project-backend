@@ -1,4 +1,5 @@
 import express, { json, Request, Response } from 'express';
+import { getData, setData } from './dataStore';
 import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
@@ -8,6 +9,19 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+
+import { clear } from './other';
+
+import {
+  adminAuthRegister,
+  adminAuthLogin,
+  adminUserDetails,
+  adminAuthLogout
+  // adminUserDetailsUpdate,
+  // adminUserPasswordUpdate
+} from './auth';
+
+import { adminQuizCreate, adminQuizList } from './quiz';
 
 // Set up web app
 const app = express();
@@ -28,13 +42,115 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
+const load = () => {
+  if (fs.existsSync('./database.json')) {
+    const file = fs.readFileSync('./database.json', { encoding : 'utf8' });
+    setData(JSON.parse(file));
+  }
+};
+load();
+
+const save = () => {
+  fs.writeFileSync('./database.json', JSON.stringify(getData()));
+}
+
+
+// First Function By Abrar
+app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  // const { email, password, nameFirst, nameLast } = req.body;
+  const result = adminAuthRegister(req.body.email, req.body.password, req.body.nameFirst, req.body.nameLast);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  res.json(result);
+});
+
+// Second Function By Abrar
+app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  const result = adminAuthLogin(email, password);
+
+  // Checking if the result contains an error
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Third Function By Abrar
+app.get('/v1/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.query.token as string;
+
+  const result = adminUserDetails(token);
+  // Checking if the result contains an error
+  if ('error' in result) {
+    return res.status(401).json(result);
+  }
+
+  res.json(result);
+});
+
+// Fourth Function By Abrar
+app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
+  const { authUserId } = req.body;
+
+  const result = adminAuthLogout(authUserId);
+  // Checking if the result contains an error
+  if ('error' in result) {
+    return res.status(401).json(result);
+  }
+
+  res.json(result);
+});
 
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
+  save();
   return res.json(echo(data));
 });
 
+app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminQuizList(token);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Create a quiz
+app.post('/v1/admin/quiz', (req: Request, res: Response) => {
+  const { token, name, description } = req.body;
+  const result = adminQuizCreate(token, name, description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Reset the state of the application back to the start
+app.delete('/v1/clear', (req: Request, res: Response) => {
+  res.json(clear());
+});
+
+/** 
+// Route handler for GET /v1/admin/quiz/:quizid
+app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
+  const token: string = req.query.token as string;
+  const quizid: number = req.params.quizid; // Convert quizid to a number
+
+    // Handle any errors returned by the adminQuizInfo function
+    if ('error' in response) {
+      return res.status(403).json({ error: response.error });
+    }
+    
+    // Return success response with quiz information
+    res.json(200);
+  });
+*/
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
