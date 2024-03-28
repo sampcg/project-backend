@@ -59,7 +59,7 @@ const requestUpdateQuizName = (token: string, quizId: number, name: string) => {
 const requestQuizRemove = (token: string, quizId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
-/*
+
 const requestQuizInfo = (token: string, quizId: number) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
@@ -433,5 +433,63 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
     });
 
     expect(updatedQuiz?.name).toBe(updatedName);
+  });
+});
+
+/// /////////////////        Testing for Admin Quiz Info     ////////////////////
+describe('Testing GET /v1/admin/quiz/{quizid}', () => {
+  let author: {token: string}, quiz: {quizId: number};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Samuel', 'Gray');
+    quiz = requestQuizCreate(author.token, 'Quiz Name', '');
+  });
+
+  test('Testing: Error Case - Invalid token', () => {
+    const invalidToken = author.token + 'Math.random()';
+    expect(requestQuizInfo(invalidToken, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
+  });
+
+  test('Invalid quizId (does not exist)', () => {
+    const invalidQuizId = quiz.quizId + 11;
+    expect(requestQuizInfo(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
+  });
+
+  test('Testing: Error Case - Unauthorized access to quiz', () => {
+    const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
+    expect(requestQuizInfo(unauthorizedUser.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
+  });
+
+  test('Invalid quiz ID', () => {
+    const invalidQuizId = quiz.quizId + 11;
+    expect(requestQuizInfo(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
+  });
+  test('Valid token and quiz ID', () => {
+    /** const question = 'Question';
+    const duration = 1;
+    const points = 1;
+    const answers =
+          [{
+            answer: 'Answer 1',
+            correct: true
+          },
+          {
+            answer: 'Answer 2',
+            correct: false
+          }];
+  */
+    // requestQuestionCreate
+    const expectedData = {
+      quizId: quiz.quizId,
+      name: expect.any(String),
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: expect.any(String),
+      numQuestions: expect.any(Number),
+      questions: expect.any(Array),
+      duration: expect.any(Number),
+    };
+
+    // Call the function and compare with expected data
+    expect(requestQuizInfo(author.token, quiz.quizId)).toEqual(expectedData);
   });
 });

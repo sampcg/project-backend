@@ -33,7 +33,7 @@ export interface User {
 }
 
 export interface Quiz {
-  userId: number;
+  userId?: number;
   quizId: number;
   name: string;
   timeCreated: number;
