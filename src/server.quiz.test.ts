@@ -428,7 +428,7 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
     const updatedQuiz = quizList.quizzes.find((quiz: {quizId: number}) => quiz.quizId === quiz.quizId);
 
     // Assert that the updated quiz details match the expected values
-    expect(updatedQuiz).toBeDefined(); // Ensure the updated quiz is found
-    expect(updatedQuiz?.name).toBe(updatedName); // Check if the quiz name is updated correctly
+    expect(updatedQuiz).toBeDefined(); 
+    expect(updatedQuiz?.name).toBe(updatedName);
   });
 });
