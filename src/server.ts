@@ -133,9 +133,10 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 });
 
 // Send quiz to trash
-app.delete('/v1/quiz/:quizid', (req: Request, res: Response) => {
-  const { token, quizid } = req.params;
-  const result = adminQuizRemove(token, parseInt(quizid as string));
+app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  const result = adminQuizRemove(token, quizid);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }

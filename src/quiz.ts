@@ -1,7 +1,7 @@
 import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
 import { getUser, getQuiz, getTrash, decodeToken } from './helpers';
-import { ErrorObject, EmptyObject, Question } from './returnInterfaces';
+import { ErrorObject, EmptyObject, Quiz, Question } from './returnInterfaces';
 
 // Error return type
 
@@ -169,11 +169,27 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
     return { error: 'User does not own this quiz', code: 403 };
   }
 
+  const trashQuiz: Quiz = {
+    userId: findQuiz.userId,
+    quizId: findQuiz.quizId,
+    name: findQuiz.name,
+    timeCreated: findQuiz.timeCreated,
+    timeLastEdited: Math.round(Date.now() / 1000),
+    description: findQuiz.description,
+    numQuestions: findQuiz.numQuestions,
+    questions: findQuiz.questions,
+    duration: findQuiz.duration
+  };
+
   // Add quiz to trash object
-  data.trash.push(findQuiz);
+  data.trash.push(trashQuiz);
+  setData(data);
 
   // Remove quiz that has given quizId from quizzes
-  data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== quizId);
+  data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== findQuiz.quizId);
+
+  // Set data
+  setData(data);
 
   // Return empty object
   return {};
