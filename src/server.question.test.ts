@@ -51,11 +51,11 @@ const requestHelper = (method: HttpVerb, path: string, payload: object) => {
 const requestRegisterAuth = (email: string, password: string, nameFirst: string, nameLast: string) => {
   return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
 };
-/*
+
 const requestAuthLogin = (email: string, password: string) => {
   return requestHelper('POST', '/v1/admin/auth/login', { email, password });
 };
-*/
+
 const requestAuthLogout = (token: string) => {
   return requestHelper('POST', '/v1/admin/auth/logout', { token });
 };
@@ -88,6 +88,11 @@ const requestQuestionDelete = (token: string, quizId: number, questionId: number
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}/question/${questionId}`, { token, quizId, questionId });
 };
 */
+
+const requestQuestionMove = (token: string, quizId: number, questionId: number, newPosition: number) => {
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/question/${questionId}/move`, { quizId, questionId, newPosition });
+}
+
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
 };
@@ -797,5 +802,78 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 });
 */
+
+ /// /////////////////      Testing for Moving Question     ////////////////////
+ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}/move', () => {
+  //Declare Variables
+  let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, position: {newPosition: number};
+  let question: string, duration: number, points: number, answers: AnswerInput[];
+
+  // Before each test, creates a test linked to a user
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+    answers =
+        [{
+          answer: 'Answer 1',
+          correct: true
+        },
+        {
+          answer: 'Answer 2',
+          correct: false
+        }];
+    
+  const questionBody: QuestionBody = {
+    question: 'Question 1',
+    duration: 5,
+    points: 5,
+    answers: [
+      { answer: 'Answer 1', correct: true },
+      { answer: 'Answer 2', correct: false }
+    ]
+  };
+    const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
+    question1 = requestQuestionCreate(quiz.quizId, testBody);
+    position = { newPosition: 1 };
+  });
+
+
+  describe('Testing Error Cases', () => {
+    test('QuestionId is invalid', () => {
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers };
+      const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
+      expect(requestQuestionMove(author.token, quiz.quizId, question1.questionId + 1, position.newPosition)).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test('NewPosition is less than 0', () => {
+      expect(requestQuestionMove(author.token, quiz.quizId, question1.questionId, -1)).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test('NewPosition is the position of the current question', () => {
+      const currentPosition = position.newPosition;
+      expect(requestQuestionMove(author.token, quiz.quizId, question1.questionId, currentPosition)).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test('Token is invalid', () => {
+      expect(requestQuestionMove(author.token, quiz.quizId, question1.questionId, position.newPosition)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+  
+    test('Valid token, but quizID is invalid', () => {
+      expect(requestQuestionMove(author.token, quiz.quizId + 1, question1.questionId, position.newPosition)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+
+    test('Valid token, but user does not own quiz', () => {
+      requestAuthLogout(author.token);
+      const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      requestAuthLogin('ccc@ddd.com', '12345abcde');
+      expect(requestQuestionMove(author2.token, quiz.quizId, question1.questionId, position.newPosition)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+  });
+  describe('Testing Success Cases', () => {
+    test('Question Successfully moves to a new position', () => {
+      expect(requestQuestionMove(author.token, quiz.quizId, question1.questionId, position.newPosition)).toStrictEqual(expect.any(Number));
+    })
+  })
+});
 
 
