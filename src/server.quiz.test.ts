@@ -21,6 +21,7 @@ const requestHelper = (method: HttpVerb, path: string, payload: object) => {
     json = payload;
   }
   const res = request(method, SERVER_URL + path, { qs, json, timeout: 20000 });
+
   const bodyString = res.body.toString();
   let bodyObject: any;
   try {
@@ -60,18 +61,18 @@ const requestQuizList = (token: string) => {
 
 
 const requestUpdateQuizName = (token: string, quizId: number,  name: string) => {
-  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/name`, {quizId, token, name});
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/name`, { token, name});
 }
 
 /*
 const requestQuizRemove = (token: string, quizId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
-
+*/
 const requestQuizInfo = (token: string, quizId: number) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
-
+/*
 const requestTrashList = (token: string) => {
   return requestHelper('GET', '/v1/admin/quiz/trash', { token });
 };
@@ -156,13 +157,14 @@ test('Testing: Successful Case - Get quiz details', () => {
   });
 });
 */
+
 //////////////// Testing for Update Quiz Name ///////////
 describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
   let author: {token: string}, quiz: {quizId: number}, name:string;
   beforeEach(() => {
-    // Assuming you have functions like requestRegisterAuth, requestAuthLogin, requestQuizCreate, etc.
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Samuel', 'Gray');
     quiz = requestQuizCreate(author.token, 'Quiz Name', '');
+
 });
 
 test('Testing: Error Case - Invalid token', () => {
@@ -172,44 +174,50 @@ test('Testing: Error Case - Invalid token', () => {
 
 /** 
 test('Testing: Error Case - Unauthorized access to quiz', () => {
-    const quizId = requestQuizCreate(author.token, 'Initial Quiz Name', 'This quiz is so we can have a lot of fun');
+    const quiz2 = requestQuizCreate(author.token, 'Initial Quiz Name', 'This quiz is so we can have a lot of fun');
+    console.log()
     const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
-    requestAuthLogin('unauthorized@test.com', 'password');
     const newName = 'Updated Quiz Name';
-    expect(requestUpdateQuizName(unauthorizedUser.token, quizId, newName)).toStrictEqual(makeCustomErrorForTest(403));
+    expect(requestUpdateQuizName(unauthorizedUser.token, quiz2.quizId, newName)).toStrictEqual(makeCustomErrorForTest(403));
 });
 */
+
 test('Invalid quizId (does not exist)', () => {
+  console.log(typeof quiz.quizId);
+  console.log("This is the invalid quizId", quiz.quizId + 11);
+  const invalidQuizId = quiz.quizId + 11;
+  console.log("This is the invalid quiz id", invalidQuizId);
   expect(requestUpdateQuizName(author.token, quiz.quizId + 11, name)).toStrictEqual(makeCustomErrorForTest(403));
 });
 
 
 test('Testing: Error Case - Invalid quiz name', () => {
-    const quizId = requestQuizCreate(author.token, 'Initial Quiz Name', 'This quiz is so we can have a lot of fun');
     const invalidName = 'Abc$%'; // Invalid characters
-    expect(requestUpdateQuizName(author.token, quizId, invalidName)).toStrictEqual(makeCustomErrorForTest(400));
+    expect(requestUpdateQuizName(author.token, quiz.quizId, invalidName)).toStrictEqual(makeCustomErrorForTest(400));
 });
 
 test('Testing: Error Case - Quiz name length', () => {
-    const quizId = requestQuizCreate(author.token, 'Initial Quiz Name', 'This quiz is so we can have a lot of fun');
     const longName = 'This is a very long quiz name that exceeds the maximum length allowed'; // More than 30 characters
-    expect(requestUpdateQuizName(author.token, quizId, longName)).toStrictEqual(makeCustomErrorForTest(400));
+    expect(requestUpdateQuizName(author.token, quiz.quizId, longName)).toStrictEqual(makeCustomErrorForTest(400));
 });
 
 test('Testing: Successful Case - Update quiz name', () => {
-    // Create a quiz
-    const initialName = 'Initial Quiz Name';
-    const quizId = requestQuizCreate(author.token, initialName, 'This quiz is so we can have a lot of fun');
+    const updatedName = 'Updated Quiz Name';
+    // Perform the update operation
+    const updateResult = requestUpdateQuizName(author.token, quiz.quizId, updatedName);
 
-    // Update quiz name
-    const newName = 'Updated Quiz Name';
-    const updatedQuiz = requestUpdateQuizName(author.token, quizId, newName);
+    // Assert that the update operation was successful
+    expect(updateResult).toEqual({}); // Assuming the function returns an empty object on success
 
-    // Get updated quiz details
+    // Retrieve the updated quiz details
     const quizList = requestQuizList(author.token);
 
-    
-    expect(quizList.name).toEqual(initialName);
+    // Find the updated quiz by its ID in the retrieved quiz list
+    const updatedQuiz = quizList.quizzes.find((quiz: {quizId: number}) => quiz.quizId === quiz.quizId);
+
+    // Assert that the updated quiz details match the expected values
+    expect(updatedQuiz).toBeDefined(); // Ensure the updated quiz is found
+    expect(updatedQuiz?.name).toBe(updatedName); // Check if the quiz name is updated correctly
 });
 });
 

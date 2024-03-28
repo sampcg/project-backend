@@ -217,15 +217,16 @@ export const adminQuizRemove = (authUserId: number, quizId: number): EmptyObject
 
 /**
  * Updates the name of the relevant quiz
- * @param {number} authUserId - unique identifier for an authorated user
+ * @param {string} token - unique identifier for an authorated user
  * @param {number} quizId - unique identifier for quiz
  * @param {string} name - updated name for relevant quiz
  * @returns {} an empty object
  */
 
 // Feature
+// Feature
 export const adminQuizNameUpdate = (token: string, quizId: number, name: string): EmptyObject | ErrorObject => {
-  const data = getData();
+  const data: DataStore = getData();
   const originalToken = decodeToken(token);
 
   // Check to see if token is valid
@@ -237,32 +238,31 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
   }
 
   // Find the quiz by quizId
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-
+  const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
+    return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
   }
 
   // Check if the user owns the quiz
   if (quiz.userId !== originalToken.userId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
   }
 
   // Validate the name
   const validName = /^[a-zA-Z0-9\s]*$/.test(name);
   if (!validName) {
-    return { error: 'Name contains invalid characters' };
+    return { error: 'Name contains invalid characters', code: 400 };
   }
 
   if (name.length < 3 || name.length > 30) {
-    return { error: 'Name is either less than 3 characters long or more than 30 characters long.' };
+    return { error: 'Name is either less than 3 characters long or more than 30 characters long.', code: 400 };
   }
 
   // Check if the name is already used by the current user for another quiz
   const quizWithSameName = data.quizzes.find(q => q.userId === originalToken.userId && q.quizId !== quizId && q.name === name);
 
   if (quizWithSameName) {
-    return { error: 'Name is already used by the current logged in user for another quiz.' };
+    return { error: 'Name is already used by the current logged in user for another quiz.', code: 400 };
   }
 
   quiz.timeLastEdited = Math.round(Date.now() / 1000);
@@ -270,6 +270,7 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
 
   return {};
 };
+
 
 // /// //////////////////     Update description of a Quiz     /////////////////////
 
