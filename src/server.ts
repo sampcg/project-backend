@@ -26,7 +26,11 @@ import {
   adminQuizRemove
 } from './quiz';
 
-import { adminQuestionCreate } from './question';
+import { 
+  adminQuestionCreate,
+  adminQuestionUpdate,
+  adminQuestionMove 
+} from './question';
 
 // Set up web app
 const app = express();
@@ -133,7 +137,7 @@ app.delete('/v1/quiz/:quizid', (req: Request, res: Response) => {
 });
 
 // Create a question
-app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+app.put('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { body } = req.body;
   const result = adminQuestionCreate(parseInt(quizid), body);
@@ -142,6 +146,27 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   }
   res.json(result);
 });
+
+// Update a Question
+app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => { 
+  const { token, questionBody} = req.body;
+  const result = adminQuestionUpdate(token, questionBody);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error});
+  }
+  res.json(result);
+});
+
+// Move a Question
+app.put('/v1/admin/quiz/{quizid}/question/{questionid}/move', (req: Request, res: Response) => { 
+  const { token, newPosition } = req.body;
+  const result = adminQuestionMove(token, newPosition);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error});
+  }
+  res.json(result);
+});
+
 
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {
