@@ -31,7 +31,7 @@ import {
   adminQuizInfo
 } from './quiz';
 
-import { adminQuestionCreate } from './question';
+import { adminQuestionCreate, adminQuestionRemove } from './question';
 
 // Set up web app
 const app = express();
@@ -217,6 +217,17 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { body } = req.body;
   const result = adminQuestionCreate(parseInt(quizid), body);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Delete a question
+app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const { quizId, questionId } = req.params;
+  const token: string = req.query.token as string;
+  const result = adminQuestionRemove(token, parseInt(quizId), parseInt(questionId));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }

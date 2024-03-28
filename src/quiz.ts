@@ -2,7 +2,7 @@
 import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
 import { getUser, getQuiz, getTrash, decodeToken } from './helpers';
-import { ErrorObject, EmptyObject, Quiz, Question } from './returnInterfaces';
+import { ErrorObject, EmptyObject, Quiz, QuizInfo, Question } from './returnInterfaces';
 
 // Error return type
 
@@ -314,7 +314,7 @@ export const adminQuizDescriptionUpdate = (token: string, quizId: number, descri
  */
 
 // Feature
-export const adminQuizInfo = (token: string, quizId: number): Quiz | ErrorObject => {
+export const adminQuizInfo = (token: string, quizId: number): QuizInfo | ErrorObject => {
   const originalToken = decodeToken(token);
 
   // Check to see if token is valid
@@ -335,14 +335,17 @@ export const adminQuizInfo = (token: string, quizId: number): Quiz | ErrorObject
   if (quiz.userId !== originalToken.userId) {
     return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
   }
-  const adminQuizInfoReturn: Quiz = {
+
+  const questionsInfo = quiz.questions.map(({ position, ...rest }) => rest);
+
+  const adminQuizInfoReturn: QuizInfo = {
     quizId: quiz.quizId,
     name: quiz.name,
     timeCreated: quiz.timeCreated,
     timeLastEdited: Math.round(Date.now() / 1000),
     description: quiz.description,
     numQuestions: quiz.questions.length,
-    questions: quiz.questions,
+    questions: questionsInfo,
     duration: quiz.duration
   };
 
