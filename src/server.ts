@@ -149,8 +149,8 @@ app.put('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 
 // Update a Question
 app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => { 
-  const { token, questionBody} = req.body;
-  const result = adminQuestionUpdate(token, questionBody);
+  const { quizId, questionId, questionBody} = req.body;
+  const result = adminQuestionUpdate(quizId, questionId, questionBody);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error});
   }
@@ -159,8 +159,8 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
 
 // Move a Question
 app.put('/v1/admin/quiz/{quizid}/question/{questionid}/move', (req: Request, res: Response) => { 
-  const { token, newPosition } = req.body;
-  const result = adminQuestionMove(token, newPosition);
+  const { token, quizId, questionId, newPosition } = req.body;
+  const result = adminQuestionMove(token, quizId, questionId, newPosition);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error});
   }

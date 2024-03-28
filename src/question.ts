@@ -11,8 +11,13 @@ interface AdminQuestionCreateRequestBody {
         question: string;
         duration: number;
         points: number;
-        answers: Answer[];
+        answers: AnswerInput[];
     };
+}
+
+interface AnswerInput {
+  answer: string;
+  correct: boolean;
 }
 
 interface AdminQuestionCreateReturn {
@@ -238,9 +243,7 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
 };
 
 /// //////////////////           Move a Question           /////////////////////
-export const adminQuestionMove = (quizId: number, questionId: number, newPosition: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
-  const { token, questionBody } = body;
-  const { question, duration, points, answers } = questionBody;
+export const adminQuestionMove = (token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
 
   // Check if token is valid
@@ -276,5 +279,3 @@ export const adminQuestionMove = (quizId: number, questionId: number, newPositio
 
   return {};
 };
-
-/// //////////////////           Delete a Question           /////////////////////
