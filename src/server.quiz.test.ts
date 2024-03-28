@@ -174,20 +174,15 @@ test('Testing: Error Case - Invalid token', () => {
 
 /** 
 test('Testing: Error Case - Unauthorized access to quiz', () => {
-    const quiz2 = requestQuizCreate(author.token, 'Initial Quiz Name', 'This quiz is so we can have a lot of fun');
-    console.log()
     const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
     const newName = 'Updated Quiz Name';
-    expect(requestUpdateQuizName(unauthorizedUser.token, quiz2.quizId, newName)).toStrictEqual(makeCustomErrorForTest(403));
+    expect(requestUpdateQuizName(unauthorizedUser.token, quiz.quizId, newName)).toStrictEqual(makeCustomErrorForTest(403));
 });
 */
 
 test('Invalid quizId (does not exist)', () => {
-  console.log(typeof quiz.quizId);
-  console.log("This is the invalid quizId", quiz.quizId + 11);
   const invalidQuizId = quiz.quizId + 11;
-  console.log("This is the invalid quiz id", invalidQuizId);
-  expect(requestUpdateQuizName(author.token, quiz.quizId + 11, name)).toStrictEqual(makeCustomErrorForTest(403));
+  expect(requestUpdateQuizName(author.token, invalidQuizId, name)).toStrictEqual(makeCustomErrorForTest(403));
 });
 
 

@@ -146,7 +146,7 @@ app.put(`/v1/admin/quiz/:quizId/name`, (req: Request, res: Response) => {
     return res.status(result.code).json({ error: result.error });
   }
   
-  res.json({ success: true });
+  res.json(result);
 });
 save();
 load();
