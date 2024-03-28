@@ -1,14 +1,9 @@
-test('Remove this test and uncomment the sample tests further below', () => {
-  expect(1 + 1).toEqual(2);
-});
-
-/*
 import request from 'sync-request-curl';
 import { port, url } from './config.json';
-import { ErrorObject } from './returnInterfaces';
-import { User } from './returnInterfaces';
-import { Quiz } from './returnInterfaces';
-import { Trash } from './returnInterfaces';
+// import { ErrorObject } from './returnInterfaces';
+// import { User } from './returnInterfaces';
+// import { Quiz } from './returnInterfaces';
+// import { Trash } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -19,7 +14,7 @@ beforeEach(() => {
 //  BEGINNING OF TESTING ADMIN AUTH REGISTER  //
 describe('Testing POST /v1/admin/auth/register', () => {
   // This is the correct output for AdminAuthRegister
-  test('Correct status code and return value', () => {
+  test('Correct status code/return value, and same email error', () => {
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'aaa@bbb.com',
@@ -33,17 +28,24 @@ describe('Testing POST /v1/admin/auth/register', () => {
 
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
     expect(AuthRegisterJSON).toStrictEqual({ token: expect.any(String) });
+
+    // Passing in same email to be created
+    const AuthRegisterResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aaa@bbb.com',
+        password: 'abcde12345',
+        nameFirst: 'Abrar',
+        nameLast: 'Gofur'
+      }
+    });
+    expect(AuthRegisterResponse2.statusCode).toStrictEqual(400);
+
+    const AuthRegisterJSON2 = JSON.parse(AuthRegisterResponse2.body.toString());
+    expect(AuthRegisterJSON2).toStrictEqual({ error: expect.any(String) });
   });
 
   // 2)Checking for valid email structure
   test.each([
-    {
-      // Already used email
-      email: 'aaa@bbb.com',
-      password: 'abcde12345',
-      nameFirst: 'Abrar',
-      nameLast: 'Gofur'
-    },
     {
       email: '12342132',
       password: 'abcde12345',
@@ -401,9 +403,7 @@ describe('Testing POST /v1/admin/auth/register', () => {
 // BEGINNING OF AUTH LOGIN TESTING
 
 describe('Testing POST /v1/admin/auth/login', () => {
-
   test('Checking for Emails that dont exist', () => {
-
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'aaa@bbb.com',
@@ -413,26 +413,25 @@ describe('Testing POST /v1/admin/auth/login', () => {
       }
     });
 
-    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    // const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
 
     const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
+      { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
 
     expect(AuthLoginResponse.statusCode).toStrictEqual(200);
     const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
-    expect (AuthLoginJSON).toStrictEqual({ token: expect.any(String)});
+    expect(AuthLoginJSON).toStrictEqual({ token: expect.any(String) });
 
     const AuthLoginResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'fake@email.com', password: 'abcde12345'}});
+      { json: { email: 'fake@email.com', password: 'abcde12345' } });
 
     expect(AuthLoginResponse2.statusCode).toStrictEqual(400);
     const AuthLoginJSON2 = JSON.parse(AuthLoginResponse2.body.toString());
-    expect (AuthLoginJSON).toStrictEqual({ error: expect.any(String)});
+    expect(AuthLoginJSON2).toStrictEqual({ error: expect.any(String) });
   });
 
   test('Checking for incorrect password', () => {
-
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'aaa1@bbb.com',
@@ -441,23 +440,22 @@ describe('Testing POST /v1/admin/auth/login', () => {
         nameLast: 'Hourn'
       }
     });
-
-    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    // const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
 
     const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa1@bbb.com', password: 'abcde12345'}});
+      { json: { email: 'aaa1@bbb.com', password: 'abcde12345' } });
 
     expect(AuthLoginResponse.statusCode).toStrictEqual(200);
     const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
-    expect (AuthLoginJSON).toStrictEqual({ token: expect.any(String)});
+    expect(AuthLoginJSON).toStrictEqual({ token: expect.any(String) });
 
     const AuthLoginResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa1@bbb.com', password: 'IncorrectPassword1'}});
+      { json: { email: 'aaa1@bbb.com', password: 'IncorrectPassword1' } });
 
     expect(AuthLoginResponse2.statusCode).toStrictEqual(400);
     const AuthLoginJSON2 = JSON.parse(AuthLoginResponse2.body.toString());
-    expect (AuthLoginJSON).toStrictEqual({ error: expect.any(String)});
+    expect(AuthLoginJSON2).toStrictEqual({ error: expect.any(String) });
   });
 });
 // END OF AUTH LOGIN TESTING
@@ -465,9 +463,7 @@ describe('Testing POST /v1/admin/auth/login', () => {
 // BEGINNING OF AUTH USER DETAILS
 
 describe('Testing GET /v1/admin/user/details', () => {
-
   test('Checking if AuthUserId is valid', () => {
-
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'aaa@bbb.com',
@@ -478,130 +474,133 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
 
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    const { token } = JSON.parse(AuthRegisterResponse.body.toString());
 
-    //First Test of Passing
-    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: AuthRegisterJSON.token }});
+    // const isEmpty = Object.keys(AuthRegisterJSON).length === 0;
+    // console.log(isEmpty)
+    // First Test of Passing
+
+    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${token}`);
+
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
     const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect (AuthUserDetailsJSON).toStrictEqual({ user: expect.any(Object) });
+    expect(AuthUserDetailsJSON).toEqual({ user: expect.any(Object) });
 
-    //Now checking by passing incorrect authId
-    const AuthUserDetailsResponse2 = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: 24234234 }});
-    expect(AuthUserDetailsResponse2.statusCode).toStrictEqual(401);
-    const AuthUserDetailsJSON2 = JSON.parse(AuthUserDetailsResponse2.body.toString());
-    expect (AuthUserDetailsJSON2).toStrictEqual({ error: expect.any(String) });
-
-    //Now checking by passing incorrect authId
-    const AuthUserDetailsResponse3 = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: 'Hello, World!' }});
+    // Now checking by passing incorrect authId
+    const incorrectToken3 = '223434!';
+    const encodedToken3 = encodeURIComponent(JSON.stringify(incorrectToken3));
+    const AuthUserDetailsResponse3 = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodedToken3}`);
     expect(AuthUserDetailsResponse3.statusCode).toStrictEqual(401);
     const AuthUserDetailsJSON3 = JSON.parse(AuthUserDetailsResponse3.body.toString());
-    expect (AuthUserDetailsJSON3).toStrictEqual({ error: expect.any(String) });
+    expect(AuthUserDetailsJSON3).toStrictEqual({ error: expect.any(String) });
 
+    // Second request with authUserId as a query parameter
+    const incorrectToken = 'Hello, World!';
+    const encodedToken = encodeURIComponent(JSON.stringify(incorrectToken));
+    const AuthUserDetailsResponse2 = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodedToken}`);
+    expect(AuthUserDetailsResponse2.statusCode).toStrictEqual(401);
+    const AuthUserDetailsJSON2 = JSON.parse(AuthUserDetailsResponse2.body.toString());
+    expect(AuthUserDetailsJSON2).toStrictEqual({ error: expect.any(String) });
   });
 
   test('Checking if AuthUserDetails giving correct number of successfull logins', () => {
-
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
-        email: 'aaa@bbb.com',
+        email: 'blah@email.com',
         password: 'abcde12345',
-        nameFirst: 'Michael',
-        nameLast: 'Hourn'
+        nameFirst: 'john',
+        nameLast: 'smith'
       }
     });
 
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
     const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
 
-    let AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
+    request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+      { json: { email: 'blah@email.com', password: 'abcde12345' } });
 
-    let AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: AuthRegisterJSON.token }});
+    let AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
     let AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: AuthRegisterJSON.userId,
-      email: 'blah@email.com',
-      name: 'john smith',
-      numSuccessfulLogins: 1,
-      numFailedPasswordsSinceLastLogin: 0
-    }
+    expect(AuthUserDetailsJSON).toStrictEqual({
+      user: {
+        userId: 0,
+        email: 'blah@email.com',
+        name: 'john smith',
+        numSuccessfulLogins: 2,
+        numFailedPasswordsSinceLastLogin: 0
+      }
     });
 
-    AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
+    request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+      { json: { email: 'blah@email.com', password: 'abcde12345' } });
 
-    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: AuthRegisterJSON.token }});
+    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
     AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: AuthRegisterJSON.userId,
-      email: 'blah@email.com',
-      name: 'john smith',
-      numSuccessfulLogins: 2,
-      numFailedPasswordsSinceLastLogin: 0
-    }
+    expect(AuthUserDetailsJSON).toStrictEqual({
+      user: {
+        userId: 0,
+        email: 'blah@email.com',
+        name: 'john smith',
+        numSuccessfulLogins: 3,
+        numFailedPasswordsSinceLastLogin: 0
+      }
     });
 
-    AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa@bbb.com', password: 'WrongPassword1'}});
+    request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+      { json: { email: 'blah@email.com', password: 'WrongPassword1' } });
 
-    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: AuthRegisterJSON.token }});
+    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
     AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: AuthRegisterJSON.userId,
-      email: 'blah@email.com',
-      name: 'john smith',
-      numSuccessfulLogins: 2,
-      numFailedPasswordsSinceLastLogin: 1
-    }
+    expect(AuthUserDetailsJSON).toStrictEqual({
+      user: {
+        userId: 0,
+        email: 'blah@email.com',
+        name: 'john smith',
+        numSuccessfulLogins: 3,
+        numFailedPasswordsSinceLastLogin: 1
+      }
     });
 
-    AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa@bbb.com', password: 'WrongPassword2'}});
+    request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+      { json: { email: 'blah@email.com', password: 'WrongPassword2' } });
 
-    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: AuthRegisterJSON.token }});
+    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
     AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: AuthRegisterJSON.userId,
-      email: 'blah@email.com',
-      name: 'john smith',
-      numSuccessfulLogins: 2,
-      numFailedPasswordsSinceLastLogin: 2
-    }
+    expect(AuthUserDetailsJSON).toStrictEqual({
+      user: {
+        userId: 0,
+        email: 'blah@email.com',
+        name: 'john smith',
+        numSuccessfulLogins: 3,
+        numFailedPasswordsSinceLastLogin: 2
+      }
     });
 
-    AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa@bbb.com', password: 'abcde12345' }});
+    request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+      { json: { email: 'blah@email.com', password: 'abcde12345' } });
 
-    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details`,
-    { json: { token: AuthRegisterJSON.token }});
+    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
     expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
     AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect (AuthUserDetailsJSON).toStrictEqual({user: {
-      userId: AuthRegisterJSON.userId,
-      email: 'blah@email.com',
-      name: 'john smith',
-      numSuccessfulLogins: 3,
-      numFailedPasswordsSinceLastLogin: 0
-    }
+    expect(AuthUserDetailsJSON).toStrictEqual({
+      user: {
+        userId: 0,
+        email: 'blah@email.com',
+        name: 'john smith',
+        numSuccessfulLogins: 4,
+        numFailedPasswordsSinceLastLogin: 0
+      }
     });
   });
-
 });
 
 // BEGINNING OF AUTH LOGOUT TESTING
 
+/*
 describe('Testing POST /v1/admin/auth/logout', () => {
 
   test('Checking if token is valid', () => {
@@ -616,38 +615,42 @@ describe('Testing POST /v1/admin/auth/logout', () => {
     });
 
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    const { token } = JSON.parse(AuthRegisterResponse.body.toString());
 
-    //First Testing of Auth Logout
-    const AuthLogoutResponse = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
-    { json: { token: AuthRegisterJSON.token }});
+    // Logout using token passed in the query parameter
+    const AuthLogoutResponse = request('POST', `${SERVER_URL}/v1/admin/auth/logout?token=${token}`);
     expect(AuthLogoutResponse.statusCode).toStrictEqual(200);
+
+    // Log the response body
+    console.log('Logout response body:', AuthLogoutResponse.body.toString());
+
+    // Parse the response body as JSON
     const AuthLogoutJSON = JSON.parse(AuthLogoutResponse.body.toString());
-    expect (AuthUserDetailsJSON).toStrictEqual({});
+    expect(AuthLogoutJSON).toStrictEqual({});
 
     //Now Trying to logout with no valid token stored
 
     const AuthLogoutResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
-    { json: { token: AuthRegisterJSON.token }});
+    { json: { token: token }});
     expect(AuthLogoutResponse2.statusCode).toStrictEqual(401);
     const AuthLogoutJSON2 = JSON.parse(AuthLogoutResponse2.body.toString());
-    expect (AuthUserDetailsJSON2).toStrictEqual({ error: expect.any(String) });
+    expect (AuthLogoutJSON2).toStrictEqual({ error: expect.any(String) });
 
     let AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
 
     const AuthLogoutResponse3 = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
-    { json: { token: AuthRegisterJSON.token }});
+    { json: { token: token }});
     expect(AuthLogoutResponse3.statusCode).toStrictEqual(200);
     const AuthLogoutJSON3 = JSON.parse(AuthLogoutResponse3.body.toString());
-    expect (AuthUserDetailsJSON3).toStrictEqual({});
+    expect (AuthLogoutJSON3).toStrictEqual({});
   });
 });
 
 // END OF AUTH LOGOUT TESTING
 
 // BEGINNING OF QUIZ QUESTION DUPLICATE
-
+/*
 describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
 
   test('Checking for a valid quiz question duplication', () => {
