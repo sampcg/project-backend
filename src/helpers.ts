@@ -52,6 +52,7 @@ export function decodeToken(encodedToken: string): Token | null {
  *
  * @return {object} An object containing the status code and response body of the request.
  */
+
 export const createRequest = (method: HttpVerb, path: string, payload: object) => {
   let qs = {};
   let json = {};
