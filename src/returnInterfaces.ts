@@ -44,15 +44,6 @@ export interface Quiz {
   duration: number;
 }
 
-export interface Trash {
-  userId: number;
-  quizId: number;
-  name: string;
-  description: string;
-  timeCreated: number;
-  timeLastEdited: number;
-}
-
 export interface Token {
   userId: number;
   sessionId: string;

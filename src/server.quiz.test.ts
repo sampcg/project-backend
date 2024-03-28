@@ -50,11 +50,11 @@ const requestQuizCreate = (token: string, name: string, description: string) => 
 const requestQuizList = (token: string) => {
   return requestHelper('GET', '/v1/admin/quiz/list', { token });
 };
-/*
+
 const requestQuizRemove = (token: string, quizId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
-
+/*
 const requestQuizInfo = (token: string, quizId: number) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
@@ -271,14 +271,12 @@ describe('Testing POST /v1/admin/quiz', () => {
   });
 });
 
-/*
 /// /////////////////        Testing for Removing Quiz       ////////////////////
 
 describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
   let author: {token: string}, quiz: {quizId: number};
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-    requestAuthLogin('aaa@bbb.com', 'abcde12345');
     quiz = requestQuizCreate(author.token, 'Quiz Name', '');
   });
 
@@ -294,7 +292,6 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
     test('Invalid token (does not correlate to given quiz)', () => {
       requestAuthLogout(author.token);
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      requestAuthLogin('ccc@ddd.com', '12345abcde');
       const quiz2: {quizId: number} = requestQuizCreate(author2.token, 'Quiz Name', '');
       expect(requestQuizRemove(author.token, quiz2.quizId)).toStrictEqual(makeCustomErrorForTest(403));
     });
@@ -314,10 +311,11 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
         quizzes: [
           {
             quizId: quiz2.quizId,
-            name: 'Quiz 2 Des'
+            name: 'Quiz 2'
           }
         ]
       });
+      /*
       expect(requestTrashList(author.token)).toStrictEqual({
         trash: [
           {
@@ -326,6 +324,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
           }
         ]
       });
+      */
     });
 
     test('Deletes 2nd of 2', () => {
@@ -335,10 +334,11 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
         quizzes: [
           {
             quizId: quiz.quizId,
-            name: ''
+            name: 'Quiz Name'
           }
         ]
       });
+      /*
       expect(requestTrashList(author.token)).toStrictEqual({
         trash: [
           {
@@ -347,12 +347,15 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
           }
         ]
       });
+      */
     });
 
     test('Deletes 2 of 2', () => {
       const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
       requestQuizRemove(author.token, quiz.quizId);
+      requestQuizRemove(author.token, quiz2.quizId);
       expect(requestQuizList(author.token)).toStrictEqual({ quizzes: [] });
+      /*
       expect(requestTrashList(author.token)).toStrictEqual({
         trash: [
           {
@@ -365,7 +368,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
           }
         ]
       });
+      */
     });
   });
 });
-*/
