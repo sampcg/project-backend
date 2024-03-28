@@ -27,10 +27,12 @@ import {
   adminQuizCreate,
   adminQuizRemove,
   adminQuizNameUpdate,
-  adminQuizTransfer
+  adminQuizTransfer,
+  adminQuizDescriptionUpdate,
+  adminQuizInfo
 } from './quiz';
 
-import { adminQuestionCreate } from './question';
+import { adminQuestionCreate, adminQuestionRemove } from './question';
 
 // Set up web app
 const app = express();
@@ -163,7 +165,6 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const { token, name } = req.body;
   const quizId = req.params.quizId;
-  console.log(quizId);
 
   const result = adminQuizNameUpdate(token, parseInt(quizId), name);
   if ('error' in result) {
@@ -174,6 +175,32 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 });
 save();
 load();
+
+// Update Quiz description
+app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
+  const { token, description } = req.body;
+  const quizId = req.params.quizId;
+
+  const result = adminQuizDescriptionUpdate(token, parseInt(quizId), description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+
+  res.json(result);
+});
+save();
+load();
+
+// Get info about quiz
+app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  const result = adminQuizInfo(token, quizid);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
 
 // Send quiz to trash
 app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
@@ -203,6 +230,17 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { body } = req.body;
   const result = adminQuestionCreate(parseInt(quizid), body);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Delete a question
+app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const { quizId, questionId } = req.params;
+  const token: string = req.query.token as string;
+  const result = adminQuestionRemove(token, parseInt(quizId), parseInt(questionId));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
