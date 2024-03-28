@@ -230,10 +230,10 @@ export const adminUserDetailsUpdate = (token: string, email : string,
   if (!user) {
     return { error: 'User with the provided token does not exist', code: 401 };
   }
-  /* const validatedToken = validateTokenStructure(token);
+  const validatedToken = validateTokenStructure(token);
   if (validatedToken) {
     return validatedToken;
-  } */
+  }
   /** Check for duplicate email */
   if (data.users.some((user) => user.email === email && !originalToken.sessionId.includes(token))) {
     return { error: 'Email is already in use', code: 400 };
