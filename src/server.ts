@@ -21,10 +21,12 @@ import {
 } from './auth';
 
 import {
-  adminQuizCreate,
   adminQuizList,
+  adminQuizCreate,
   adminQuizRemove
 } from './quiz';
+
+import { adminQuestionCreate } from './question';
 
 // Set up web app
 const app = express();
@@ -72,7 +74,7 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
 // Third Function By Abrar
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const token: string = req.query.token as string;
+  const token: string = req.query.token as string; // Assuming token is passed in the request body
 
   const result = adminUserDetails(token);
   // Checking if the result contains an error
@@ -85,9 +87,9 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
 
 // Fourth Function By Abrar
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
-  const { authUserId } = req.body;
+  const token: string = req.body.token;
 
-  const result = adminAuthLogout(authUserId);
+  const result = adminAuthLogout(token); // Corrected: Pass 'token' instead of 'authUserId'
   // Checking if the result contains an error
   if ('error' in result) {
     return res.status(401).json(result);
@@ -95,7 +97,6 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 
   res.json(result);
 });
-
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
@@ -126,6 +127,17 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const quizid: number = parseInt(req.params.quizid as string);
   const result = adminQuizRemove(token, quizid);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Create a question
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { body } = req.body;
+  const result = adminQuestionCreate(parseInt(quizid), body);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }

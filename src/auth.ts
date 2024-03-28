@@ -127,22 +127,31 @@ function adminAuthLogin(email: string, password: string) {
 }
 
 // Third Function By Abrar
-function adminUserDetails(authUserId: string) {
+function adminUserDetails(token: any) {
   const data = getData();
   let userDetails = null;
   let idPresent = false;
 
   // Must decode the Token first, then parse()
-  const originalToken = JSON.parse(decodeURIComponent(authUserId));
+  // const originalToken: object = decodeURIComponent(authUserId);
+  let originalToken;
+  try {
+    const decodedAuthUserId = decodeURIComponent(token);
+    originalToken = JSON.parse(decodedAuthUserId);
+  } catch (error) {
+    console.error('Error parsing token:', error);
+    return { error: 'Invalid token format' };
+  }
 
+  const actualUserId: number = originalToken.userId;
   for (const users of data.users) {
-    if (users.userId === originalToken.userId) {
+    if (users.userId === actualUserId) {
       idPresent = true;
       break;
     }
   }
   for (const users of data.users) {
-    if (users.userId === originalToken.userId) {
+    if (users.userId === actualUserId) {
       userDetails = {
         userId: users.userId,
         name: users.nameFirst + ' ' + users.nameLast,
@@ -161,22 +170,30 @@ function adminUserDetails(authUserId: string) {
 }
 
 //  Fourth Function By Abrar
-export function adminAuthLogout(authUserId: string | number) {
+export function adminAuthLogout(token: string | number) {
   //  Getting data from dataStore
   const data = getData();
   let idPresent = false;
 
-  const decodedToken = decodeURIComponent(JSON.stringify(authUserId));
-  const originalToken = JSON.parse(decodedToken);
+  const tokenString = typeof token === 'number' ? token.toString() : token;
 
-  //  Going to check if the given token is valid
-  for (let i = 0; i < data.token.length; i++) {
-    if (data.token[i].sessionId === originalToken.sessionId) {
-      idPresent = true;
-      // Remove the originalToken from the data.token array
-      data.token.splice(i, 1);
-      break;
+  try {
+    // Decode and parse the token
+    const decodedToken = decodeURIComponent(tokenString);
+    const originalToken = JSON.parse(decodedToken);
+
+    // Check if the given token is valid
+    for (let i = 0; i < data.token.length; i++) {
+      if (data.token[i].sessionId === originalToken.sessionId) {
+        idPresent = true;
+        // Remove the originalToken from the data.token array
+        data.token.splice(i, 1);
+        break;
+      }
     }
+  } catch (error) {
+    // Handle decoding or parsing errors
+    return { error: 'Invalid token format' };
   }
 
   if (idPresent === false) {

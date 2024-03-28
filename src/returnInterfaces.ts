@@ -5,9 +5,12 @@ export interface ErrorObject {
   code?: number;
 }
 export interface Answer {
+  answerId: number;
   answer: string;
+  colour: string;
   correct: boolean;
 }
+
 export interface Question {
   questionId: number,
   question: string;
@@ -16,6 +19,7 @@ export interface Question {
   answers: Answer[];
   position: number;
 }
+
 export interface User {
   userId: number;
   nameFirst: string;
