@@ -802,7 +802,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 });
 */
-/*
+
  /// /////////////////      Testing for Moving Question     ////////////////////
  describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}/move', () => {
   //Declare Variables
@@ -875,5 +875,5 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     })
   })
 });
-*/
+
 
