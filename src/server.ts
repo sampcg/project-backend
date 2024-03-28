@@ -26,7 +26,8 @@ import {
   adminQuizList,
   adminQuizCreate,
   adminQuizRemove,
-  adminQuizNameUpdate
+  adminQuizNameUpdate,
+  adminQuizDescriptionUpdate
 } from './quiz';
 
 import { adminQuestionCreate } from './question';
@@ -162,9 +163,23 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const { token, name } = req.body;
   const quizId = req.params.quizId;
-  console.log(quizId);
 
   const result = adminQuizNameUpdate(token, parseInt(quizId), name);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+
+  res.json(result);
+});
+save();
+load();
+
+// Update Quiz name
+app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
+  const { token, description } = req.body;
+  const quizId = req.params.quizId;
+
+  const result = adminQuizDescriptionUpdate(token, parseInt(quizId), description);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }

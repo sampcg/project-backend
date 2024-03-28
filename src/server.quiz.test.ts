@@ -57,7 +57,7 @@ const requestUpdateQuizName = (token: string, quizId: number, name: string) => {
 };
 
 const requestUpdateQuizDescription = (token: string, quizId: number, description: string) => {
-  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/name`, { token, description });
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/description`, { token, description });
 };
 
 const requestQuizRemove = (token: string, quizId: number) => {
@@ -464,12 +464,13 @@ test('Invalid quizId (does not exist)', () => {
 
 
 test('Testing: Error Case - Invalid quiz Description', () => {
-    const invalidDescription = 'A'.repeat(101); // Invalid characters
+    const invalidDescription = "A".repeat(101); // Invalid characters
     expect(requestUpdateQuizDescription(author.token, quiz.quizId, invalidDescription)).toStrictEqual(makeCustomErrorForTest(400));
 });
 
 
-test('Testing: Successful Case - Update quiz Description', () => {
+test('Testing: Successful Case - Update quiz Description', () => { 
+  // Need to use new way as adminquizinfo is needed
     // Update quiz description
     const newDescription = 'Updated Quiz Description';
     // Get the initial list of quizzes
@@ -489,5 +490,6 @@ test('Testing: Successful Case - Update quiz Description', () => {
       return !initialQuizList.quizzes.some(
         (initialQuiz: { description: string }) => initialQuiz.description === updatedQuiz.description);
     });
+    expect(updatedQuiz?.description).toBe(newDescription);
   });
 });

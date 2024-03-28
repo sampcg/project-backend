@@ -245,8 +245,6 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
  * @returns {} an empty object
  */
 
-// Feature
-// Feature
 export const adminQuizNameUpdate = (token: string, quizId: number, name: string): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
   const originalToken = decodeToken(token);
@@ -289,7 +287,7 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
 
   quiz.timeLastEdited = Math.round(Date.now() / 1000);
   quiz.name = name;
-
+  setData(data);
   return {};
 };
 
@@ -303,41 +301,48 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
 //  * @returns {} an empty object
 //  */
 
-// // Feature
-// export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, description: string): EmptyObject | ErrorObject => {
-//   const data = getData();
+export const adminQuizDescriptionUpdate = (token: string, quizId: number, description: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  const originalToken = decodeToken(token);
 
-//   // Check if user is valid
-//   const user = data.users.find(user => user.userId === authUserId);
-//   if (!user) {
-//     return { error: 'AuthUserId is not a valid user.' };
-//   }
+  // Check if token is valid
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
-//   // Check if quizId is valid
-//   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-//   if (!quiz) {
-//     return { error: 'Quiz ID does not refer to a valid quiz.' };
-//   }
+  // Check if the token corresponds to a valid user
+  const user = getUser(originalToken.userId);
+  if (!user) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
-//   // Check if user owns the quiz
-//   if (quiz.userId !== authUserId) {
-//     return { error: 'User does not own this quiz' };
-//   }
+  // Check if quizId is valid
+  const quiz = getQuiz(quizId);
+  if (!quiz) {
+    return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
+  }
 
-//   if (description.length > 100) {
-//     return { error: 'Description is more than 100 characters in length.' };
-//   }
-//   // Update the description of the quiz
-//   quiz.description = description;
+  // Check if user owns the quiz
+  if (quiz.userId !== originalToken.userId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
+  }
 
-//   // Update the last edited time
-//   quiz.timeLastEdited = Math.round(Date.now() / 1000);
+  if (description.length > 100) {
+    return { error: 'Description is more than 100 characters in length.', code: 400 };
+  }
 
-//   // Save the updated data
-//   setData(data);
-//   // Return empty object
-//   return {};
-// };
+  // Update the description of the quiz
+  quiz.description = description;
+
+  // Update the last edited time
+  quiz.timeLastEdited = Math.round(Date.now() / 1000);
+
+  // Save the updated data
+  setData(data);
+
+  // Return empty object
+  return {};
+};
 
 // /// //////////////////       Show all info of a Quiz        /////////////////////
 /**
