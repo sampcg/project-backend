@@ -44,6 +44,32 @@ export function decodeToken(encodedToken: string): Token | null {
 }
 
 /**
+ *
+ * Validates a token and returns an error object if the token is invalid.
+ * @param {string | null} token - the created token
+ * @returns {{ error: string, code: number } | null} - returns an error object if the token is invalid, otherwise null.
+ *
+ */
+
+export const validateTokenStructure = (token: string | null): { error: string; code: number } | null => {
+  if (token === null || token === '') {
+    return { error: 'Invalid token', code: 401 };
+  }
+
+  if (typeof token !== 'string') {
+    return { error: 'Invalid token structure', code: 401 };
+  }
+
+  return null;
+};
+
+// Function to generate a random colour using a random index
+export function getRandomColour(): string {
+  const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'orange'];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+/**
  * Creates a request with the specified HTTP method, path, and payload.
  *
  * @param {HttpVerb} method - The HTTP method to use for the request.
