@@ -26,7 +26,8 @@ import {
   adminQuizList,
   adminQuizCreate,
   adminQuizRemove,
-  adminQuizNameUpdate
+  adminQuizNameUpdate,
+  adminQuizTransfer
 } from './quiz';
 
 import { adminQuestionCreate } from './question';
@@ -183,6 +184,18 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
+});
+
+// Transfer ownership of a quiz to a different user based on their email
+app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { token, userEmail } = req.body;
+  const quizId = parseInt(quizid);
+  const response = adminQuizTransfer(quizId, token, userEmail);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
 });
 
 // Create a question
