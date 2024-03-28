@@ -14,6 +14,7 @@ const requestHelper = (method: HttpVerb, path: string, payload: object) => {
     json = payload;
   }
   const res = request(method, SERVER_URL + path, { qs, json, timeout: 20000 });
+
   const bodyString = res.body.toString();
   let bodyObject: any;
   try {
@@ -51,6 +52,10 @@ const requestQuizList = (token: string) => {
   return requestHelper('GET', '/v1/admin/quiz/list', { token });
 };
 
+const requestUpdateQuizName = (token: string, quizId: number, name: string) => {
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/name`, { token, name });
+};
+
 const requestQuizRemove = (token: string, quizId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
@@ -58,7 +63,7 @@ const requestQuizRemove = (token: string, quizId: number) => {
 const requestQuizInfo = (token: string, quizId: number) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
-
+/*
 const requestTrashList = (token: string) => {
   return requestHelper('GET', '/v1/admin/quiz/trash', { token });
 };
@@ -72,7 +77,6 @@ const requestClear = () => {
 beforeEach(() => {
   requestClear();
 });
-
 /// /////////////////       Testing for Listing Quizzes      ////////////////////
 
 describe('Testing GET /v1/admin/quiz/list', () => {
@@ -370,5 +374,64 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
       });
       */
     });
+  });
+});
+
+/// /////////////////        Testing for Updating Quiz Name       ////////////////////
+describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
+  let author: {token: string}, quiz: {quizId: number}, name:string;
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Samuel', 'Gray');
+    quiz = requestQuizCreate(author.token, 'Quiz Name', '');
+  });
+
+  test('Testing: Error Case - Invalid token', () => {
+    const invalidToken = author.token + 'Math.random()';
+    expect(requestQuizList(invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
+  });
+
+  /**
+test('Testing: Error Case - Unauthorized access to quiz', () => {
+    const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
+    const newName = 'Updated Quiz Name';
+    expect(requestUpdateQuizName(unauthorizedUser.token, quiz.quizId, newName)).toStrictEqual(makeCustomErrorForTest(403));
+});
+*/
+
+  test('Invalid quizId (does not exist)', () => {
+    const invalidQuizId = quiz.quizId + 11;
+    expect(requestUpdateQuizName(author.token, invalidQuizId, name)).toStrictEqual(makeCustomErrorForTest(403));
+  });
+
+  test('Testing: Error Case - Invalid quiz name', () => {
+    const invalidName = 'Abc$%'; // Invalid characters
+    expect(requestUpdateQuizName(author.token, quiz.quizId, invalidName)).toStrictEqual(makeCustomErrorForTest(400));
+  });
+
+  test('Testing: Error Case - Quiz name length', () => {
+    const longName = 'This is a very long quiz name that exceeds the maximum length allowed'; // More than 30 characters
+    expect(requestUpdateQuizName(author.token, quiz.quizId, longName)).toStrictEqual(makeCustomErrorForTest(400));
+  });
+
+  test('Testing: Successful Case - Update quiz name', () => {
+    const updatedName = 'Updated Quiz Name';
+    // Get the initial list of quizzes
+    const initialQuizList = requestQuizList(author.token);
+
+    // Perform the update operation
+    const updateResult = requestUpdateQuizName(author.token, quiz.quizId, updatedName);
+
+    // Assert that the update operation was successful
+    expect(updateResult).toEqual({}); // Assuming the function returns an empty object on success
+
+    // Retrieve the updated quiz details
+    const updatedQuizList = requestQuizList(author.token);
+
+    // Find the updated quiz by comparing the initial and updated quiz lists
+    const updatedQuiz = updatedQuizList.quizzes.find((updatedQuiz: { name: string }) => {
+      return !initialQuizList.quizzes.some((initialQuiz: { name: string }) => initialQuiz.name === updatedQuiz.name);
+    });
+
+    expect(updatedQuiz?.name).toBe(updatedName);
   });
 });

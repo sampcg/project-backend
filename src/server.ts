@@ -1,4 +1,6 @@
+
 import express, { json, Request, Response } from 'express';
+import { getData, setData } from './dataStore';
 import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
@@ -23,7 +25,8 @@ import {
 import {
   adminQuizList,
   adminQuizCreate,
-  adminQuizRemove
+  adminQuizRemove,
+  adminQuizNameUpdate
 } from './quiz';
 
 import { adminQuestionCreate } from './question';
@@ -47,6 +50,17 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
+const load = () => {
+  if (fs.existsSync('./database.json')) {
+    const file = fs.readFileSync('./database.json', { encoding: 'utf8' });
+    setData(JSON.parse(file));
+  }
+};
+load();
+
+const save = () => {
+  fs.writeFileSync('./database.json', JSON.stringify(getData()));
+};
 
 // First Function By Abrar
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
@@ -120,9 +134,11 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
+  save();
   return res.json(echo(data));
 });
 
+// Create a list of quizzes
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const result = adminQuizList(token);
@@ -141,6 +157,22 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   }
   res.json(result);
 });
+
+// Update Quiz name
+app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
+  const { token, name } = req.body;
+  const quizId = req.params.quizId;
+  console.log(quizId);
+
+  const result = adminQuizNameUpdate(token, parseInt(quizId), name);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+
+  res.json(result);
+});
+save();
+load();
 
 // Send quiz to trash
 app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
@@ -168,6 +200,22 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
+
+/**
+// Route handler for GET /v1/admin/quiz/:quizid
+app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
+  const token: string = req.query.token as string;
+  const quizid: number = req.params.quizid; // Convert quizid to a number
+
+    // Handle any errors returned by the adminQuizInfo function
+    if ('error' in response) {
+      return res.status(403).json({ error: response.error });
+    }
+
+    // Return success response with quiz information
+    res.json(200);
+  });
+*/
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
