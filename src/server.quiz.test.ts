@@ -63,7 +63,7 @@ const requestUpdateQuizDescription = (token: string, quizId: number, description
 const requestQuizRemove = (token: string, quizId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
-/*
+
 const requestQuizInfo = (token: string, quizId: number) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
@@ -469,12 +469,8 @@ test('Testing: Error Case - Invalid quiz Description', () => {
 });
 
 
-test('Testing: Successful Case - Update quiz Description', () => { 
-  // Need to use new way as adminquizinfo is needed
-    // Update quiz description
+  test('Update quiz description', () => {
     const newDescription = 'Updated Quiz Description';
-    // Get the initial list of quizzes
-    const initialQuizList = requestQuizList(author.token);
 
     // Perform the update operation
     const updateResult = requestUpdateQuizDescription(author.token, quiz.quizId, newDescription);
@@ -482,14 +478,12 @@ test('Testing: Successful Case - Update quiz Description', () => {
     // Assert that the update operation was successful
     expect(updateResult).toEqual({}); // Assuming the function returns an empty object on success
 
-    // Retrieve the updated quiz details
-    const updatedQuizList = requestQuizList(author.token);
+    // Retrieve the updated quiz details using adminQuizInfo
+    const updatedQuizInfo = requestQuizInfo(author.token, quiz.quizId);
 
-    // Find the updated quiz by comparing the initial and updated quiz lists
-    const updatedQuiz = updatedQuizList.quizzes.find((updatedQuiz: { description: string }) => {
-      return !initialQuizList.quizzes.some(
-        (initialQuiz: { description: string }) => initialQuiz.description === updatedQuiz.description);
-    });
-    expect(updatedQuiz?.description).toBe(newDescription);
+    // Check if the description is updated
+    expect(updatedQuizInfo).toEqual(expect.objectContaining({
+      description: newDescription
+    }));
   });
 });
