@@ -15,8 +15,8 @@ import {
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
-  adminAuthLogout
-  // adminUserDetailsUpdate,
+  adminAuthLogout,
+  adminUserDetailsUpdate,
   // adminUserPasswordUpdate
 } from './auth';
 
@@ -83,6 +83,16 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   }
 
   res.json(result);
+});
+
+// update details of an admin user
+app.put('/v1/admin/user/details', (req: Request, res: Response) => {
+  const { token, email, nameFirst, nameLast } = req.body;
+  const response = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
 });
 
 // Fourth Function By Abrar
