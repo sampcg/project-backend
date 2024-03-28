@@ -415,6 +415,9 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
 
   test('Testing: Successful Case - Update quiz name', () => {
     const updatedName = 'Updated Quiz Name';
+    // Get the initial list of quizzes
+    const initialQuizList = requestQuizList(author.token);
+
     // Perform the update operation
     const updateResult = requestUpdateQuizName(author.token, quiz.quizId, updatedName);
 
@@ -422,13 +425,13 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
     expect(updateResult).toEqual({}); // Assuming the function returns an empty object on success
 
     // Retrieve the updated quiz details
-    const quizList = requestQuizList(author.token);
+    const updatedQuizList = requestQuizList(author.token);
 
-    // Find the updated quiz by its ID in the retrieved quiz list
-    const updatedQuiz = quizList.quizzes.find((quiz: {quizId: number}) => quiz.quizId === quiz.quizId);
+    // Find the updated quiz by comparing the initial and updated quiz lists
+    const updatedQuiz = updatedQuizList.quizzes.find((updatedQuiz: { name: string }) => {
+      return !initialQuizList.quizzes.some((initialQuiz: { name: string }) => initialQuiz.name === updatedQuiz.name);
+    });
 
-    // Assert that the updated quiz details match the expected values
-    expect(updatedQuiz).toBeDefined(); 
     expect(updatedQuiz?.name).toBe(updatedName);
   });
 });
