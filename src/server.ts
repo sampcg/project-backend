@@ -223,7 +223,6 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   res.json(result);
 });
 
-// Delete a question
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
   const { quizId, questionId } = req.params;
   const token: string = req.query.token as string;
@@ -232,7 +231,7 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
-});
+})
 
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {

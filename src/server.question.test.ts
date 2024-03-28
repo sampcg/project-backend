@@ -69,8 +69,8 @@ const requestQuestionCreate = (quizId: number, body: CreateQuestionBody) => {
 };
 
 const requestQuestionDelete = (token: string, quizId: number, questionId: number) => {
-  return requestHelper('DELETE', `/v1/admin/quiz/${quizId}/question/${questionId}`, { token, quizId, questionId });
-};
+  return requestHelper('DELETE', `/v1/admin/quiz/${quizId}/question/${questionId}`, {token, quizId, questionId});
+}
 
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
@@ -450,6 +450,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
   });
 });
 
+
 /// /////////////////      Testing for Removing Question     ////////////////////
 
 describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
@@ -472,14 +473,14 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   });
 
   describe('Testing: Error cases', () => {
-    /*
+
     test('Question ID is not valid in this quiz', () => {
       console.log(requestQuizInfo(author.token, quiz.quizId));
       const myQuestionId = question1.questionId + 1;
       console.log('question1.questionId' + myQuestionId);
       expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId + 1)).toStrictEqual(makeCustomErrorForTest(400));
     });
-    */
+
     test('Token is invalid', () => {
       expect(requestQuestionDelete(author.token + 1, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(401));
     });
@@ -492,7 +493,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       expect(requestQuestionDelete(author2.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
     });
   });
-/*
+
   describe('Testing: Success cases', () => {
     test('Deletes one question', () => {
       expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId)).toStrictEqual({});
@@ -564,5 +565,5 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
     });
   });
-  */
 });
+

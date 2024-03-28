@@ -1,6 +1,6 @@
 import { getData, setData } from './dataStore';
 import { getUser, getQuiz, decodeToken, getRandomColour } from './helpers';
-import { EmptyObject, ErrorObject, Quiz, Question, Answer } from './returnInterfaces';
+import { ErrorObject, Question, Quiz, Answer, EmptyObject } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 
 /// //////////////////           Create a Question           /////////////////////
@@ -140,17 +140,17 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
     return { error: 'Invalid token', code: 401 };
   }
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 403 };
+    return { error: 'Invalid token', code: 403};
   }
 
   // Validate quizID and ownership
   const quiz: Quiz = getQuiz(quizId);
-
+  
   if (!quiz) {
     return { error: 'Invalid quizId or user does not own the quiz', code: 403 };
   }
 
-  // Find the question index by questionId
+  // Find the question index by questionID
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
   if (questionIndex === -1) {
     return { error: 'Invalid questionID', code: 400 };
@@ -161,10 +161,10 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
 
   // Update timeLastEdited, no. of questions and duration of the quiz
   quiz.timeLastEdited = Math.round(Date.now());
-  quiz.numQuestions -= 1;
+  quiz.numQuestions -= -1;
   quiz.duration -= quiz.questions[questionIndex].duration;
 
   // Update the dataStore
   setData(data);
-  return {};
-};
+  return;
+}
