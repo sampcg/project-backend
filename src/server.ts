@@ -15,12 +15,18 @@ import {
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
-  adminAuthLogout
-  // adminUserDetailsUpdate,
+  adminAuthLogout,
+  adminUserDetailsUpdate,
   // adminUserPasswordUpdate
 } from './auth';
 
-import { adminQuizCreate, adminQuizList } from './quiz';
+import {
+  adminQuizList,
+  adminQuizCreate,
+  adminQuizRemove
+} from './quiz';
+
+import { adminQuestionCreate } from './question';
 
 // Set up web app
 const app = express();
@@ -79,6 +85,16 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   res.json(result);
 });
 
+// update details of an admin user
+app.put('/v1/admin/user/details', (req: Request, res: Response) => {
+  const { token, email, nameFirst, nameLast } = req.body;
+  const response = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
+
 // Fourth Function By Abrar
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   const token: string = req.body.token;
@@ -110,6 +126,28 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
   const result = adminQuizCreate(token, name, description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Send quiz to trash
+app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  const result = adminQuizRemove(token, quizid);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Create a question
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { body } = req.body;
+  const result = adminQuestionCreate(parseInt(quizid), body);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
