@@ -1,3 +1,4 @@
+
 import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
 import { getUser, getQuiz, getTrash, decodeToken } from './helpers';
@@ -195,106 +196,150 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
   return {};
 };
 
+// /// //////////////////            Remove a Quiz             /////////////////////
+
+// /**
+//  * Removes a quiz given author and quiz IDs
+//  * @param {number} authUserId - unique identifer for the user
+//  * @param {number} quizId - unique identifier for quiz
+//  * @returns { } - empty object
+//  */
+
+// // Feature
+// export const adminQuizRemove = (authUserId: number, quizId: number): EmptyObject | ErrorObject => {
+//   const data = getData();
+
+//   // Check if user is valid
+//   if (!getUser(authUserId)) {
+//     return { error: 'AuthUserId is not a valid user' };
+//   }
+
+//   // Check if quizId is valid
+//   const quizExists = data.quizzes.some(quiz => quiz.quizId === quizId);
+//   if (!quizExists) {
+//     return { error: 'Invalid quiz ID' };
+//   }
+
+/**
+  // Check if owner owns quiz
+  const findQuiz: any = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== authUserId) {
+    return { error: 'User does not own this quiz' };
+  }
+*/
+
+//   // Remove quiz that has given quizId
+//   data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== quizId);
+
+//   // Return empty object
+//   return {};
+// };
+
 /// //////////////////        Update name of a Quiz         /////////////////////
 
 /**
  * Updates the name of the relevant quiz
- * @param {number} authUserId - unique identifier for an authorated user
+ * @param {string} token - unique identifier for an authorated user
  * @param {number} quizId - unique identifier for quiz
  * @param {string} name - updated name for relevant quiz
  * @returns {} an empty object
  */
 
 // Feature
-export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: string): EmptyObject | ErrorObject => {
-  const data = getData();
+// Feature
+export const adminQuizNameUpdate = (token: string, quizId: number, name: string): EmptyObject | ErrorObject => {
+  const data: DataStore = getData();
+  const originalToken = decodeToken(token);
 
-  // Find the user by authUserId
-  const user = data.users.find(user => user.userId === authUserId);
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
+  // Check to see if token is valid
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
   }
 
   // Find the quiz by quizId
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
+    return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
   }
 
   // Check if the user owns the quiz
-  if (quiz.userId !== authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  if (quiz.userId !== originalToken.userId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
   }
 
   // Validate the name
   const validName = /^[a-zA-Z0-9\s]*$/.test(name);
   if (!validName) {
-    return { error: 'Name contains invalid characters' };
+    return { error: 'Name contains invalid characters', code: 400 };
   }
 
   if (name.length < 3 || name.length > 30) {
-    return { error: 'Name is either less than 3 characters long or more than 30 characters long.' };
+    return { error: 'Name is either less than 3 characters long or more than 30 characters long.', code: 400 };
   }
 
   // Check if the name is already used by the current user for another quiz
-  const quizWithSameName = data.quizzes.find(q => q.userId === authUserId && q.quizId !== quizId && q.name === name);
+  const quizWithSameName = data.quizzes.find(q => q.userId === originalToken.userId && q.quizId !== quizId && q.name === name);
 
   if (quizWithSameName) {
-    return { error: 'Name is already used by the current logged in user for another quiz.' };
+    return { error: 'Name is already used by the current logged in user for another quiz.', code: 400 };
   }
+
   quiz.timeLastEdited = Math.round(Date.now() / 1000);
   quiz.name = name;
-  return {};
-};
-
-/// //////////////////     Update description of a Quiz     /////////////////////
-
-/**
- * Updates the description of the relevant quiz
- * @param {number} authUserId - unique identifier for an authorated user
- * @param {number} quizId - unique identifier for quiz
- * @param {string} description - updated name for relevant quiz
- * @returns {} an empty object
- */
-
-// Feature
-export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, description: string): EmptyObject | ErrorObject => {
-  const data = getData();
-
-  // Check if user is valid
-  const user = data.users.find(user => user.userId === authUserId);
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
-
-  // Check if quizId is valid
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
-  }
-
-  // Check if user owns the quiz
-  if (quiz.userId !== authUserId) {
-    return { error: 'User does not own this quiz' };
-  }
-
-  if (description.length > 100) {
-    return { error: 'Description is more than 100 characters in length.' };
-  }
-  // Update the description of the quiz
-  quiz.description = description;
-
-  // Update the last edited time
-  quiz.timeLastEdited = Math.round(Date.now() / 1000);
-
-  // Save the updated data
   setData(data);
-  // Return empty object
   return {};
 };
 
-/// //////////////////       Show all info of a Quiz        /////////////////////
+// /// //////////////////     Update description of a Quiz     /////////////////////
 
+// /**
+//  * Updates the description of the relevant quiz
+//  * @param {number} authUserId - unique identifier for an authorated user
+//  * @param {number} quizId - unique identifier for quiz
+//  * @param {string} description - updated name for relevant quiz
+//  * @returns {} an empty object
+//  */
+
+// // Feature
+// export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, description: string): EmptyObject | ErrorObject => {
+//   const data = getData();
+
+//   // Check if user is valid
+//   const user = data.users.find(user => user.userId === authUserId);
+//   if (!user) {
+//     return { error: 'AuthUserId is not a valid user.' };
+//   }
+
+//   // Check if quizId is valid
+//   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+//   if (!quiz) {
+//     return { error: 'Quiz ID does not refer to a valid quiz.' };
+//   }
+
+//   // Check if user owns the quiz
+//   if (quiz.userId !== authUserId) {
+//     return { error: 'User does not own this quiz' };
+//   }
+
+//   if (description.length > 100) {
+//     return { error: 'Description is more than 100 characters in length.' };
+//   }
+//   // Update the description of the quiz
+//   quiz.description = description;
+
+//   // Update the last edited time
+//   quiz.timeLastEdited = Math.round(Date.now() / 1000);
+
+//   // Save the updated data
+//   setData(data);
+//   // Return empty object
+//   return {};
+// };
+
+// /// //////////////////       Show all info of a Quiz        /////////////////////
 /**
  * Program to get all of the relevant information about the current quiz
  * @param {number} authUserId - unique identifier for an authorated user
@@ -302,39 +347,38 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
  * @returns {quizId: number, name: string, timeCreated: number, timeLastEdited: number, description: string}
  */
 
-// AdminQuizInfo return type
-interface AdminQuizInfoReturn {
-    quizId: number;
-    name: string;
-    description: string;
-    timeCreated: number;
-    timeLastEdited: number;
-}
-
 // Feature
-export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfoReturn | ErrorObject => {
-  const data = getData();
+export const adminQuizInfo = (token: string, quizId: number): Quiz | ErrorObject => {
+  const originalToken = decodeToken(token);
 
-  const user = data.users.find(user => user.userId === authUserId);
-
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
+  // Check to see if token is valid
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
   }
 
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  // Find the quiz by quizId
+  const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
+    return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
   }
 
-  if (quiz.userId !== authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  // Check if the user owns the quiz
+  if (quiz.userId !== originalToken.userId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
   }
-
-  return {
+  const adminQuizInfoReturn: Quiz = {
     quizId: quiz.quizId,
     name: quiz.name,
     timeCreated: quiz.timeCreated,
     timeLastEdited: Math.round(Date.now() / 1000),
-    description: quiz.description
+    description: quiz.description,
+    numQuestions: quiz.questions.length,
+    questions: quiz.questions,
+    duration: quiz.duration
   };
+
+  return adminQuizInfoReturn;
 };

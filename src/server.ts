@@ -1,4 +1,6 @@
+
 import express, { json, Request, Response } from 'express';
+import { getData, setData } from './dataStore';
 import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
@@ -15,15 +17,17 @@ import {
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
-  adminAuthLogout
-  // adminUserDetailsUpdate,
-  // adminUserPasswordUpdate
+  adminAuthLogout,
+  adminUserDetailsUpdate,
+  adminUserPasswordUpdate,
 } from './auth';
 
 import {
   adminQuizList,
   adminQuizCreate,
-  adminQuizRemove
+  adminQuizRemove,
+  adminQuizNameUpdate,
+  adminQuizInfo
 } from './quiz';
 
 import { adminQuestionCreate, adminQuestionRemove } from './question';
@@ -47,6 +51,17 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
+const load = () => {
+  if (fs.existsSync('./database.json')) {
+    const file = fs.readFileSync('./database.json', { encoding: 'utf8' });
+    setData(JSON.parse(file));
+  }
+};
+load();
+
+const save = () => {
+  fs.writeFileSync('./database.json', JSON.stringify(getData()));
+};
 
 // First Function By Abrar
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
@@ -85,6 +100,26 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   res.json(result);
 });
 
+// update details of an admin user
+app.put('/v1/admin/user/details', (req: Request, res: Response) => {
+  const { token, email, nameFirst, nameLast } = req.body;
+  const response = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
+
+// update the password of an admin user
+app.put('/v1/admin/user/password', (req: Request, res: Response) => {
+  const { token, oldPassword, newPassword } = req.body;
+  const response = adminUserPasswordUpdate(token, oldPassword, newPassword);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
+
 // Fourth Function By Abrar
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   const token: string = req.body.token;
@@ -100,9 +135,11 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
+  save();
   return res.json(echo(data));
 });
 
+// Create a list of quizzes
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const result = adminQuizList(token);
@@ -116,6 +153,33 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
   const result = adminQuizCreate(token, name, description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Update Quiz name
+app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
+  const { token, name } = req.body;
+  const quizId = req.params.quizId;
+  console.log(quizId);
+
+  const result = adminQuizNameUpdate(token, parseInt(quizId), name);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+
+  res.json(result);
+});
+save();
+load();
+
+// Get info about quiz
+app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  const result = adminQuizInfo(token, quizid);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
@@ -160,6 +224,22 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
+
+/**
+// Route handler for GET /v1/admin/quiz/:quizid
+app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
+  const token: string = req.query.token as string;
+  const quizid: number = req.params.quizid; // Convert quizid to a number
+
+    // Handle any errors returned by the adminQuizInfo function
+    if ('error' in response) {
+      return res.status(403).json({ error: response.error });
+    }
+
+    // Return success response with quiz information
+    res.json(200);
+  });
+*/
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

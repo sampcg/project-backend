@@ -39,7 +39,6 @@ export interface Question {
 
 export interface User {
   userId: number;
-  token: string;
   nameFirst: string;
   nameLast: string;
   email: string;
@@ -52,23 +51,21 @@ export interface User {
 
 export interface Quiz {
   quizId: number;
-  userId: number;
   name: string;
   description: string;
   timeCreated: number;
   timeLastEdited: number;
-  numQuestions: number;
+  userId: number;
   questions: Question[];
-  duration: number
 }
 
-export interface Data {
+interface Data {
   users: User[];
   quizzes: Quiz[];
   trash: Quiz[];
 }
 
-let data: Data = {
+let data: { users: User[], quizzes: Quiz[], trash: Quiz[] } = {
   users: [],
   quizzes: [],
   trash: [],

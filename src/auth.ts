@@ -1,7 +1,15 @@
 // This Imports the Database
 import { getData, setData } from './dataStore';
-import { getUser } from './helpers';
-import { Token } from './returnInterfaces';
+import {
+  getUser,
+  decodeToken,
+  validateTokenStructure
+} from './helpers';
+import {
+  ErrorObject,
+  EmptyObject,
+  Token
+} from './returnInterfaces';
 import validator from 'validator';
 
 // First Function By Abrar
@@ -210,39 +218,47 @@ export function adminAuthLogout(token: string | number) {
  * @param {string} nameLast - last name of user
  * @returns {} - empty object
  */
-export function adminUserDetailsUpdate(authUserId: number, email : string,
-  nameFirst: string, nameLast: string) {
+export const adminUserDetailsUpdate = (token: string, email : string,
+  nameFirst: string, nameLast: string): EmptyObject | ErrorObject => {
   const data = getData();
-  /** AuthUserId is not a valid user */
-  if (!getUser(authUserId)) {
-    return { error: 'AuthUserId is not a valid user' };
+  /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Token is empty or invalid', code: 401 };
+  }
+  const user = getUser(originalToken.userId);
+  if (!user) {
+    return { error: 'User with the provided token does not exist', code: 401 };
+  }
+  const validatedToken = validateTokenStructure(token);
+  if (validatedToken) {
+    return validatedToken;
   }
   /** Check for duplicate email */
-  if (data.users.some((user) => user.email === email)) {
-    return { error: 'Email is already in use' };
+  if (data.users.some((user) => user.email === email && !originalToken.sessionId.includes(token))) {
+    return { error: 'Email is already in use', code: 400 };
   }
   /** Check for valid email */
   if (!validator.isEmail(email)) {
-    return { error: 'Email is not valid' };
+    return { error: 'Email is not valid', code: 400 };
   }
   /** Check for invalid characters in nameFirst and if the first name length is valid */
   const namecharF = /(^[a-zA-Z]{1}[a-zA-Z\s'-]{0,18}[a-zA-Z]{1}$)/.test(nameFirst.trim());
   if (!namecharF) {
-    return { error: 'Invalid first name' };
+    return { error: 'Invalid first name', code: 400 };
   }
   /** Check for invalid characters in nameLast and if the last name length is valid */
   const namecharL = /(^[a-zA-Z]{1}[a-zA-Z\s'-]{0,18}[a-zA-Z]{1}$)/.test(nameLast.trim());
   if (!namecharL) {
-    return { error: 'Invalid last name' };
+    return { error: 'Invalid last name', code: 400 };
   }
   /** correct output */
-  const user = getUser(authUserId);
   user.email = email;
   user.nameFirst = nameFirst;
   user.nameLast = nameLast;
   setData(data);
   return {};
-}
+};
 
 /**
  * Updates the password of an admin user
@@ -252,28 +268,33 @@ export function adminUserDetailsUpdate(authUserId: number, email : string,
  * @returns {} - empty object
  */
 
-export function adminUserPasswordUpdate(authUserId: number, oldPassword: string,
-  newPassword: string) {
-  const user = getUser(authUserId);
-  /** AuthUserId is not a valid user */
-  if (!getUser(authUserId)) {
-    return { error: 'AuthUserId is not a valid user' };
+export const adminUserPasswordUpdate = (token: string, oldPassword: string,
+  newPassword: string): EmptyObject | ErrorObject => {
+  /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Token is empty or invalid', code: 401 };
   }
+  const user = getUser(originalToken.userId);
+  if (!user) {
+    return { error: 'User with the provided token does not exist', code: 401 };
+  }
+  validateTokenStructure(token);
   /** Old Password is not the correct old password */
   if (oldPassword !== user.password) {
-    return { error: 'Old Password is not the correct old password' };
+    return { error: 'Old Password is not the correct old password', code: 400 };
   }
   /** Old Password and New Password match exactly */
   if (oldPassword === newPassword) {
-    return { error: 'Old Password and New Password match exactly' };
+    return { error: 'Old Password and New Password match exactly', code: 400 };
   }
   /** New Password has already been used before by this user */
   if (user.oldPassword === newPassword) {
-    return { error: 'New Password has already been used before by this user' };
+    return { error: 'New Password has already been used before by this user', code: 400 };
   }
   /** New Password is less than 8 characters */
   if (newPassword.length < 8) {
-    return { error: 'New Password is less than 8 characters' };
+    return { error: 'New Password is less than 8 characters', code: 400 };
   }
   /** New Password does not contain at least one number and at least one letter */
   let hasNumber = false;
@@ -290,14 +311,14 @@ export function adminUserPasswordUpdate(authUserId: number, oldPassword: string,
   }
 
   if (!(hasNumber && (hasLower || hasUpper))) {
-    return { error: 'New Password does not contain at least one number and at least one letter' };
+    return { error: 'New Password does not contain at least one number and at least one letter', code: 400 };
   }
   /** correct output */
   user.oldPassword = user.password;
   user.password = newPassword;
   setData(getData());
   return {};
-}
+};
 
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js
