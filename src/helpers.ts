@@ -43,6 +43,12 @@ export function decodeToken(encodedToken: string): Token | null {
   }
 }
 
+// Function to generate a random colour using a random index
+export function getRandomColour(): string {
+  const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'orange'];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
 /**
  * Creates a request with the specified HTTP method, path, and payload.
  *

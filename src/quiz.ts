@@ -145,27 +145,34 @@ export const adminQuizCreate = (token: string, name: string, description: string
  */
 
 // Feature
-export const adminQuizRemove = (authUserId: number, quizId: number): EmptyObject | ErrorObject => {
+export const adminQuizRemove = (token: string, quizId: number): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
 
-  // Check if user is valid
-  if (!getUser(authUserId)) {
-    return { error: 'AuthUserId is not a valid user' };
+  // Check if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
   }
 
   // Check if quizId is valid
   const quizExists = data.quizzes.some(quiz => quiz.quizId === quizId);
   if (!quizExists) {
-    return { error: 'Invalid quiz ID' };
+    return { error: 'Invalid quiz ID', code: 403 };
   }
 
   // Check if owner owns quiz
   const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (findQuiz.userId !== authUserId) {
-    return { error: 'User does not own this quiz' };
+  if (findQuiz.userId !== originalToken.userId) {
+    return { error: 'User does not own this quiz', code: 403 };
   }
 
-  // Remove quiz that has given quizId
+  // Add quiz to trash object
+  data.trash.push(findQuiz);
+
+  // Remove quiz that has given quizId from quizzes
   data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== quizId);
 
   // Return empty object
