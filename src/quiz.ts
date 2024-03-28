@@ -136,8 +136,6 @@ export const adminQuizCreate = (token: string, name: string, description: string
   };
 };
 
-
-
 /// //////////////////            Remove a Quiz             /////////////////////
 
 /**
@@ -350,4 +348,3 @@ export const adminQuizInfo = (token: string, quizId: number): Quiz | ErrorObject
 
   return adminQuizInfoReturn;
 };
-

@@ -440,34 +440,29 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
   });
 });
 
-
-//////////////// Testing for Update Quiz Description  ///////////
+/// ///////////// Testing for Update Quiz Description  ///////////
 describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
   let author: {token: string}, quiz: {quizId: number}, description: string;
   beforeEach(() => {
     // Assuming you have functions like requestRegisterAuth, requestAuthLogin, requestQuizCreate, etc.
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Samuel', 'Gray');
     quiz = requestQuizCreate(author.token, 'Quiz Name', 'Quiz Description');
-    
-});
+  });
 
-test('Testing: Error Case - Invalid token', () => {
-  const invalidToken = author.token + 'Math.random()';
-  expect(requestUpdateQuizDescription(invalidToken, quiz.quizId, description)).toStrictEqual(makeCustomErrorForTest(401));
-});
+  test('Testing: Error Case - Invalid token', () => {
+    const invalidToken = author.token + 'Math.random()';
+    expect(requestUpdateQuizDescription(invalidToken, quiz.quizId, description)).toStrictEqual(makeCustomErrorForTest(401));
+  });
 
+  test('Invalid quizId (does not exist)', () => {
+    const newDescription = 'Updated Quiz Description';
+    expect(requestUpdateQuizDescription(author.token, quiz.quizId + 11, newDescription)).toStrictEqual(makeCustomErrorForTest(403));
+  });
 
-test('Invalid quizId (does not exist)', () => {
-  const newDescription = 'Updated Quiz Description';
-  expect(requestUpdateQuizDescription(  author.token, quiz.quizId + 11, newDescription)).toStrictEqual(makeCustomErrorForTest(403));
-});
-
-
-test('Testing: Error Case - Invalid quiz Description', () => {
-    const invalidDescription = "A".repeat(101); // Invalid characters
+  test('Testing: Error Case - Invalid quiz Description', () => {
+    const invalidDescription = 'A'.repeat(101); // Invalid characters
     expect(requestUpdateQuizDescription(author.token, quiz.quizId, invalidDescription)).toStrictEqual(makeCustomErrorForTest(400));
-});
-
+  });
 
   test('Update quiz description', () => {
     const newDescription = 'Updated Quiz Description';
@@ -485,5 +480,63 @@ test('Testing: Error Case - Invalid quiz Description', () => {
     expect(updatedQuizInfo).toEqual(expect.objectContaining({
       description: newDescription
     }));
+  });
+});
+
+/// /////////////////        Testing for Admin Quiz Info     ////////////////////
+describe('Testing GET /v1/admin/quiz/{quizid}', () => {
+  let author: {token: string}, quiz: {quizId: number};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Samuel', 'Gray');
+    quiz = requestQuizCreate(author.token, 'Quiz Name', '');
+  });
+
+  test('Testing: Error Case - Invalid token', () => {
+    const invalidToken = author.token + 'Math.random()';
+    expect(requestQuizInfo(invalidToken, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
+  });
+
+  test('Invalid quizId (does not exist)', () => {
+    const invalidQuizId = quiz.quizId + 11;
+    expect(requestQuizInfo(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
+  });
+
+  test('Testing: Error Case - Unauthorized access to quiz', () => {
+    const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
+    expect(requestQuizInfo(unauthorizedUser.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
+  });
+
+  test('Invalid quiz ID', () => {
+    const invalidQuizId = quiz.quizId + 11;
+    expect(requestQuizInfo(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
+  });
+  test('Valid token and quiz ID', () => {
+    /** const question = 'Question';
+    const duration = 1;
+    const points = 1;
+    const answers =
+          [{
+            answer: 'Answer 1',
+            correct: true
+          },
+          {
+            answer: 'Answer 2',
+            correct: false
+          }];
+  */
+    // requestQuestionCreate
+    const expectedData = {
+      quizId: quiz.quizId,
+      name: expect.any(String),
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: expect.any(String),
+      numQuestions: expect.any(Number),
+      questions: expect.any(Array),
+      duration: expect.any(Number),
+    };
+
+    // Call the function and compare with expected data
+    expect(requestQuizInfo(author.token, quiz.quizId)).toEqual(expectedData);
   });
 });
