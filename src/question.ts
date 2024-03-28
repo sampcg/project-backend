@@ -1,6 +1,6 @@
 import { getData, setData } from './dataStore';
-import { getUser, decodeToken, getRandomColour } from './helpers';
-import { ErrorObject, Quiz, Question, Answer } from './returnInterfaces';
+import { getUser, getQuiz, decodeToken, getRandomColour } from './helpers';
+import { EmptyObject, ErrorObject, Quiz, Question, Answer } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 
 /// //////////////////           Create a Question           /////////////////////
@@ -22,7 +22,7 @@ interface AdminQuestionCreateReturn {
 export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateRequestBody): AdminQuestionCreateReturn | ErrorObject => {
   const { token, questionBody } = body;
   const { question, duration, points, answers } = questionBody;
-  
+
   const data: DataStore = getData();
   const originalToken = decodeToken(token);
   if (!originalToken) {
@@ -101,11 +101,11 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
   }));
 
   // Create a unique questionId
-  // const newQuestionId: number = data.quizzes[quizIndex].questions.length + 1;
+  const newQuestionId: number = data.quizzes[quizIndex].questions.length + 1;
 
   // Create and set data
   const newQuestion: Question = {
-    questionId: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+    questionId: newQuestionId,
     question: question,
     duration: duration,
     points: points,
@@ -129,47 +129,42 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
   return { questionId: newQuestion.questionId };
 };
 
-/////////////////////           Delete a Question           /////////////////////
+/// //////////////////           Delete a Question           /////////////////////
 
-interface AdminQuestionRemoveReturn {} 
+export const adminQuestionRemove = (token: string, quizId: number, questionId: number): EmptyObject | ErrorObject => {
+  const data = getData();
 
-export const adminQuestionRemove = (token: string, quizId: number, questionId: number): AdminQuestionRemoveReturn | ErrorObject => {
-    const data = getData();
+  // Check if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 403 };
+  }
 
-    // Check if token is valid
-    const originalToken = decodeToken(token);
-    if (!originalToken) {
-      return { error: 'Invalid token', code: 401 };
-    }
-    if (!getUser(originalToken.userId)) {
-      return { error: 'Invalid token', code: 403 };
-    }
+  // Validate quizID and ownership
+  const quiz: Quiz = getQuiz(quizId);
 
-    // Validate quizID and ownership
-    // findIndex will return -1 if not found or userID doesn't match
-    const quiz: Quiz | undefined = data.quizzes.find(q => q.quizId === quizId);
-    if (!quiz || quiz.userId !== originalToken.userId) {
-        return {error: 'Invalid quizId or user does not own the quiz', code: 403};
-    }
+  if (!quiz) {
+    return { error: 'Invalid quizId or user does not own the quiz', code: 403 };
+  }
 
-    
+  // Find the question index by questionId
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+  if (questionIndex === -1) {
+    return { error: 'Invalid questionID', code: 400 };
+  }
 
-    // Find the question index by questionId
-    const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
-    if (questionIndex === -1) {
-        return { error: 'Invalid questionID', code: 400 };
-    }
+  // Remove the question from the quiz
+  quiz.questions.splice(questionIndex, 1);
 
-    // Remove the question from the quiz
-    quiz.questions.splice(questionIndex, 1);
+  // Update timeLastEdited, no. of questions and duration of the quiz
+  quiz.timeLastEdited = Math.round(Date.now());
+  quiz.numQuestions -= 1;
+  quiz.duration -= quiz.questions[questionIndex].duration;
 
-    // Update timeLastEdited, no. of questions and duration of the quiz
-    quiz.timeLastEdited = Math.round(Date.now());
-    quiz.numQuestions -= 1;
-    quiz.duration -= quiz.questions[questionIndex].duration; 
-
-    // Update the dataStore
-    setData(data);
-    return {};
-}
-
+  // Update the dataStore
+  setData(data);
+  return {};
+};
