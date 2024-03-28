@@ -51,11 +51,7 @@ const requestHelper = (method: HttpVerb, path: string, payload: object) => {
 const requestRegisterAuth = (email: string, password: string, nameFirst: string, nameLast: string) => {
   return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
 };
-/*
-const requestAuthLogin = (email: string, password: string) => {
-  return requestHelper('POST', '/v1/admin/auth/login', { email, password });
-};
-*/
+
 const requestAuthLogout = (token: string) => {
   return requestHelper('POST', '/v1/admin/auth/logout', { token });
 };
@@ -64,24 +60,18 @@ const requestQuizCreate = (token: string, name: string, description: string) => 
   return requestHelper('POST', '/v1/admin/quiz', { token, name, description });
 };
 
-/*
-const requestQuizRemove = (token: string, quizId: number) => {
-  return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId });
-};
-
 const requestQuizInfo = (token: string, quizId: number) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
 
-*/
 const requestQuestionCreate = (quizId: number, body: CreateQuestionBody) => {
   return requestHelper('POST', `/v1/admin/quiz/${quizId}/question`, { quizId, body });
 };
-/*
+
 const requestQuestionDelete = (token: string, quizId: number, questionId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}/question/${questionId}`, { token, quizId, questionId });
 };
-*/
+
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
 };
@@ -120,8 +110,6 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
       const shortQuestion = 'a';
       const questionBody: QuestionBody = { question: shortQuestion, duration: duration, points: points, answers: answers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
-      //      console.log(testBody);
-      console.log(requestQuestionCreate(quiz.quizId, testBody));
       expect(requestQuestionCreate(quiz.quizId, testBody)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
@@ -279,38 +267,38 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
       const question1: { questionId: number } = requestQuestionCreate(quiz.quizId, testBody);
 
       expect(question1.questionId).toStrictEqual(expect.any(Number));
-      /*
-        expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
-          quizId: quiz.quizId,
-          name: 'Quiz 1',
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'Quiz 1 Des',
-          numQuestions: 1,
-          questions: [
-            {
-              questionId: question1.questionId,
-              question: 'Question',
-              duration: 1,
-              points: 1,
-              answers: [
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 1',
-                  colour: expect.any(String),
-                  correct: true
-                },
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 2',
-                  colour: expect.any(String),
-                  correct: false
-                }
-              ]
-            }
-          ]
-        });
-        */
+
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz 1',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: 'Quiz 1 Des',
+        numQuestions: 1,
+        questions: [
+          {
+            questionId: question1.questionId,
+            question: 'Question',
+            duration: 1,
+            points: 1,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          }
+        ],
+        duration: 1
+      });
     });
 
     test('Successfully creates multiple questions', () => {
@@ -330,58 +318,57 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
       expect(question2.questionId).toStrictEqual(expect.any(Number));
       expect(question1.questionId).not.toStrictEqual(question2.questionId);
 
-      /*
-        expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
-          quizId: quiz.quizId,
-          name: 'Quiz 1',
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'Quiz 1 Des',
-          numQuestions: 2,
-          questions: [
-            {
-              questionId: question1.questionId,
-              question: 'Question',
-              duration: 1,
-              points: 1,
-              answers: [
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 1',
-                  colour: expect.any(String),
-                  correct: true
-                },
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 2',
-                  colour: expect.any(String),
-                  correct: false
-                }
-              ]
-            },
-            {
-              questionId: question2.questionId,
-              question: 'Question 2',
-              duration: 2,
-              points: 2,
-              answers: [
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 1',
-                  colour: expect.any(String),
-                  correct: true
-                },
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 2',
-                  colour: expect.any(String),
-                  correct: false
-                }
-              ]
-            }
-          ]
-        });
-        */
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz 1',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: 'Quiz 1 Des',
+        numQuestions: 2,
+        questions: [
+          {
+            questionId: question1.questionId,
+            question: 'Question',
+            duration: 1,
+            points: 1,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          },
+          {
+            questionId: question2.questionId,
+            question: 'Question 2',
+            duration: 2,
+            points: 2,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          }
+        ],
+        duration: 3
+      });
     });
 
     test('Successfully creates questions with another user', () => {
@@ -408,169 +395,174 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
 
       expect(question1.questionId).not.toStrictEqual(question2.questionId);
 
-      /*
-        expect(requestQuizInfo(author2.token, quiz2.quizId)).toStrictEqual({
-          quizId: quiz2.quizId,
-          name: 'Quiz 2',
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'Quiz 1 Des',
-          numQuestions: 2,
-          questions: [
-            {
-              questionId: question1.questionId,
-              question: 'Question',
-              duration: 1,
-              points: 1,
-              answers: [
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 1',
-                  colour: expect.any(String),
-                  correct: true
-                },
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 2',
-                  colour: expect.any(String),
-                  correct: false
-                }
-              ]
-            },
-            {
-              questionId: question2.questionId,
-              question: 'Question',
-              duration: 2,
-              points: 2,
-              answers: [
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 1',
-                  colour: expect.any(String),
-                  correct: true
-                },
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 2',
-                  colour: expect.any(String),
-                  correct: false
-                }
-              ]
-            }
-          ]
-        });
-        */
+      expect(requestQuizInfo(author2.token, quiz2.quizId)).toStrictEqual({
+        quizId: quiz2.quizId,
+        name: 'Quiz 2',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: 'Quiz 2 Des',
+        numQuestions: 2,
+        questions: [
+          {
+            questionId: question1.questionId,
+            question: 'Question',
+            duration: 1,
+            points: 1,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          },
+          {
+            questionId: question2.questionId,
+            question: 'Question 2',
+            duration: 2,
+            points: 2,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          }
+        ],
+        duration: 3
+      });
     });
   });
 });
+
+/// /////////////////      Testing for Removing Question     ////////////////////
+
+describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
+  let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, answers: AnswerInput[];
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+    answers =
+      [{
+        answer: 'Answer 1',
+        correct: true
+      },
+      {
+        answer: 'Answer 2',
+        correct: false
+      }];
+    const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers };
+    const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
+    question1 = requestQuestionCreate(quiz.quizId, testBody);
+  });
+
+  describe('Testing: Error cases', () => {
+    /*
+    test('Question ID is not valid in this quiz', () => {
+      console.log(requestQuizInfo(author.token, quiz.quizId));
+      const myQuestionId = question1.questionId + 1;
+      console.log('question1.questionId' + myQuestionId);
+      expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId + 1)).toStrictEqual(makeCustomErrorForTest(400));
+    });
+    */
+    test('Token is invalid', () => {
+      expect(requestQuestionDelete(author.token + 1, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+    test('Valid token, but quizID is invalid', () => {
+      expect(requestQuestionDelete(author.token, quiz.quizId + 1, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+    test('Valid token, but user does not own quiz', () => {
+      requestAuthLogout(author.token);
+      const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      expect(requestQuestionDelete(author2.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+  });
 /*
-  /// /////////////////      Testing for Removing Question     ////////////////////
+  describe('Testing: Success cases', () => {
+    test('Deletes one question', () => {
+      expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId)).toStrictEqual({});
 
-  describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
-    let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, answers: AnswerInput[];
-    beforeEach(() => {
-      author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-      quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
-      answers =
-          [{
-            answer: 'Answer 1',
-            correct: true
-          },
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz 1',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: 'Quiz 1 Des',
+        numQuestions: 0,
+        questions: [],
+        duration: 0
+      });
+
+    });
+
+    test('Deletes two questions', () => {
+      const questionBody2: QuestionBody = {question: 'Question 2', duration: 5, points: 5, answers: answers};
+      const testBody2: CreateQuestionBody = {token: author.token, questionBody: questionBody2}
+      const question2: {questionId: number} = requestQuestionCreate(quiz.quizId, testBody2);
+      console.log(question2.questionId);
+      requestQuestionDelete(author.token, quiz.quizId, question1.questionId);
+
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz 1',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: 'Quiz 1 Des',
+        numQuestions: 1,
+        questions: [
           {
-            answer: 'Answer 2',
-            correct: false
-          }];
-      const questionBody: QuestionBody = {question: 'Question 1', duration: 5, points: 5, answers: answers};
-      const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody }
-
-      question1 = requestQuestionCreate(quiz.quizId, testBody);
-    });
-
-    describe('Testing: Error cases', () => {
-      test('Question ID is not valid in this quiz', () => {
-        expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId + 1)).toStrictEqual(makeCustomErrorForTest(400));
+            questionId: question2.questionId,
+            question: 'Question 2',
+            duration: 5,
+            points: 5,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          }
+        ],
+        duration: 5
       });
 
-      test('Token is invalid', () => {
-        expect(requestQuestionDelete(author.token + 1, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(401));
+      requestQuestionDelete(author.token, quiz.quizId, question2.questionId);
+
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz 1',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: 'Quiz 1 Des',
+        numQuestions: 0,
+        questions: [],
+        duration: 0
       });
 
-      test('Valid token, but quizID is invalid', () => {
-        expect(requestQuestionDelete(author.token, quiz.quizId + 1, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
-      });
-
-      test('Valid token, but user does not own quiz', () => {
-        requestAuthLogout(author.token);
-        const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-        requestAuthLogin('ccc@ddd.com', '12345abcde');
-        expect(requestQuestionDelete(author2.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
-      });
-    });
-
-    describe('Testing: Success cases', () => {
-      test('Deletes one question', () => {
-        expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId)).toStrictEqual({});
-        expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
-          quizId: quiz.quizId,
-          name: 'Quiz 1',
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'Quiz 1 Des',
-          numQuestions: 0,
-          questions: [],
-          duration: 0
-        });
-      });
-
-      test('Deletes two questions', () => {
-        const questionBody2: QuestionBody = {question: 'Question 2', duration: 5, points: 5, answers: answers};
-        const testBody2: CreateQuestionBody = {token: author.token, questionBody: questionBody2}
-        const question2: {questionId: number} = requestQuestionCreate(quiz.quizId, testBody2);
-        requestQuestionDelete(author.token, quiz.quizId, question1.questionId);
-        expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
-          quizId: quiz.quizId,
-          name: 'Quiz 1',
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'Quiz 1 Des',
-          numQuestions: 1,
-          questions: [
-            {
-              questionId: question2.questionId,
-              question: 'Question 2',
-              duration: 5,
-              points: 5,
-              answers: [
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 1',
-                  colour: expect.any(String),
-                  correct: true
-                },
-                {
-                  answerId: expect.any(Number),
-                  answer: 'Answer 2',
-                  colour: expect.any(String),
-                  correct: false
-                }
-              ]
-            }
-          ],
-          duration: 5
-        });
-
-        requestQuestionDelete(author.token, quiz.quizId, question2.questionId);
-        expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
-          quizId: quiz.quizId,
-          name: 'Quiz 1',
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'Quiz 1 Des',
-          numQuestions: 0,
-          questions: [],
-          duration: 0
-        });
-      });
     });
   });
   */
+});

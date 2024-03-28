@@ -20,6 +20,14 @@ export interface Question {
   position: number;
 }
 
+export interface QuestionInfo {
+  questionId: number,
+  question: string;
+  duration: number;
+  points: number;
+  answers: Answer[];
+}
+
 export interface User {
   userId: number;
   nameFirst: string;
@@ -41,6 +49,18 @@ export interface Quiz {
   description: string;
   numQuestions: number;
   questions: Question[];
+  duration: number;
+}
+
+export interface QuizInfo {
+  userId?: number;
+  quizId: number;
+  name: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  description: string;
+  numQuestions: number;
+  questions: QuestionInfo[];
   duration: number;
 }
 
