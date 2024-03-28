@@ -1,6 +1,6 @@
 import { getData, setData } from './dataStore';
 import { getUser, decodeToken, getRandomColour } from './helpers';
-import { Question, ErrorObject, Answer } from './returnInterfaces';
+import { Question, ErrorObject, Answer, EmptyObject } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 
 /// //////////////////           Create a Question           /////////////////////
@@ -129,7 +129,7 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
 };
 
 /// //////////////////           Update a Question           /////////////////////
-export const adminQuestionUpdate = (quizId: number, questionId: number, body: AdminQuestionCreateRequestBody): void | ErrorObject => {
+export const adminQuestionUpdate = (quizId: number, questionId: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
   const { token, questionBody } = body;
   const { question, duration, points, answers } = questionBody;
   const data: DataStore = getData();
@@ -238,7 +238,7 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
 };
 
 /// //////////////////           Move a Question           /////////////////////
-export const adminQuestionMove = (quizId: number, questionId: number, newPosition: number, body: AdminQuestionCreateRequestBody): void | ErrorObject => {
+export const adminQuestionMove = (quizId: number, questionId: number, newPosition: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
   const { token, questionBody } = body;
   const { question, duration, points, answers } = questionBody;
   const data: DataStore = getData();
