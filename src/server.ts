@@ -26,7 +26,8 @@ import {
   adminQuizList,
   adminQuizCreate,
   adminQuizRemove,
-  adminQuizNameUpdate
+  adminQuizNameUpdate,
+  adminQuizInfo
 } from './quiz';
 
 import { adminQuestionCreate } from './question';
@@ -173,6 +174,17 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 });
 save();
 load();
+
+// Get info about quiz
+app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  const result = adminQuizInfo(token, quizid);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
 
 // Send quiz to trash
 app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {

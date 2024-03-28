@@ -289,7 +289,7 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
 
   quiz.timeLastEdited = Math.round(Date.now() / 1000);
   quiz.name = name;
-
+  setData(data);
   return {};
 };
 
@@ -347,44 +347,38 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
  * @returns {quizId: number, name: string, timeCreated: number, timeLastEdited: number, description: string}
  */
 
-/**
-// AdminQuizInfo return type
-interface AdminQuizInfoReturn {
-    quizId: number;
-    name: string;
-    description: string;
-    timeCreated: number;
-    timeLastEdited: number;
-}
-
 // Feature
-export const adminQuizInfo = (token: string, quizId: number): AdminQuizInfoReturn | ErrorObject => {
-  const data: DataStore = getData();
+export const adminQuizInfo = (token: string, quizId: number): Quiz | ErrorObject => {
+  const originalToken = decodeToken(token);
 
-  const inputToken: Token = decodeURIComponent(JSON.parse(token));
-  const authUserId: number = inputToken.userId;
-
-  const user = data.users.find((user) => authUserId === user.userId);
-
-  if (!user) {
-    return { error: 'AuthUserId is not a valid user.' };
+  // Check to see if token is valid
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
   }
 
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  // Find the quiz by quizId
+  const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
   if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.' };
+    return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
   }
 
-  if (quiz.userId !== authUserId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+  // Check if the user owns the quiz
+  if (quiz.userId !== originalToken.userId) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
   }
-
-  return {
+  const adminQuizInfoReturn: Quiz = {
     quizId: quiz.quizId,
     name: quiz.name,
     timeCreated: quiz.timeCreated,
     timeLastEdited: Math.round(Date.now() / 1000),
-    description: quiz.description
+    description: quiz.description,
+    numQuestions: quiz.questions.length,
+    questions: quiz.questions,
+    duration: quiz.duration
   };
+
+  return adminQuizInfoReturn;
 };
-*/
