@@ -196,7 +196,6 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
   return {};
 };
 
-
 // /// //////////////////            Remove a Quiz             /////////////////////
 
 // /**
@@ -221,7 +220,7 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
 //     return { error: 'Invalid quiz ID' };
 //   }
 
-/** 
+/**
   // Check if owner owns quiz
   const findQuiz: any = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (findQuiz.userId !== authUserId) {
@@ -294,7 +293,6 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
   return {};
 };
 
-
 // /// //////////////////     Update description of a Quiz     /////////////////////
 
 // /**
@@ -341,7 +339,6 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
 //   return {};
 // };
 
-
 // /// //////////////////       Show all info of a Quiz        /////////////////////
 /**
  * Program to get all of the relevant information about the current quiz
@@ -350,6 +347,7 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
  * @returns {quizId: number, name: string, timeCreated: number, timeLastEdited: number, description: string}
  */
 
+/**
 // AdminQuizInfo return type
 interface AdminQuizInfoReturn {
     quizId: number;
@@ -389,4 +387,4 @@ export const adminQuizInfo = (token: string, quizId: number): AdminQuizInfoRetur
     description: quiz.description
   };
 };
-
+*/

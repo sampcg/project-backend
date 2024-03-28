@@ -52,7 +52,7 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 const load = () => {
   if (fs.existsSync('./database.json')) {
-    const file = fs.readFileSync('./database.json', { encoding : 'utf8' });
+    const file = fs.readFileSync('./database.json', { encoding: 'utf8' });
     setData(JSON.parse(file));
   }
 };
@@ -60,8 +60,7 @@ load();
 
 const save = () => {
   fs.writeFileSync('./database.json', JSON.stringify(getData()));
-}
-
+};
 
 // First Function By Abrar
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
@@ -149,19 +148,17 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   res.json(result);
 });
 
-
-
 // Update Quiz name
-app.put(`/v1/admin/quiz/:quizId/name`, (req: Request, res: Response) => {
+app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const { token, name } = req.body;
-  const  quizId  = req.params.quizId;
+  const quizId = req.params.quizId;
   console.log(quizId);
- 
-  const result = adminQuizNameUpdate(token, parseInt(quizId), name); 
+
+  const result = adminQuizNameUpdate(token, parseInt(quizId), name);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
-  
+
   res.json(result);
 });
 save();
@@ -177,7 +174,6 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   }
   res.json(result);
 });
-
 
 // Create a question
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
@@ -195,7 +191,7 @@ app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
 
-/** 
+/**
 // Route handler for GET /v1/admin/quiz/:quizid
 app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
   const token: string = req.query.token as string;
@@ -205,7 +201,7 @@ app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
     if ('error' in response) {
       return res.status(403).json({ error: response.error });
     }
-    
+
     // Return success response with quiz information
     res.json(200);
   });

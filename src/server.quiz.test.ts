@@ -1,6 +1,5 @@
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { ErrorObject, User, Quiz, Trash } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -53,11 +52,9 @@ const requestQuizList = (token: string) => {
   return requestHelper('GET', '/v1/admin/quiz/list', { token });
 };
 
-
-const requestUpdateQuizName = (token: string, quizId: number,  name: string) => {
-  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/name`, { token, name});
-}
-
+const requestUpdateQuizName = (token: string, quizId: number, name: string) => {
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/name`, { token, name });
+};
 
 const requestQuizRemove = (token: string, quizId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId });
@@ -386,15 +383,14 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Samuel', 'Gray');
     quiz = requestQuizCreate(author.token, 'Quiz Name', '');
+  });
 
-});
+  test('Testing: Error Case - Invalid token', () => {
+    const invalidToken = author.token + 'Math.random()';
+    expect(requestQuizList(invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
+  });
 
-test('Testing: Error Case - Invalid token', () => {
-  const invalidToken = author.token + 'Math.random()';
-  expect(requestQuizList(invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
-});
-
-/** 
+  /**
 test('Testing: Error Case - Unauthorized access to quiz', () => {
     const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
     const newName = 'Updated Quiz Name';
@@ -402,23 +398,22 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
 });
 */
 
-test('Invalid quizId (does not exist)', () => {
-  const invalidQuizId = quiz.quizId + 11;
-  expect(requestUpdateQuizName(author.token, invalidQuizId, name)).toStrictEqual(makeCustomErrorForTest(403));
-});
+  test('Invalid quizId (does not exist)', () => {
+    const invalidQuizId = quiz.quizId + 11;
+    expect(requestUpdateQuizName(author.token, invalidQuizId, name)).toStrictEqual(makeCustomErrorForTest(403));
+  });
 
-
-test('Testing: Error Case - Invalid quiz name', () => {
+  test('Testing: Error Case - Invalid quiz name', () => {
     const invalidName = 'Abc$%'; // Invalid characters
     expect(requestUpdateQuizName(author.token, quiz.quizId, invalidName)).toStrictEqual(makeCustomErrorForTest(400));
-});
+  });
 
-test('Testing: Error Case - Quiz name length', () => {
+  test('Testing: Error Case - Quiz name length', () => {
     const longName = 'This is a very long quiz name that exceeds the maximum length allowed'; // More than 30 characters
     expect(requestUpdateQuizName(author.token, quiz.quizId, longName)).toStrictEqual(makeCustomErrorForTest(400));
-});
+  });
 
-test('Testing: Successful Case - Update quiz name', () => {
+  test('Testing: Successful Case - Update quiz name', () => {
     const updatedName = 'Updated Quiz Name';
     // Perform the update operation
     const updateResult = requestUpdateQuizName(author.token, quiz.quizId, updatedName);
@@ -435,5 +430,5 @@ test('Testing: Successful Case - Update quiz name', () => {
     // Assert that the updated quiz details match the expected values
     expect(updatedQuiz).toBeDefined(); // Ensure the updated quiz is found
     expect(updatedQuiz?.name).toBe(updatedName); // Check if the quiz name is updated correctly
-});
+  });
 });
