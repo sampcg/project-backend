@@ -1,46 +1,47 @@
 import { getData, setData } from './dataStore';
-import { getUser, getQuiz, getTrash } from './helpers';
-import { Question, ErrorObject, EmptyObject } from './returnInterfaces';
-import { DataStore } from './dataInterfaces'
+import { DataStore } from './dataInterfaces';
+import { getUser, getQuiz, getTrash, decodeToken } from './helpers';
+import { ErrorObject, EmptyObject, Quiz, Question } from './returnInterfaces';
 
 // Error return type
 
 /// //////////////////           List all Quizzes           /////////////////////
 
- /**
-  * Provides a list of all quizzed owned by the currently logged in user
-  * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
-  */
+/**
+ * Provides a list of all quizzed owned by the currently logged in user
+ * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
+ */
 
- // AdminQuizList return type
- interface BriefQuizDetails {
-     quizId: number;
-     name: string;
- }
+// AdminQuizList return type
+interface BriefQuizDetails {
+    quizId: number;
+    name: string;
+}
 
- interface AdminQuizListReturn {
-     quizzes: BriefQuizDetails[];
- }
+interface AdminQuizListReturn {
+    quizzes: BriefQuizDetails[];
+}
 
- // Feature
- export const adminQuizList = (token: string): AdminQuizListReturn | ErrorObject => {
-  const data: DataStore = getData();
+// Feature
+export const adminQuizList = (token: string): AdminQuizListReturn | ErrorObject => {
+  const data = getData();
 
-  // Check if token is valid
-  const user = data.users.find((user) => token === user.token);
-  if (!user) {
+  // Check to see if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
     return { error: 'Invalid token', code: 401 };
   }
 
-  // Retrieve userId from token
-  const authUserId: number = user.userId;
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
   // Creates array of quizzes to return
   const quizzes = [];
 
   // Pushes all quizzes with given user ID in data to array quizzes
   for (const quiz of data.quizzes) {
-    if (quiz.userId === authUserId) {
+    if (quiz.userId === originalToken.userId) {
       quizzes.push({ quizId: quiz.quizId, name: quiz.name });
     }
   }
@@ -61,21 +62,21 @@ import { DataStore } from './dataInterfaces'
 
 // AdminQuizCreate return type
 interface AdminQuizCreateReturn {
-  quizId: number;
+    quizId: number;
 }
 
 // Feature
 export const adminQuizCreate = (token: string, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
   const data: DataStore = getData();
 
-  // Check if token is valid
-  const user = data.users.find((user) => token === user.token);
-  if (!user) {
+  // Check to see if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
     return { error: 'Invalid token', code: 401 };
   }
-
-  // Retrieve userId from token
-  const authUserId: number = user.userId;
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
   // Check if name contains invalid characters
   const validName: boolean = /^[a-zA-Z0-9\s]*$/.test(name);
@@ -115,11 +116,11 @@ export const adminQuizCreate = (token: string, name: string, description: string
   // Create parameters for new quiz
   const newQuiz = {
     quizId: newQuizId,
-    userId: authUserId,
+    userId: originalToken.userId,
     name: name,
-    description: description,
     timeCreated: time,
     timeLastEdited: time,
+    description: description,
     numQuestions: 0,
     questions: questions,
     duration: 0
@@ -148,14 +149,13 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
   const data: DataStore = getData();
 
   // Check if token is valid
-  const user = data.users.find((user) => token === user.token);
-  if (!user) {
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
     return { error: 'Invalid token', code: 401 };
   }
-
-  // Retrieve userId from token
-  const authUserId: number = user.userId;
-
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
   // Check if quizId is valid
   const quizExists = data.quizzes.some(quiz => quiz.quizId === quizId);
@@ -165,15 +165,31 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
 
   // Check if owner owns quiz
   const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (findQuiz.userId !== authUserId) {
+  if (findQuiz.userId !== originalToken.userId) {
     return { error: 'User does not own this quiz', code: 403 };
   }
 
+  const trashQuiz: Quiz = {
+    userId: findQuiz.userId,
+    quizId: findQuiz.quizId,
+    name: findQuiz.name,
+    timeCreated: findQuiz.timeCreated,
+    timeLastEdited: Math.round(Date.now() / 1000),
+    description: findQuiz.description,
+    numQuestions: findQuiz.numQuestions,
+    questions: findQuiz.questions,
+    duration: findQuiz.duration
+  };
+
   // Add quiz to trash object
-  data.trash.push(findQuiz);
+  data.trash.push(trashQuiz);
+  setData(data);
 
   // Remove quiz that has given quizId from quizzes
-  data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== quizId);
+  data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== findQuiz.quizId);
+
+  // Set data
+  setData(data);
 
   // Return empty object
   return {};
@@ -195,7 +211,7 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
 
   // Find the user by authUserId
   const user = data.users.find(user => user.userId === authUserId);
-    if (!user) {
+  if (!user) {
     return { error: 'AuthUserId is not a valid user.' };
   }
 

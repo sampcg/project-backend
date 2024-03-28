@@ -5,19 +5,23 @@ export interface ErrorObject {
   code?: number;
 }
 export interface Answer {
+  answerId: number;
   answer: string;
+  colour: string;
   correct: boolean;
 }
+
 export interface Question {
   questionId: number,
   question: string;
   duration: number;
   points: number;
   answers: Answer[];
+  position: number;
 }
+
 export interface User {
   userId: number;
-  token: string;
   nameFirst: string;
   nameLast: string;
   email: string;
@@ -32,18 +36,15 @@ export interface Quiz {
   userId: number;
   quizId: number;
   name: string;
-  description: string;
   timeCreated: number;
   timeLastEdited: number;
+  description: string;
+  numQuestions: number;
   questions: Question[];
   duration: number;
 }
 
-export interface Trash {
+export interface Token {
   userId: number;
-  quizId: number;
-  name: string;
-  description: string;
-  timeCreated: number;
-  timeLastEdited: number;
+  sessionId: string;
 }

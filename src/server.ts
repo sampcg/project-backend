@@ -11,7 +11,16 @@ import process from 'process';
 
 import { clear } from './other';
 
-import { 
+import {
+  adminAuthRegister,
+  adminAuthLogin,
+  adminUserDetails,
+  adminAuthLogout
+  // adminUserDetailsUpdate,
+  // adminUserPasswordUpdate
+} from './auth';
+
+import {
   adminQuizList,
   adminQuizCreate,
   adminQuizRemove
@@ -39,22 +48,69 @@ const HOST: string = process.env.IP || '127.0.0.1';
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
 
+// First Function By Abrar
+app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  // const { email, password, nameFirst, nameLast } = req.body;
+  const result = adminAuthRegister(req.body.email, req.body.password, req.body.nameFirst, req.body.nameLast);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  res.json(result);
+});
+
+// Second Function By Abrar
+app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  const result = adminAuthLogin(email, password);
+
+  // Checking if the result contains an error
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Third Function By Abrar
+app.get('/v1/admin/user/details', (req: Request, res: Response) => {
+  const token: string = req.query.token as string; // Assuming token is passed in the request body
+
+  const result = adminUserDetails(token);
+  // Checking if the result contains an error
+  if ('error' in result) {
+    return res.status(401).json(result);
+  }
+
+  res.json(result);
+});
+
+// Fourth Function By Abrar
+app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
+  const token: string = req.body.token;
+
+  const result = adminAuthLogout(token); // Corrected: Pass 'token' instead of 'authUserId'
+  // Checking if the result contains an error
+  if ('error' in result) {
+    return res.status(401).json(result);
+  }
+
+  res.json(result);
+});
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
 });
 
-
-// Retrieve a list of quizzes
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
-  const { token } = req.params;
+  const token = req.query.token as string;
   const result = adminQuizList(token);
   if ('error' in result) {
-    return res.status(result.code).json({ error: result.error })
+    return res.status(result.code).json({ error: result.error });
   }
+  res.json(result);
 });
-
 
 // Create a quiz
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
@@ -66,20 +122,19 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   res.json(result);
 });
 
-
 // Send quiz to trash
-app.delete('/v1/quiz/:quizid', (req: Request, res: Response) => {
-  const { token, quizid } = req.params;
-  const result = adminQuizRemove(token, parseInt(quizid as string))
+app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  const result = adminQuizRemove(token, quizid);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
 });
 
-
 // Create a question
-app.post('/v1/admin/quiz/:quizid/:question', (req: Request, res: Response) => {
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { body } = req.body;
   const result = adminQuestionCreate(parseInt(quizid), body);
@@ -91,7 +146,8 @@ app.post('/v1/admin/quiz/:quizid/:question', (req: Request, res: Response) => {
 
 // Delete a question
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
-  const { quizId, questionId, token } = req.params;
+  const { quizId, questionId } = req.params;
+  const token: string = req.query.token as string;
   const result = adminQuestionRemove( token, parseInt(quizId), parseInt(questionId) );
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
@@ -104,7 +160,6 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
-
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
