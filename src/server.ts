@@ -20,10 +20,10 @@ import {
   // adminUserPasswordUpdate
 } from './auth';
 
-import { 
-  adminQuizCreate, 
-  adminQuizList, 
-  adminQuizRemove 
+import {
+  adminQuizCreate,
+  adminQuizList,
+  adminQuizRemove
 } from './quiz';
 
 // Set up web app
@@ -111,7 +111,6 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   res.json(result);
 });
 
-
 // Create a quiz
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
@@ -122,9 +121,8 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   res.json(result);
 });
 
-
 // Send quiz to trash
-app.delete(`/v1/admin/quiz/:quizid`, (req: Request, res: Response) => {
+app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const quizid: number = parseInt(req.params.quizid as string);
   const result = adminQuizRemove(token, quizid);
@@ -133,7 +131,6 @@ app.delete(`/v1/admin/quiz/:quizid`, (req: Request, res: Response) => {
   }
   res.json(result);
 });
-
 
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {

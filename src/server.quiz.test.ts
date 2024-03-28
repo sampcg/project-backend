@@ -285,25 +285,17 @@ describe('Testing POST /v1/admin/quiz', () => {
   });
 });
 
-
 /// /////////////////        Testing for Removing Quiz       ////////////////////
 
 describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
   let author: {token: string}, quiz: {quizId: number};
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-    console.log('token: ' + author.token);
-    console.log('decoded token: ' + decodeURIComponent(author.token));
-    console.log('parsed token: ' + JSON.parse(decodeURIComponent(author.token)));
-
     quiz = requestQuizCreate(author.token, 'Quiz Name', '');
-    console.log('quizid ' + quiz.quizId);
   });
 
   describe('Testing: Error Cases', () => {
     test('Invalid token (does not exist)', () => {
-      console.log('invalid token: ' + (author.token + 1));
-      console.log('decoded token: ' + decodeURIComponent(author.token + 1));
       expect(requestQuizRemove(author.token + 1, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
@@ -375,6 +367,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
     test('Deletes 2 of 2', () => {
       const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
       requestQuizRemove(author.token, quiz.quizId);
+      requestQuizRemove(author.token, quiz2.quizId);
       expect(requestQuizList(author.token)).toStrictEqual({ quizzes: [] });
       /*
       expect(requestTrashList(author.token)).toStrictEqual({
