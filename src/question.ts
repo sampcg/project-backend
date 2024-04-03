@@ -3,6 +3,7 @@ import { getUser, decodeToken, getRandomColour } from './helpers';
 import { Question, ErrorObject, Answer, EmptyObject } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 
+
 /// //////////////////           Create a Question           /////////////////////
 
 interface AdminQuestionCreateRequestBody {
@@ -144,6 +145,9 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
   if (!originalToken) {
     return { error: 'Invalid token', code: 401 };
   }
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 401 };
+  }
 
   // Validate quiz ID and ownership
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
@@ -209,10 +213,9 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
     return { error: 'There must be at least one correct answer', code: 400 };
   }
 
-  // Create new answer array
-  // Generate answerID by indexing in question
+  // Update answerID 
   const newAnswers: Answer[] = answers.map((answer, index) => ({
-    answerId: index + 1,
+    answerId: index,
     answer: answer.answer,
     correct: answer.correct,
     colour: getRandomColour()

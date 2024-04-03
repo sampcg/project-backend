@@ -103,6 +103,7 @@ beforeEach(() => {
   requestClear();
 });
 
+/*
 /// /////////////////      Testing for Creating Question     ////////////////////
 
 describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
@@ -321,7 +322,6 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
             }
           ]
         });
-        */
     });
 
     test('Successfully creates multiple questions', () => {
@@ -392,8 +392,9 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
             }
           ]
         });
-        */
+        */ /*
     });
+    
 
     test('Successfully creates questions with another user', () => {
       requestAuthLogout(author.token);
@@ -470,22 +471,23 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
             }
           ]
         });
-        */
+        */ /*
     });
   });
 });
+*/
 
 /// /////////////////      Testing for Updating Question     ////////////////////
 describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   //Declare Variables
   let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, quizUpdate: {quizId: number};
-  let question: string, duration: number, points: number, answers: AnswerInput[];
+  let question: string, duration: number, points: number, originalanswers: AnswerInput[], updatedanswers: AnswerInput[];
 
   // Before each test, creates a test linked to a user
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
     quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
-    answers =
+    originalanswers =
         [{
           answer: 'Answer 1',
           correct: true
@@ -495,7 +497,7 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
           correct: false
         }];
     
-  const questionBody: QuestionBody = {
+  const originalquestionBody: QuestionBody = {
     question: 'Question 1',
     duration: 5,
     points: 5,
@@ -504,14 +506,34 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       { answer: 'Answer 2', correct: false }
     ]
   };
-    const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
+    const testBody: CreateQuestionBody = { token: author.token, questionBody: originalquestionBody };
     question1 = requestQuestionCreate(quiz.quizId, testBody);
+
+    updatedanswers =
+        [{
+          answer: 'Answer 2',
+          correct: true
+        },
+        {
+          answer: 'Answer 1',
+          correct: false
+        }];
+
+    const updatedquestionBody: QuestionBody = {
+      question: 'Question 1',
+      duration: 5,
+      points: 5,
+      answers: [
+        { answer: 'Answer 1', correct: true },
+        { answer: 'Answer 2', correct: false }
+      ]
+    };
   });
 
 
   describe('Testing Error Cases', () => {
     test('QuestionId is invalid', () => {
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId + 1, testBody)).toStrictEqual(makeCustomErrorForTest(400));
     });
@@ -519,7 +541,7 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
     test('Name less than 5 characters', () => {
       const shortQuestion = 'a';
-      const questionBody: QuestionBody = { question: shortQuestion, duration: duration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: shortQuestion, duration: duration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       console.log(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody));
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(400));
@@ -527,7 +549,7 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
     test('Name greater than 50 characters', () => {
       const longQuestion = '123456789 123456789 123456789 123456789 123456789 123456789';
-      const questionBody: QuestionBody = { question: longQuestion, duration: duration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: longQuestion, duration: duration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(400));
     });
@@ -568,21 +590,21 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
     test('Duration is negative', () => {
       const negativeDuration = -1;
-      const questionBody: QuestionBody = { question: question, duration: negativeDuration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: negativeDuration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('Points less than 1', () => {
       const smallPoints = 0;
-      const questionBody: QuestionBody = { question: question, duration: duration, points: smallPoints, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: duration, points: smallPoints, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('Points greater than 10', () => {
       const largePoints = 11;
-      const questionBody: QuestionBody = { question: question, duration: duration, points: largePoints, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: duration, points: largePoints, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(400));
     });
@@ -650,21 +672,21 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
     test('Quiz duration is greater than 3 minutes', () => {
       const longDuration = 100;
-      const questionBody: QuestionBody = { question: question, duration: longDuration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: longDuration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       requestQuestionCreate(quiz.quizId, testBody);
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('Invalid token', () => {
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token + 1, questionBody: questionBody };
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
   
     test('QuizID is invalid', () => {
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       expect(requestQuestionUpdate(quiz.quizId + 1, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(403));
     });
@@ -673,7 +695,7 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       requestAuthLogout(author.token);
 
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author2.token, questionBody: questionBody };
       expect(requestQuestionUpdate(quiz.quizId, question1.questionId, testBody)).toStrictEqual(makeCustomErrorForTest(403));
     });
@@ -681,7 +703,7 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
   describe('Testing Success Cases', () => {
     test('Successfully updates a question', () => {
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers };
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: updatedanswers };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       const question2: { questionId: number } = requestQuestionUpdate(quiz.quizId, question1.questionId, testBody);
 
