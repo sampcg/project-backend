@@ -35,6 +35,8 @@ import {
 
 import { adminQuestionCreate, adminQuestionRemove } from './question';
 
+import { adminTrashList, adminTrashRestore } from './trash';
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -142,6 +144,16 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(echo(data));
 });
 
+// Creates a list of the trash
+app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminTrashList(token);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
 // Create a list of quizzes
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.query.token as string;
@@ -156,6 +168,18 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
   const result = adminQuizCreate(token, name, description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Restore a quiz from trash
+app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
+  const { token } = req.body;
+  const quizId = req.params.quizId;
+
+  const result = adminTrashRestore(token, parseInt(quizId));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
