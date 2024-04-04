@@ -149,8 +149,9 @@ app.put('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 
 // Update a Question
 app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => { 
-  const { quizId, questionId, questionBody} = req.body;
-  const result = adminQuestionUpdate(quizId, questionId, questionBody);
+  const { quizId, questionId } = req.params;
+  const { body } = req.body;
+  const result = adminQuestionUpdate(parseInt(quizId), parseInt(questionId), body);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error});
   }
