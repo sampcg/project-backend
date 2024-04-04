@@ -152,7 +152,7 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
   // Validate quiz ID and ownership
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
-    return { error: 'Invalid quizID', code: 403 };
+    return { error: 'Invalid quizID', code: 400 };
   }
 
   // Find the question within the quiz

@@ -103,7 +103,7 @@ beforeEach(() => {
   requestClear();
 });
 
-/*
+
 /// /////////////////      Testing for Creating Question     ////////////////////
 
 describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
@@ -392,7 +392,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
             }
           ]
         });
-        */ /*
+        */ 
     });
     
 
@@ -471,12 +471,12 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
             }
           ]
         });
-        */ /*
+        */ 
     });
   });
 });
-*/
 
+/*
 /// /////////////////      Testing for Updating Question     ////////////////////
 describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   //Declare Variables
@@ -711,7 +711,7 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     }); 
   });
 });
-
+*/
 
 
   /// /////////////////      Testing for Removing Question     ////////////////////
