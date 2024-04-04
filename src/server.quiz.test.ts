@@ -68,8 +68,6 @@ const requestQuizInfo = (token: string, quizId: number) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
 
-
-
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
 };
@@ -538,4 +536,3 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     expect(requestQuizInfo(author.token, quiz.quizId)).toEqual(expectedData);
   });
 });
-

@@ -35,7 +35,7 @@ import {
 
 import { adminQuestionCreate, adminQuestionRemove } from './question';
 
-import { adminTrashList, adminTrashRestore } from './trash'
+import { adminTrashList, adminTrashRestore } from './trash';
 
 // Set up web app
 const app = express();
@@ -179,7 +179,7 @@ app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
   const { token } = req.body;
   const quizId = req.params.quizId;
 
-const result = adminTrashRestore(token, parseInt(quizId));
+  const result = adminTrashRestore(token, parseInt(quizId));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
@@ -237,7 +237,6 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   }
   res.json(result);
 });
-
 
 // Transfer ownership of a quiz to a different user based on their email
 app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
