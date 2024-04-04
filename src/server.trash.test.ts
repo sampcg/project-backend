@@ -36,11 +36,11 @@ const requestRegisterAuth = (email: string, password: string, nameFirst: string,
     return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
   };
 const requestTrashList = (token: string) => {
-    return requestHelper('GET', '/v1/admin/quiz/trash', { token });
+    return requestHelper('GET', '/v2/admin/quiz/trash', { token });
   };
   
 const requestTrashRestore = (token: string, quizId: number) => {
-    return requestHelper('POST', `/v1/admin/quiz/${quizId}/restore`,{ token });
+    return requestHelper('POST', `/v2/admin/quiz/${quizId}/restore`,{ token });
   };
 
 const requestQuizRemove = (token: string, quizId: number) => {
@@ -54,26 +54,31 @@ const requestQuizCreate = (token: string, name: string, description: string) => 
   const requestQuizList = (token: string) => {
     return requestHelper('GET', '/v1/admin/quiz/list', { token });
   };
+
+  const requestClear = () => {
+    return requestHelper('DELETE', '/v1/clear', {});
+  };
+
+////////////////////////////////////////////////////////
+  beforeEach(() => {
+    requestClear();
+  });
+  
 //////////////// Testing for view trash  ///////////
 
-describe('Testing GET /v1/admin/quiz/trash', () => {
+describe('Testing GET /v2/admin/quiz/trash', () => {
     let author: {token: string}, quiz: {quizId: number};
   
       beforeEach(() => {
-        author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Samuel', 'Gray');
+        author = requestRegisterAuth('aaa@bbb.com', 'abcde1234578', 'Weird', 'Yankovic');
         quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz description');
-        requestQuizRemove(author.token, quiz.quizId);
+        requestQuizRemove(author.token, quiz.quizId);   
       });
-    
-      test('Testing: Error Case - Invalid token', () => {
-        const invalidToken = author.token + 'Math.random()';
-        expect(requestTrashList(invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
-      });
-  
-  
-  
-  describe('Testing: Successful Cases', () => {
+
+
+    describe('Testing: Successful Cases', () => {
     test('Successfully shows quizzes in the trash', () => {
+      
       // Fetch quizzes in the trash
       const trashQuizzes = requestTrashList(author.token);
   
@@ -88,7 +93,15 @@ describe('Testing GET /v1/admin/quiz/trash', () => {
       });
     });
   });
+  
+  describe('Testing: Error Cases', () => {
+    test('Testing: Error Case - Invalid token', () => {
+      const invalidToken = author.token + Math.random();
+      expect(requestTrashList(invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
+    });
   });
+});
+ 
   
   //////////////// Testing for restoring quiz from trash  ///////////
   
@@ -108,12 +121,12 @@ describe('Testing GET /v1/admin/quiz/trash', () => {
     
       test('Invalid quizId (does not exist)', () => {
         const invalidQuizId = quiz.quizId + 11;
-        expect(requestTrashRestore(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
+        expect(requestTrashRestore(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(400));
       });
   
       test('Valid token, but user does not own quiz', () => {
         const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-        expect(requestTrashRestore(author2.token, quiz.quizId).toStrictEqual(makeCustomErrorForTest(403)));
+        expect(requestTrashRestore(author2.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(403));
     });
     
   
@@ -121,17 +134,26 @@ describe('Testing GET /v1/admin/quiz/trash', () => {
       const quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz description2');
       const trashQuizzes = requestTrashList(author.token);
       const result = requestTrashRestore(author.token, quiz2.quizId, );
-      // Quiz2 is not in trash, therefore need to return error 401
-      expect((result).toStrictEqual(makeCustomErrorForTest(401)));
+      // Quiz2 is not in trash, therefore need to return error 400
+      expect((result)).toStrictEqual(makeCustomErrorForTest(400));
     });
   
   describe('Testing: Successful Cases', () => {
     test('Successfully shows quizzes in the trash', () => {
-      const result = requestTrashRestore( author.token, quiz.quizId, );
-      expect((result).toStrictEqual({}));
+      const restoreResult = requestTrashRestore( author.token, quiz.quizId, );
+      expect((restoreResult)).toStrictEqual({});
       // Assert that the response contains the correct quiz that was removed
-      const trashQuizzes = requestQuizList(author.token);
-      expect(quiz.quizId).toEqual(trashQuizzes.quizId);
+      // const restoreQuizzes = requestQuizList(author.token);
+      // expect((quiz.quizId)).toStrictEqual(restoreQuizzes.quizId);
+
+      expect(requestQuizList(author.token)).toStrictEqual({
+        quizzes: [
+          {
+            quizId: quiz.quizId,
+            name: 'Quiz 1',
+          }
+        ]
+      })
     });
   });
   });
