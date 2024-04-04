@@ -5,6 +5,7 @@ import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
 import cors from 'cors';
+import errorHandler from 'middleware-http-errors';
 import YAML from 'yaml';
 import sui from 'swagger-ui-express';
 import fs from 'fs';
@@ -27,6 +28,7 @@ import {
   adminQuizCreate,
   adminQuizRemove,
   adminQuizNameUpdate,
+  adminQuizTransfer,
   adminQuizDescriptionUpdate,
   adminQuizInfo
 } from './quiz';
@@ -221,6 +223,18 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   res.json(result);
 });
 
+// Transfer ownership of a quiz to a different user based on their email
+app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { token, userEmail } = req.body;
+  const quizId = parseInt(quizid);
+  const response = adminQuizTransfer(quizId, token, userEmail);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
+
 // Create a question
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
@@ -281,6 +295,9 @@ app.use((req: Request, res: Response) => {
   `;
   res.json({ error });
 });
+
+// For handling errors
+app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {

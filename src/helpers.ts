@@ -63,6 +63,17 @@ export const validateTokenStructure = (token: string | null): { error: string; c
   return null;
 };
 
+/**
+ * Given a email, check if this email is valid
+ * @param {string} email - email given
+ * @returns {array} - returns the first element in the provided array if authUserId exists
+ *                  - returns undefined if authUserId doesn't exist
+ */
+
+export function getUserByEmail(email: string): User | null {
+  return getData().users.find((user) => user.email === email) || null;
+}
+
 // Function to generate a random colour using a random index
 export function getRandomColour(): string {
   const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'orange'];
