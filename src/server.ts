@@ -36,7 +36,8 @@ import {
 import {
   adminQuestionCreate,
   adminQuestionUpdate,
-  adminQuestionRemove
+  adminQuestionRemove,
+  adminQuestionMove
 } from './question';
 
 import { adminTrashList, adminTrashRestore } from './trash';
@@ -291,16 +292,15 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
 });
 
 // Move a Question
-/*
-app.put('/v1/admin/quiz/{quizid}/question/{questionid}/move', (req: Request, res: Response) => {
-  const { token, quizId, questionId, newPosition } = req.body;
-  const result = adminQuestionMove(token, quizId, questionId, newPosition);
+app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+  const { quizid, questionid } = req.params;
+  const { body } = req.body;
+  const result = adminQuestionMove(parseInt(quizid), parseInt(questionid), body);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error});
   }
   res.json(result);
 });
-*/
 
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {

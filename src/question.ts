@@ -12,6 +12,7 @@ interface AdminQuestionCreateRequestBody {
         duration: number;
         points: number;
         answers: AnswerInput[];
+        position: number;
     };
 }
 
@@ -284,5 +285,51 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
 
   // Update the dataStore
   setData(data);
+  return {};
+};
+
+/// //////////////////           Move a Question           /////////////////////
+export const adminQuestionMove = (quizId: number, questionId: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
+  const { token, questionBody } = body;
+  const { question, duration, points, answers } = questionBody;
+  const data: DataStore = getData();
+
+  // Check if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Invalid token', code: 401 };
+  }
+
+  // Validate quiz ID and ownership
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
+  if (quizIndex === -1) {
+    return { error: 'Invalid quizID', code: 403 };
+  }
+
+  // Find the question within the quiz
+  const quiz = data.quizzes[quizIndex];
+  const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
+  if (questionIndex === -1) {
+    return { error: 'Invalid questionID', code: 400 };
+  }
+
+  const { position: newPosition } = questionBody;
+
+  // Check if newPosition < 0 or >= numberOfQuestions
+  const numQuestions = quiz.questions.length;
+  if (newPosition < 0 || newPosition >= numQuestions) {
+    return { error: 'Invalid newPosition', code: 400 };
+  }
+
+  // Check if newPosition is the position of the current question
+  if (newPosition === quiz.questions[questionIndex].position) {
+    return { error: 'Invalid newPosition', code: 400 };
+  }
+
+  // Move the question to the new position
+  const movedQuestion = quiz.questions.splice(questionIndex, 1)[0];
+  movedQuestion.position = newPosition;
+  quiz.questions.splice(newPosition, 0, movedQuestion);
+
   return {};
 };
