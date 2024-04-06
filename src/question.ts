@@ -1,8 +1,7 @@
 import { getData, setData } from './dataStore';
-import { getUser, decodeToken, getRandomColour } from './helpers';
-import { Question, ErrorObject, Answer, EmptyObject } from './returnInterfaces';
+import { getUser, getQuiz, decodeToken, getRandomColour } from './helpers';
+import { EmptyObject, ErrorObject, Quiz, Question, Answer } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
-
 
 /// //////////////////           Create a Question           /////////////////////
 
@@ -28,6 +27,7 @@ interface AdminQuestionCreateReturn {
 export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateRequestBody): AdminQuestionCreateReturn | ErrorObject => {
   const { token, questionBody } = body;
   const { question, duration, points, answers } = questionBody;
+
   const data: DataStore = getData();
   const originalToken = decodeToken(token);
   if (!originalToken) {
@@ -38,7 +38,7 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
   }
 
   // Validate quizID and ownership
-  // findIndex will return -1 if not found or userID doesn't match
+  // findIndex will return -1 if not found or userID doesn't match, quizIndex used to refer to quiz later
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
     return { error: 'Invalid quizID', code: 403 };
@@ -131,7 +131,7 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
   setData(data);
 
   // Return questionId
-  return { questionId: newQuestionId };
+  return { questionId: newQuestion.questionId };
 };
 
 /// //////////////////           Update a Question           /////////////////////
@@ -152,7 +152,7 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
   // Validate quiz ID and ownership
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
-    return { error: 'Invalid quizID', code: 400 };
+    return { error: 'Invalid quizID', code: 403 };
   }
 
   // Find the question within the quiz
@@ -161,7 +161,6 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
   if (questionIndex === -1) {
     return { error: 'Invalid questionID', code: 400 };
   }
-  
 
   const existingQuestion = quiz.questions[questionIndex];
 
@@ -214,23 +213,25 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
     return { error: 'There must be at least one correct answer', code: 400 };
   }
 
-  // Update answerID 
+  // Update answerID
+  /*
   const newAnswers: Answer[] = answers.map((answer, index) => ({
     answerId: index,
     answer: answer.answer,
     correct: answer.correct,
     colour: getRandomColour()
   }));
+  */
 
   // Update existing question
   existingQuestion.question = question;
   existingQuestion.duration = duration;
   existingQuestion.points = points;
   existingQuestion.answers = answers.map((answer, index) => ({
-      answerId: index + 1,
-      answer: answer.answer,
-      correct: answer.correct,
-      colour: getRandomColour()
+    answerId: index + 1,
+    answer: answer.answer,
+    correct: answer.correct,
+    colour: getRandomColour()
   }));
 
   // Update total duration of quiz
@@ -246,40 +247,42 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
   return {};
 };
 
-/// //////////////////           Move a Question           /////////////////////
-export const adminQuestionMove = (token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | ErrorObject => {
-  const data: DataStore = getData();
+/// //////////////////           Delete a Question           /////////////////////
+
+export const adminQuestionRemove = (token: string, quizId: number, questionId: number): EmptyObject | ErrorObject => {
+  const data = getData();
 
   // Check if token is valid
   const originalToken = decodeToken(token);
   if (!originalToken) {
     return { error: 'Invalid token', code: 401 };
   }
-
-  // Validate quiz ID and ownership
-  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
-  if (quizIndex === -1) {
-    return { error: 'Invalid quizID', code: 403 };
+  if (!getUser(originalToken.userId)) {
+    return { error: 'Invalid token', code: 403 };
   }
 
-  // Find the question within the quiz
-  const quiz = data.quizzes[quizIndex];
-  const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
+  // Validate quizID and ownership
+  const quiz: Quiz = getQuiz(quizId);
+
+  if (!quiz) {
+    return { error: 'Invalid quizId or user does not own the quiz', code: 403 };
+  }
+
+  // Find the question index by questionId
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
   if (questionIndex === -1) {
     return { error: 'Invalid questionID', code: 400 };
   }
 
-  // Check if newPosition < 0 or > numberOfQuestions - 1
-  const numQuestions = data.quizzes.findIndex(quiz => quiz.numQuestions === numQuestions);
-  if (newPosition < 0 || newPosition > numQuestions) {
-    return { error: 'Invalid newPosition', code: 400 };
-  }
+  // Remove the question from the quiz
+  quiz.questions.splice(questionIndex, 1);
 
-  // Check if newPosition overlaps with a current quesiton
-  const position = quiz.questions.findIndex(q => q.position === position);
-  if (newPosition === position) {
-    return { error: 'Invalid newPosition', code: 400 };
-  }
+  // Update timeLastEdited, no. of questions and duration of the quiz
+  quiz.timeLastEdited = Math.round(Date.now());
+  quiz.numQuestions -= 1;
+  quiz.duration -= quiz.questions[questionIndex].duration;
 
+  // Update the dataStore
+  setData(data);
   return {};
 };

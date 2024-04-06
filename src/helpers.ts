@@ -43,6 +43,37 @@ export function decodeToken(encodedToken: string): Token | null {
   }
 }
 
+/**
+ *
+ * Validates a token and returns an error object if the token is invalid.
+ * @param {string | null} token - the created token
+ * @returns {{ error: string, code: number } | null} - returns an error object if the token is invalid, otherwise null.
+ *
+ */
+
+export const validateTokenStructure = (token: string | null): { error: string; code: number } | null => {
+  if (token === null || token === '') {
+    return { error: 'Invalid token', code: 401 };
+  }
+
+  if (typeof token !== 'string') {
+    return { error: 'Invalid token structure', code: 401 };
+  }
+
+  return null;
+};
+
+/**
+ * Given a email, check if this email is valid
+ * @param {string} email - email given
+ * @returns {array} - returns the first element in the provided array if authUserId exists
+ *                  - returns undefined if authUserId doesn't exist
+ */
+
+export function getUserByEmail(email: string): User | null {
+  return getData().users.find((user) => user.email === email) || null;
+}
+
 // Function to generate a random colour using a random index
 export function getRandomColour(): string {
   const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'orange'];

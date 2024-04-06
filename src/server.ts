@@ -1,8 +1,11 @@
+
 import express, { json, Request, Response } from 'express';
+import { getData, setData } from './dataStore';
 import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
 import cors from 'cors';
+import errorHandler from 'middleware-http-errors';
 import YAML from 'yaml';
 import sui from 'swagger-ui-express';
 import fs from 'fs';
@@ -15,21 +18,25 @@ import {
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
-  adminAuthLogout
-  // adminUserDetailsUpdate,
-  // adminUserPasswordUpdate
+  adminAuthLogout,
+  adminUserDetailsUpdate,
+  adminUserPasswordUpdate,
 } from './auth';
 
 import {
   adminQuizList,
   adminQuizCreate,
-  adminQuizRemove
+  adminQuizRemove,
+  adminQuizNameUpdate,
+  adminQuizTransfer,
+  adminQuizDescriptionUpdate,
+  adminQuizInfo
 } from './quiz';
 
-import { 
+import {
   adminQuestionCreate,
   adminQuestionUpdate,
-  adminQuestionMove 
+  adminQuestionRemove
 } from './question';
 
 // Set up web app
@@ -51,6 +58,17 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
+const load = () => {
+  if (fs.existsSync('./database.json')) {
+    const file = fs.readFileSync('./database.json', { encoding: 'utf8' });
+    setData(JSON.parse(file));
+  }
+};
+load();
+
+const save = () => {
+  fs.writeFileSync('./database.json', JSON.stringify(getData()));
+};
 
 // First Function By Abrar
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
@@ -89,6 +107,26 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   res.json(result);
 });
 
+// update details of an admin user
+app.put('/v1/admin/user/details', (req: Request, res: Response) => {
+  const { token, email, nameFirst, nameLast } = req.body;
+  const response = adminUserDetailsUpdate(token, email, nameFirst, nameLast);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
+
+// update the password of an admin user
+app.put('/v1/admin/user/password', (req: Request, res: Response) => {
+  const { token, oldPassword, newPassword } = req.body;
+  const response = adminUserPasswordUpdate(token, oldPassword, newPassword);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
+
 // Fourth Function By Abrar
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   const token: string = req.body.token;
@@ -104,9 +142,11 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
+  save();
   return res.json(echo(data));
 });
 
+// Create a list of quizzes
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const result = adminQuizList(token);
@@ -126,18 +166,72 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   res.json(result);
 });
 
-// Send quiz to trash
-app.delete('/v1/quiz/:quizid', (req: Request, res: Response) => {
-  const { token, quizid } = req.params;
-  const result = adminQuizRemove(token, parseInt(quizid as string));
+// Update Quiz name
+app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
+  const { token, name } = req.body;
+  const quizId = req.params.quizId;
+
+  const result = adminQuizNameUpdate(token, parseInt(quizId), name);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+
+  res.json(result);
+});
+save();
+load();
+
+// Update Quiz description
+app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
+  const { token, description } = req.body;
+  const quizId = req.params.quizId;
+
+  const result = adminQuizDescriptionUpdate(token, parseInt(quizId), description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+
+  res.json(result);
+});
+save();
+load();
+
+// Get info about quiz
+app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  const result = adminQuizInfo(token, quizid);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
 });
 
+// Send quiz to trash
+app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  const result = adminQuizRemove(token, quizid);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Transfer ownership of a quiz to a different user based on their email
+app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { token, userEmail } = req.body;
+  const quizId = parseInt(quizid);
+  const response = adminQuizTransfer(quizId, token, userEmail);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
+
 // Create a question
-app.put('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { body } = req.body;
   const result = adminQuestionCreate(parseInt(quizid), body);
@@ -148,18 +242,33 @@ app.put('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 });
 
 // Update a Question
-app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => { 
-  const { quizId, questionId } = req.params;
+app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const { quizid, questionid } = req.params;
   const { body } = req.body;
-  const result = adminQuestionUpdate(parseInt(quizId), parseInt(questionId), body);
+  console.log(quizid);
+  console.log(questionid);
+  console.log(body);
+  const result = adminQuestionUpdate(parseInt(quizid), parseInt(questionid), body);
   if ('error' in result) {
-    return res.status(result.code).json({ error: result.error});
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Delete a question
+app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const { quizId, questionId } = req.params;
+  const token: string = req.query.token as string;
+  const result = adminQuestionRemove(token, parseInt(quizId), parseInt(questionId));
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
 });
 
 // Move a Question
-app.put('/v1/admin/quiz/{quizid}/question/{questionid}/move', (req: Request, res: Response) => { 
+/*
+app.put('/v1/admin/quiz/{quizid}/question/{questionid}/move', (req: Request, res: Response) => {
   const { token, quizId, questionId, newPosition } = req.body;
   const result = adminQuestionMove(token, quizId, questionId, newPosition);
   if ('error' in result) {
@@ -167,12 +276,28 @@ app.put('/v1/admin/quiz/{quizid}/question/{questionid}/move', (req: Request, res
   }
   res.json(result);
 });
-
+*/
 
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {
   res.json(clear());
 });
+
+/**
+// Route handler for GET /v1/admin/quiz/:quizid
+app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
+  const token: string = req.query.token as string;
+  const quizid: number = req.params.quizid; // Convert quizid to a number
+
+    // Handle any errors returned by the adminQuizInfo function
+    if ('error' in response) {
+      return res.status(403).json({ error: response.error });
+    }
+
+    // Return success response with quiz information
+    res.json(200);
+  });
+*/
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
@@ -191,6 +316,9 @@ app.use((req: Request, res: Response) => {
   `;
   res.json({ error });
 });
+
+// For handling errors
+app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {
