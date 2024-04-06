@@ -396,7 +396,7 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
   // Quiz ID refers to a quiz that has a name that is already used by the target user
   const targetUserId = getUserByEmail(userEmail).userId;
   const targetQuiz = data.quizzes.some((quiz) => targetUserId === quiz.userId);
-  if (quiz.name === targetQuiz) {
+  if (targetQuiz) {
     return { error: 'Quiz ID refers to a quiz that has a name that is already used by the target user', code: 400 };
   }
   quiz.timeLastEdited = Date.now();
