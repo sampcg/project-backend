@@ -33,7 +33,11 @@ import {
   adminQuizInfo
 } from './quiz';
 
-import { adminQuestionCreate, adminQuestionRemove } from './question';
+import {
+  adminQuestionCreate,
+  adminQuestionUpdate,
+  adminQuestionRemove
+} from './question';
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
@@ -261,6 +265,20 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   res.json(result);
 });
 
+// Update a Question
+app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const { quizid, questionid } = req.params;
+  const { body } = req.body;
+  console.log(quizid);
+  console.log(questionid);
+  console.log(body);
+  const result = adminQuestionUpdate(parseInt(quizid), parseInt(questionid), body);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
 // Delete a question
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
   const { quizId, questionId } = req.params;
@@ -271,6 +289,18 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
   }
   res.json(result);
 });
+
+// Move a Question
+/*
+app.put('/v1/admin/quiz/{quizid}/question/{questionid}/move', (req: Request, res: Response) => {
+  const { token, quizId, questionId, newPosition } = req.body;
+  const result = adminQuestionMove(token, quizId, questionId, newPosition);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error});
+  }
+  res.json(result);
+});
+*/
 
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {
