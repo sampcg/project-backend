@@ -297,7 +297,7 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const { body } = req.body;
   const result = adminQuestionMove(parseInt(quizid), parseInt(questionid), body);
   if ('error' in result) {
-    return res.status(result.code).json({ error: result.error});
+    return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
 });

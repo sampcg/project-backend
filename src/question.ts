@@ -291,7 +291,6 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
 /// //////////////////           Move a Question           /////////////////////
 export const adminQuestionMove = (quizId: number, questionId: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
   const { token, questionBody } = body;
-  const { question, duration, points, answers } = questionBody;
   const data: DataStore = getData();
 
   // Check if token is valid
@@ -318,12 +317,12 @@ export const adminQuestionMove = (quizId: number, questionId: number, body: Admi
   // Check if newPosition < 0 or >= numberOfQuestions
   const numQuestions = quiz.questions.length;
   if (newPosition < 0 || newPosition >= numQuestions) {
-    return { error: 'Invalid newPosition', code: 400 };
+    return { error: 'Invalid newPosition: Number was too high or too low', code: 400 };
   }
 
   // Check if newPosition is the position of the current question
   if (newPosition === quiz.questions[questionIndex].position) {
-    return { error: 'Invalid newPosition', code: 400 };
+    return { error: 'Invalid newPosition: newPosition is the position of the current question', code: 400 };
   }
 
   // Move the question to the new position

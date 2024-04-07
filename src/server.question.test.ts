@@ -53,9 +53,11 @@ const requestRegisterAuth = (email: string, password: string, nameFirst: string,
   return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
 };
 
+/*
 const requestAuthLogin = (email: string, password: string) => {
   return requestHelper('POST', '/v1/admin/auth/login', { email, password });
 };
+*/
 
 const requestAuthLogout = (token: string) => {
   return requestHelper('POST', '/v1/admin/auth/logout', { token });
@@ -115,13 +117,13 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question', () => {
             answer: 'Answer 2',
             correct: false
           }];
-    position = 1
+    position = 1;
   });
 
   describe('Testing: Error cases', () => {
     test('Name less than 5 characters', () => {
       const shortQuestion = 'a';
-      const questionBody: QuestionBody = { question: shortQuestion, duration: duration, points: points, answers: answers, position: position};
+      const questionBody: QuestionBody = { question: shortQuestion, duration: duration, points: points, answers: answers, position: position };
       const testBody: CreateQuestionBody = { token: author.token, questionBody: questionBody };
       expect(requestQuestionCreate(quiz.quizId, testBody)).toStrictEqual(makeCustomErrorForTest(400));
     });
@@ -809,16 +811,16 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   */
 });
 
- /// /////////////////      Testing for Moving Question     ////////////////////
- describe('adminQuestionMove', () => {
+/// /////////////////      Testing for Moving Question     ////////////////////
+describe('adminQuestionMove', () => {
   let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number};
-  let question: string, duration: number, points: number, answers: AnswerInput[], position: number;
+  let question: string, duration: number, points: number, answers: AnswerInput[];
 
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
     quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
 
-    const originalQuestionBody: QuestionBody = {
+    const questionBody1: QuestionBody = {
       question: 'Question 1',
       duration: 5,
       points: 5,
@@ -826,44 +828,69 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
         { answer: 'Answer 1', correct: true },
         { answer: 'Answer 2', correct: false }
       ],
+      position: 0
+    };
+
+    const questionBody2: QuestionBody = {
+      question: 'Question 2',
+      duration: 8,
+      points: 8,
+      answers: [
+        { answer: 'Answer 3', correct: false },
+        { answer: 'Answer 2', correct: true }
+      ],
       position: 1
     };
-    const testBody: CreateQuestionBody = { token: author.token, questionBody: originalQuestionBody };
-    question1 = requestQuestionCreate(quiz.quizId, testBody);
+    const questionBody3: QuestionBody = {
+      question: 'Question 3',
+      duration: 12,
+      points: 12,
+      answers: [
+        { answer: 'Answer 4', correct: false },
+        { answer: 'Answer 5', correct: true }
+      ],
+      position: 2
+    };
+    const testBody1: CreateQuestionBody = { token: author.token, questionBody: questionBody1 };
+    const testBody2: CreateQuestionBody = { token: author.token, questionBody: questionBody2 };
+    const testBody3: CreateQuestionBody = { token: author.token, questionBody: questionBody3 };
+    question1 = requestQuestionCreate(quiz.quizId, testBody1);
+    requestQuestionCreate(quiz.quizId, testBody2);
+    requestQuestionCreate(quiz.quizId, testBody3);
   });
 
   describe('Testing Error Cases', () => {
     test('Invalid token', () => {
       const newPosition = 2;
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition} 
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition };
       const testbody: CreateQuestionBody = { token: author.token + 1, questionBody };
       expect(requestQuestionMove(quiz.quizId, question1.questionId, testbody)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
     test('Invalid quizID', () => {
       const newPosition = 2;
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition} 
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition };
       const testbody: CreateQuestionBody = { token: author.token, questionBody };
       expect(requestQuestionMove(quiz.quizId + 1, question1.questionId, testbody)).toStrictEqual(makeCustomErrorForTest(403));
     });
 
     test('Invalid questionID', () => {
       const newPosition = 2;
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition} 
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition };
       const testbody: CreateQuestionBody = { token: author.token, questionBody };
       expect(requestQuestionMove(quiz.quizId, question1.questionId + 1, testbody)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('Invalid newPosition', () => {
       const newPosition = -1;
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition} 
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition };
       const testbody: CreateQuestionBody = { token: author.token, questionBody };
       expect(requestQuestionMove(quiz.quizId, question1.questionId, testbody)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('NewPosition overlaps with a current question', () => {
-      const newPosition = 1;
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition} 
+      const newPosition = 0;
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition };
       const testbody: CreateQuestionBody = { token: author.token, questionBody };
       expect(requestQuestionMove(quiz.quizId, question1.questionId, testbody)).toStrictEqual(makeCustomErrorForTest(400));
     });
@@ -871,11 +898,10 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
 
   describe('Testing Success Cases', () => {
     test('Successfully moves a question', () => {
-      const newPosition = 2;
-      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition}  
+      const newPosition = 1;
+      const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, position: newPosition };
       const testbody: CreateQuestionBody = { token: author.token, questionBody };
       expect(requestQuestionMove(quiz.quizId, question1.questionId, testbody)).toStrictEqual({});
     });
   });
 });
-
