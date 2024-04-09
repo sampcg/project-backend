@@ -2,6 +2,11 @@ import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
 
 const SERVER_URL = `${url}:${port}`;
+const ERROR = { error: expect.any(String) };
+const SUCCESS = 200;
+const BADREQUEST = 400;
+const UNAUTHORIZED = 401;
+const FORBIDDEN = 403;
 
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
 
@@ -536,3 +541,5 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     expect(requestQuizInfo(author.token, quiz.quizId)).toEqual(expectedData);
   });
 });
+
+
