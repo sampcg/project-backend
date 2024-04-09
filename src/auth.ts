@@ -129,7 +129,7 @@ function adminAuthLogin(email: string, password: string) {
   data.token.push(newToken);
 
   const returnToken = encodeURIComponent(JSON.stringify(newToken));
-
+  setData(data);
   return { token: returnToken };
 }
 

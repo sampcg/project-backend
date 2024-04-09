@@ -220,7 +220,8 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
   }
 
   // Find the quiz by quizId
-  const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
+  // const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
   }
@@ -279,7 +280,8 @@ export const adminQuizDescriptionUpdate = (token: string, quizId: number, descri
   }
 
   // Check if quizId is valid
-  const quiz = getQuiz(quizId);
+  // const quiz = getQuiz(quizId);
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
   }
