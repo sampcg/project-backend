@@ -3,6 +3,8 @@ import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
 import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUserByEmail } from './helpers';
 import { ErrorObject, EmptyObject, Quiz, QuizInfo, Question } from './returnInterfaces';
+import { serialize } from 'v8';
+import { set } from 'yaml/dist/schema/yaml-1.1/set';
 
 // Error return type
 
@@ -129,6 +131,7 @@ export const adminQuizCreate = (token: string, name: string, description: string
 
   // Add quiz to data
   data.quizzes.push(newQuiz);
+  setData(data);
 
   // Return quizId
   return {
@@ -375,8 +378,8 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
   if (!getUser(originalToken.userId)) {
     return { error: 'User with the provided token does not exist', code: 401 };
   }
-  const user = getUser(originalToken.userId);
-  const quiz = getQuiz(quizId);
+  const user = data.users.find((user) => originalToken.userId === user.userId);
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
   // Check for valid quiz
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz!', code: 400 };

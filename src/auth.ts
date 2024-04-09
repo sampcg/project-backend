@@ -1,7 +1,6 @@
 // This Imports the Database
 import { getData, setData } from './dataStore';
 import {
-  getUser,
   decodeToken,
   validateTokenStructure
 } from './helpers';
@@ -78,7 +77,7 @@ function adminAuthRegister(email: string, password: string,
   data.token.push(newToken);
 
   const returnToken = encodeURIComponent(JSON.stringify(newToken));
-
+  setData(data);
   return { token: returnToken };
 }
 
@@ -226,7 +225,7 @@ export const adminUserDetailsUpdate = (token: string, email : string,
   if (!originalToken) {
     return { error: 'Token is empty or invalid', code: 401 };
   }
-  const user = getUser(originalToken.userId);
+  const user = data.users.find((user) => originalToken.userId === user.userId);
   if (!user) {
     return { error: 'User with the provided token does not exist', code: 401 };
   }
@@ -271,11 +270,12 @@ export const adminUserDetailsUpdate = (token: string, email : string,
 export const adminUserPasswordUpdate = (token: string, oldPassword: string,
   newPassword: string): EmptyObject | ErrorObject => {
   /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const data = getData();
   const originalToken = decodeToken(token);
   if (!originalToken) {
     return { error: 'Token is empty or invalid', code: 401 };
   }
-  const user = getUser(originalToken.userId);
+  const user = data.users.find((user) => originalToken.userId === user.userId);
   if (!user) {
     return { error: 'User with the provided token does not exist', code: 401 };
   }
@@ -316,7 +316,7 @@ export const adminUserPasswordUpdate = (token: string, oldPassword: string,
   /** correct output */
   user.oldPassword = user.password;
   user.password = newPassword;
-  setData(getData());
+  setData(data);
   return {};
 };
 
