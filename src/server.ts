@@ -1,6 +1,6 @@
 
-import express, { json, Request, Response } from 'express';
-import { getData, setData } from './dataStore';
+import express, { json, NextFunction, Request, Response } from 'express';
+// import { getData, setData } from './dataStore';
 import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
@@ -20,6 +20,7 @@ import {
   adminUserDetails,
   adminAuthLogout,
   adminUserDetailsUpdate,
+  adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
 } from './auth';
 
@@ -61,17 +62,17 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
-const load = () => {
-  if (fs.existsSync('./database.json')) {
-    const file = fs.readFileSync('./database.json', { encoding: 'utf8' });
-    setData(JSON.parse(file));
-  }
-};
-load();
+// const load = () => {
+//   if (fs.existsSync('./database.json')) {
+//     const file = fs.readFileSync('./database.json', { encoding: 'utf8' });
+//     setData(JSON.parse(file));
+//   }
+// };
+// load();
 
-const save = () => {
-  fs.writeFileSync('./database.json', JSON.stringify(getData()));
-};
+// const save = () => {
+//   fs.writeFileSync('./database.json', JSON.stringify(getData()));
+// };
 
 // First Function By Abrar
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
@@ -120,6 +121,16 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   res.json(response);
 });
 
+// update details of an admin user
+app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { token, email, nameFirst, nameLast } = req.body;
+    res.json(adminUserDetailsUpdateV2(token, email, nameFirst, nameLast));
+  } catch (err) {
+    next(err);
+  }
+});
+
 // update the password of an admin user
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   const { token, oldPassword, newPassword } = req.body;
@@ -145,7 +156,7 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
-  save();
+  // save();
   return res.json(echo(data));
 });
 
@@ -203,8 +214,8 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 
   res.json(result);
 });
-save();
-load();
+// save();
+// load();
 
 // Update Quiz description
 app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
@@ -218,8 +229,8 @@ app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
 
   res.json(result);
 });
-save();
-load();
+// save();
+// load();
 
 // Get info about quiz
 app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
