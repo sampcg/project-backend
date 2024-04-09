@@ -3,8 +3,6 @@ import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
 import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUserByEmail } from './helpers';
 import { ErrorObject, EmptyObject, Quiz, QuizInfo, Question } from './returnInterfaces';
-import { serialize } from 'v8';
-import { set } from 'yaml/dist/schema/yaml-1.1/set';
 
 // Error return type
 
