@@ -129,6 +129,7 @@ export const adminQuizCreate = (token: string, name: string, description: string
 
   // Add quiz to data
   data.quizzes.push(newQuiz);
+  setData(data);
 
   // Return quizId
   return {
@@ -219,7 +220,8 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
   }
 
   // Find the quiz by quizId
-  const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
+  // const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
   }
@@ -278,7 +280,8 @@ export const adminQuizDescriptionUpdate = (token: string, quizId: number, descri
   }
 
   // Check if quizId is valid
-  const quiz = getQuiz(quizId);
+  // const quiz = getQuiz(quizId);
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
   }
@@ -375,8 +378,8 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
   if (!getUser(originalToken.userId)) {
     return { error: 'User with the provided token does not exist', code: 401 };
   }
-  const user = getUser(originalToken.userId);
-  const quiz = getQuiz(quizId);
+  const user = data.users.find((user) => originalToken.userId === user.userId);
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
   // Check for valid quiz
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz!', code: 400 };
