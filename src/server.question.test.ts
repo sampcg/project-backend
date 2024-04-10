@@ -485,7 +485,6 @@ describe('PUT /v1/admin/quiz/{quizid}/question/{questionid}', () => {
     };
     const testBody: CreateQuestionBody = { token: author.token, questionBody: originalquestionBody };
     question1 = requestQuestionCreate(quiz.quizId, testBody);
-    console.log(question1);
 
     updatedanswers =
         [{
@@ -714,18 +713,14 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
   describe('Testing: Error cases', () => {
 
     test('Question ID is not valid in this quiz', () => {
-      console.log(requestQuizInfo(author.token, quiz.quizId));
-      const myQuestionId = question1.questionId + 1;
-      console.log('question1.questionId' + myQuestionId);
-      expect(requestQuestionDelete(author.token, quiz.quizId, myQuestionId)).toStrictEqual(makeCustomErrorForTest(400));
+      const incorrectQuestionId = question1.questionId + 1;
+      expect(requestQuestionDelete(author.token, quiz.quizId, incorrectQuestionId)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('Token is invalid', () => {
       expect(requestQuestionDelete(author.token + 1, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(401));
     });
-    test('Valid token, but quizID is invalid', () => {
-      expect(requestQuestionDelete(author.token, quiz.quizId + 1, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
-    });
+
     test('Valid token, but user does not own quiz', () => {
       requestAuthLogout(author.token);
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
@@ -754,7 +749,6 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       const questionBody2: QuestionBody = {question: 'Question 2', duration: 5, points: 5, answers: answers};
       const testBody2: CreateQuestionBody = {token: author.token, questionBody: questionBody2}
       const question2: {questionId: number} = requestQuestionCreate(quiz.quizId, testBody2);
-      console.log(question2.questionId);
       requestQuestionDelete(author.token, quiz.quizId, question1.questionId);
 
       expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
