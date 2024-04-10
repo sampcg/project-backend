@@ -1,5 +1,5 @@
 
-import express, { json, Request, Response } from 'express';
+import express, { json, NextFunction, Request, Response } from 'express';
 // import { getData, setData } from './dataStore';
 import { echo } from './newecho';
 import morgan from 'morgan';
@@ -21,6 +21,7 @@ import {
   adminAuthLogout,
   adminUserDetailsUpdate,
   adminUserPasswordUpdate,
+  adminUserPasswordUpdateV2,
 } from './auth';
 
 import {
@@ -128,6 +129,17 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
     return res.status(response.code).json({ error: response.error });
   }
   res.json(response);
+});
+
+// update the password of an admin user
+app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.header('token') as string;
+    const { oldPassword, newPassword } = req.body;
+    res.json(adminUserPasswordUpdateV2(token, oldPassword, newPassword));
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Fourth Function By Abrar

@@ -2,7 +2,8 @@
 import { getData, setData } from './dataStore';
 import {
   decodeToken,
-  validateTokenStructure
+  validateTokenStructure,
+  validateTokenStructureV2
 } from './helpers';
 import {
   ErrorObject,
@@ -10,6 +11,7 @@ import {
   Token
 } from './returnInterfaces';
 import validator from 'validator';
+import HTTPError from 'http-errors';
 
 // First Function By Abrar
 function adminAuthRegister(email: string, password: string,
@@ -312,6 +314,67 @@ export const adminUserPasswordUpdate = (token: string, oldPassword: string,
 
   if (!(hasNumber && (hasLower || hasUpper))) {
     return { error: 'New Password does not contain at least one number and at least one letter', code: 400 };
+  }
+  /** correct output */
+  user.oldPassword = user.password;
+  user.password = newPassword;
+  setData(data);
+  return {};
+};
+
+/**
+ * Updates the password of an admin user
+ * @param {number} authUserId - unique identifier for admin user
+ * @param {string} oldPassword - old password of user
+ * @param {string} newPassword - new password of user
+ * @returns {} - empty object
+ */
+
+export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
+  newPassword: string): EmptyObject | ErrorObject => {
+  /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const data = getData();
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Token is empty or invalid');
+  }
+  const user = data.users.find((user) => originalToken.userId === user.userId);
+  if (!user) {
+    throw HTTPError(401, 'User with the provided token does not exist');
+  }
+  validateTokenStructureV2(token);
+  /** Old Password is not the correct old password */
+  if (oldPassword !== user.password) {
+    throw HTTPError(400, 'Old Password is not the correct old password');
+  }
+  /** Old Password and New Password match exactly */
+  if (oldPassword === newPassword) {
+    throw HTTPError(400, 'Old Password and New Password match exactly');
+  }
+  /** New Password has already been used before by this user */
+  if (user.oldPassword === newPassword) {
+    throw HTTPError(400, 'New Password has already been used before by this user');
+  }
+  /** New Password is less than 8 characters */
+  if (newPassword.length < 8) {
+    throw HTTPError(400, 'New Password is less than 8 characters');
+  }
+  /** New Password does not contain at least one number and at least one letter */
+  let hasNumber = false;
+  let hasLower = false;
+  let hasUpper = false;
+  for (const character of newPassword) {
+    if (!isNaN(Number(character))) {
+      hasNumber = true;
+    } else if (character >= 'a' && character <= 'z') {
+      hasLower = true;
+    } else if (character >= 'A' && character <= 'Z') {
+      hasUpper = true;
+    }
+  }
+
+  if (!(hasNumber && (hasLower || hasUpper))) {
+    throw HTTPError(400, 'New Password does not contain at least one number and at least one letter');
   }
   /** correct output */
   user.oldPassword = user.password;

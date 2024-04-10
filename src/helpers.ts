@@ -2,6 +2,7 @@ import { getData } from './dataStore';
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
 import { User, Token } from './returnInterfaces';
+import HTTPError from 'http-errors';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -58,6 +59,26 @@ export const validateTokenStructure = (token: string | null): { error: string; c
 
   if (typeof token !== 'string') {
     return { error: 'Invalid token structure', code: 401 };
+  }
+
+  return null;
+};
+
+/**
+ *
+ * Validates a token and returns an error object if the token is invalid.
+ * @param {string | null} token - the created token
+ * @returns {{ error: string, code: number } | null} - returns an error object if the token is invalid, otherwise null.
+ *
+ */
+
+export const validateTokenStructureV2 = (token: string | null): void | null => {
+  if (token === null || token === '') {
+    throw HTTPError(401, 'Invalid token');
+  }
+
+  if (typeof token !== 'string') {
+    throw HTTPError(401, 'Invalid token structure');
   }
 
   return null;
