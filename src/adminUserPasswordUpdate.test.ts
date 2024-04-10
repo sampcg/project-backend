@@ -45,7 +45,7 @@ beforeEach(() => {
 });
 
 describe('adminUserPasswordUpdate function tests', () => {
-  let user: any;
+  let user: { statusCode: number; body: {token: string}; };
   beforeEach(() => {
     user = adminAuthRegister('hayden.smith@unsw.edu.au', '123456ABC', 'Hayden', 'Smith');
   });
