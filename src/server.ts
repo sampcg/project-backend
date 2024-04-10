@@ -5,6 +5,7 @@ import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
 import cors from 'cors';
+import errorHandler from 'middleware-http-errors';
 import YAML from 'yaml';
 import sui from 'swagger-ui-express';
 import fs from 'fs';
@@ -27,11 +28,19 @@ import {
   adminQuizCreate,
   adminQuizRemove,
   adminQuizNameUpdate,
+  adminQuizTransfer,
   adminQuizDescriptionUpdate,
   adminQuizInfo
 } from './quiz';
 
-import { adminQuestionCreate, adminQuestionRemove } from './question';
+import {
+  adminQuestionCreate,
+  adminQuestionUpdate,
+  adminQuestionRemove,
+  adminQuestionMove
+} from './question';
+
+import { adminTrashList, adminTrashRestore } from './trash';
 
 // Set up web app
 const app = express();
@@ -140,6 +149,16 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(echo(data));
 });
 
+// Creates a list of the trash
+app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminTrashList(token);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
 // Create a list of quizzes
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.query.token as string;
@@ -154,6 +173,18 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
   const result = adminQuizCreate(token, name, description);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Restore a quiz from trash
+app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
+  const { token } = req.body;
+  const quizId = req.params.quizId;
+
+  const result = adminTrashRestore(token, parseInt(quizId));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
@@ -212,6 +243,18 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   res.json(result);
 });
 
+// Transfer ownership of a quiz to a different user based on their email
+app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { token, userEmail } = req.body;
+  const quizId = parseInt(quizid);
+  const response = adminQuizTransfer(quizId, token, userEmail);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
+
 // Create a question
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
@@ -223,6 +266,21 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   res.json(result);
 });
 
+// Update a Question
+app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const { quizid, questionid } = req.params;
+  const { body } = req.body;
+  console.log(quizid);
+  console.log(questionid);
+  console.log(body);
+  const result = adminQuestionUpdate(parseInt(quizid), parseInt(questionid), body);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+// Delete a question
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
   const { quizId, questionId } = req.params;
   const token: string = req.query.token as string;
@@ -232,6 +290,17 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
   }
   res.json(result);
 })
+
+// Move a Question
+app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+  const { quizid, questionid } = req.params;
+  const { body } = req.body;
+  const result = adminQuestionMove(parseInt(quizid), parseInt(questionid), body);
+  if ('error' in result) {
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
 
 // Reset the state of the application back to the start
 app.delete('/v1/clear', (req: Request, res: Response) => {
@@ -271,6 +340,9 @@ app.use((req: Request, res: Response) => {
   `;
   res.json({ error });
 });
+
+// For handling errors
+app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {
