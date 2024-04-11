@@ -1,1 +1,23 @@
-{"users":[],"quizzes":[],"trash":[],"token":[]}
+{
+  "users": [
+    {
+      "userId": 0,
+      "nameFirst": "Michael",
+      "nameLast": "Hourn",
+      "email": "aaa@bbb.com",
+      "password": "abcde12345",
+      "numSuccessfulLogins": 1,
+      "numFailedPasswordsSinceLastLogin": 0,
+      "oldPassword": "",
+      "newPassword": "abcde12345"
+    }
+  ],
+  "quizzes": [],
+  "trash": [],
+  "token": [
+    {
+      "userId": 0,
+      "sessionId": "zY5Ai1iH"
+    }
+  ]
+}

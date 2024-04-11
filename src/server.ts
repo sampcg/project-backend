@@ -132,8 +132,8 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 
 // Fourth Function By Abrar
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
-  const token: string = req.body.token;
-
+  // const token: string = req.body.token as string;
+  const token = req.body;
   const result = adminAuthLogout(token); // Corrected: Pass 'token' instead of 'authUserId'
   // Checking if the result contains an error
   if ('error' in result) {

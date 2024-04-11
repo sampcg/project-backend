@@ -44,9 +44,6 @@ function adminAuthRegister(email: string, password: string,
     return { error: 'Password must contain at least 1 letter and number' };
   }
 
-  // const randomString = require('randomized-string');
-  // const randomToken = randomString.generate(8);
-
   // Bit of Code that pushes the data after the filter
   const newData = {
     userId: data.users.length,
@@ -177,36 +174,36 @@ function adminUserDetails(token: any) {
 }
 
 //  Fourth Function By Abrar
-export function adminAuthLogout(token: string | number) {
+export function adminAuthLogout(token: string) {
   //  Getting data from dataStore
   const data = getData();
   let idPresent = false;
 
-  const tokenString = typeof token === 'number' ? token.toString() : token;
+  const decodedToken = typeof token === 'string' ? JSON.parse(decodeURIComponent(token)) : token;
 
-  try {
-    // Decode and parse the token
-    const decodedToken = decodeURIComponent(tokenString);
-    const originalToken = JSON.parse(decodedToken);
+  // Check if the token is present in the data store
+  const tokenExists = data.token.some(tokenItem => tokenItem.sessionId === decodedToken.sessionId);
 
-    // Check if the given token is valid
-    for (let i = 0; i < data.token.length; i++) {
-      if (data.token[i].sessionId === originalToken.sessionId) {
-        idPresent = true;
-        // Remove the originalToken from the data.token array
-        data.token.splice(i, 1);
-        break;
-      }
-    }
-  } catch (error) {
-    // Handle decoding or parsing errors
-    return { error: 'Invalid token format' };
-  }
-
-  if (idPresent === false) {
+  if (!tokenExists) {
     return { error: 'Token is empty or invalid' };
   }
-  return {};
+
+  // Check if the token has already been invalidated
+  if (data.invalidTokens && data.invalidTokens.includes(decodedToken.sessionId)) {
+    return { error: 'Token has already been invalidated' };
+  }
+
+  // Add the token to the list of invalidated tokens
+  if (!data.invalidTokens) {
+    data.invalidTokens = [];
+  }
+  data.invalidTokens.push(decodedToken.sessionId);
+
+  if (!idPresent) {
+    return { error: 'Token is empty or invalid' };
+  }
+  setData(data);
+  return {sessionId: 1};
 }
 
 /**
