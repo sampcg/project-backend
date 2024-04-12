@@ -131,6 +131,8 @@ export const adminQuizCreate = (token: string, name: string, description: string
   data.quizzes.push(newQuiz);
   setData(data);
 
+  setData(data);
+
   // Return quizId
   return {
     quizId: newQuizId

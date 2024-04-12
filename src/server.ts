@@ -258,8 +258,8 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
 // Create a question
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
-  const { body } = req.body;
-  const result = adminQuestionCreate(parseInt(quizid), body);
+  const { token, questionBody } = req.body;
+  const result = adminQuestionCreate(token, parseInt(quizid), questionBody);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
@@ -269,11 +269,8 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 // Update a Question
 app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
   const { quizid, questionid } = req.params;
-  const { body } = req.body;
-  console.log(quizid);
-  console.log(questionid);
-  console.log(body);
-  const result = adminQuestionUpdate(parseInt(quizid), parseInt(questionid), body);
+  const { token, questionBody } = req.body;
+  const result = adminQuestionUpdate(token, parseInt(quizid), parseInt(questionid), questionBody);
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
@@ -282,9 +279,9 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
 
 // Delete a question
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
-  const { quizId, questionId } = req.params;
+  const { quizid, questionid } = req.params;
   const token: string = req.query.token as string;
-  const result = adminQuestionRemove(token, parseInt(quizId), parseInt(questionId));
+  const result = adminQuestionRemove(token, parseInt(quizid), parseInt(questionid));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
@@ -294,8 +291,8 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
 // Move a Question
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   const { quizid, questionid } = req.params;
-  const { body } = req.body;
-  const result = adminQuestionMove(parseInt(quizid), parseInt(questionid), body);
+  const { token, newPosition } = req.body;
+  const result = adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
