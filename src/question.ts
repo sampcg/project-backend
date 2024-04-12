@@ -5,15 +5,13 @@ import { DataStore } from './dataInterfaces';
 
 /// //////////////////           Create a Question           /////////////////////
 
-interface AdminQuestionCreateRequestBody {
-    token: string;
-    questionBody: {
-        question: string;
-        duration: number;
-        points: number;
-        answers: AnswerInput[];
-        position: number;
-    };
+interface QuestionBody {
+  question: string;
+  duration: number;
+  points: number;
+  answers: AnswerInput[];
+  position: number;
+  thumbnailUrl: string;
 }
 
 interface AnswerInput {
@@ -25,9 +23,8 @@ interface AdminQuestionCreateReturn {
     questionId: number;
 }
 
-export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateRequestBody): AdminQuestionCreateReturn | ErrorObject => {
-  const { token, questionBody } = body;
-  const { question, duration, points, answers } = questionBody;
+export const adminQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody): AdminQuestionCreateReturn | ErrorObject => {
+  const { question, duration, points, answers, thumbnailUrl } = questionBody;
 
   const data: DataStore = getData();
   const originalToken = decodeToken(token);
@@ -96,6 +93,7 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
   if (correctAnswers.length === 0) {
     return { error: 'There must be at least one correct answer', code: 400 };
   }
+  
 
   // Create new answer array
   // Generate answerID by indexing in question
@@ -116,6 +114,7 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
     duration: duration,
     points: points,
     answers: newAnswers,
+    thumbnailURL: thumbnailUrl,
     position: data.quizzes[quizIndex].questions.length
   };
 
@@ -136,8 +135,7 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
 };
 
 /// //////////////////           Update a Question           /////////////////////
-export const adminQuestionUpdate = (quizId: number, questionId: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
-  const { token, questionBody } = body;
+export const adminQuestionUpdate = (token: string, quizId: number, questionId: number, questionBody: QuestionBody): EmptyObject | ErrorObject => {
   const { question, duration, points, answers } = questionBody;
   const data: DataStore = getData();
 
@@ -289,8 +287,7 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
 };
 
 /// //////////////////           Move a Question           /////////////////////
-export const adminQuestionMove = (quizId: number, questionId: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
-  const { token, questionBody } = body;
+export const adminQuestionMove = (token: string, quizId: number, questionId: number, questionBody: QuestionBody): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
 
   // Check if token is valid
