@@ -175,35 +175,25 @@ function adminUserDetails(token: any) {
 
 //  Fourth Function By Abrar
 export function adminAuthLogout(token: string) {
-  //  Getting data from dataStore
+  // Getting data from dataStore
   const data = getData();
-  let idPresent = false;
 
-  const decodedToken = typeof token === 'string' ? JSON.parse(decodeURIComponent(token)) : token;
+  // Decoded Token
+  const decodedToken = JSON.parse(decodeURIComponent(token));
 
-  // Check if the token is present in the data store
-  const tokenExists = data.token.some(tokenItem => tokenItem.sessionId === decodedToken.sessionId);
+  // Find the index of the token object with the matching sessionId
+  const index = data.token.findIndex(tokenObject => tokenObject.sessionId === decodedToken.sessionId);
 
-  if (!tokenExists) {
+  if (index !== -1) {
+    // Remove the token object from the array
+    data.token.splice(index, 1);
+    console.log(`Token array length after removing token: ${data.token.length}`);
+    setData(data);
+    return {};
+  } else {
+    // Return an error if token is not found
     return { error: 'Token is empty or invalid' };
   }
-
-  // Check if the token has already been invalidated
-  if (data.invalidTokens && data.invalidTokens.includes(decodedToken.sessionId)) {
-    return { error: 'Token has already been invalidated' };
-  }
-
-  // Add the token to the list of invalidated tokens
-  if (!data.invalidTokens) {
-    data.invalidTokens = [];
-  }
-  data.invalidTokens.push(decodedToken.sessionId);
-
-  if (!idPresent) {
-    return { error: 'Token is empty or invalid' };
-  }
-  setData(data);
-  return {sessionId: 1};
 }
 
 /**

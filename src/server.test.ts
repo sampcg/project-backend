@@ -602,7 +602,7 @@ describe('Testing GET /v1/admin/user/details', () => {
 
 describe('Testing POST /v1/admin/auth/logout', () => {
 
-  test('Checking if token is valid', () => {
+  test('Checking if token is valid, expect 200', () => {
 
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
@@ -625,15 +625,20 @@ describe('Testing POST /v1/admin/auth/logout', () => {
 
     let AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
     { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
+    expect(AuthLoginResponse.statusCode).toStrictEqual(200);
+    const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
+    expect (AuthLoginJSON).toStrictEqual({ token: expect.any(String)});
+    const { token: token2 } = AuthLoginJSON;
 
     const AuthLogoutResponse3 = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
-    { json: { token: token }});
+    { json: { token: token2 }});
     expect(AuthLogoutResponse3.statusCode).toStrictEqual(200);
     const AuthLogoutJSON3 = JSON.parse(AuthLogoutResponse3.body.toString());
     expect (AuthLogoutJSON3).toStrictEqual({});
     
   });
 
+  
   test('Checking when double logout is done, expect 401', () => {
     //Loginning the Admin
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
@@ -656,7 +661,7 @@ describe('Testing POST /v1/admin/auth/logout', () => {
 
     const AuthLogoutResponse3 = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
     { json: { token: token}});
-    expect(AuthLogoutResponse3.statusCode).toStrictEqual(200);
+    expect(AuthLogoutResponse3.statusCode).toStrictEqual(401);
     const AuthLogoutJSON3 = JSON.parse(AuthLogoutResponse3.body.toString());
     expect (AuthLogoutJSON3).toStrictEqual({ error: expect.any(String) });
   });
