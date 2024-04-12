@@ -279,20 +279,20 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
 
 // Delete a question
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
-  const { quizId, questionId } = req.params;
+  const { quizid, questionid } = req.params;
   const token: string = req.query.token as string;
-  const result = adminQuestionRemove(token, parseInt(quizId), parseInt(questionId));
+  const result = adminQuestionRemove(token, parseInt(quizid), parseInt(questionid));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
-})
+});
 
 // Move a Question
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   const { quizid, questionid } = req.params;
-  const { body } = req.body;
-  const result = adminQuestionMove(parseInt(quizid), parseInt(questionid), body);
+  const { token, newPosition } = req.body;
+  const result = adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }

@@ -1,11 +1,11 @@
 import { getData, setData } from './dataStore';
-import { getUser, getQuiz, decodeToken, getRandomColour } from './helpers';
-import { ErrorObject, Question, Quiz, Answer, EmptyObject } from './returnInterfaces';
+import { getUser, decodeToken, getRandomColour } from './helpers';
+import { ErrorObject, Question, Answer, EmptyObject } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 
 /// //////////////////           Create a Question           /////////////////////
 
-interface AdminQuestionCreateQuestionBody {
+interface QuestionBody {
   question: string;
   duration: number;
   points: number;
@@ -21,7 +21,7 @@ interface AdminQuestionCreateReturn {
     questionId: number;
 }
 
-export const adminQuestionCreate = (token: string, quizId: number, questionBody: AdminQuestionCreateQuestionBody): AdminQuestionCreateReturn | ErrorObject => {
+export const adminQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody): AdminQuestionCreateReturn | ErrorObject => {
   const { question, duration, points, answers } = questionBody;
 
   const data: DataStore = getData();
@@ -131,7 +131,7 @@ export const adminQuestionCreate = (token: string, quizId: number, questionBody:
 };
 
 /// //////////////////           Update a Question           /////////////////////
-export const adminQuestionUpdate = (token: string, quizId: number, questionId: number, questionBody: AdminQuestionCreateQuestionBody): EmptyObject | ErrorObject => {
+export const adminQuestionUpdate = (token: string, quizId: number, questionId: number, questionBody: QuestionBody): EmptyObject | ErrorObject => {
   const { question, duration, points, answers } = questionBody;
   const data: DataStore = getData();
 
@@ -243,50 +243,40 @@ export const adminQuestionUpdate = (token: string, quizId: number, questionId: n
 };
 
 /// //////////////////           Delete a Question           /////////////////////
-
 export const adminQuestionRemove = (token: string, quizId: number, questionId: number): EmptyObject | ErrorObject => {
   const data = getData();
-
   // Check if token is valid
   const originalToken = decodeToken(token);
   if (!originalToken) {
     return { error: 'Invalid token', code: 401 };
   }
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 401};
+    return { error: 'Invalid UserID', code: 401 };
   }
 
-  /*
-  // Validate quiz ID
-  const quiz = data.quizzes.find((quiz) => quizId === quiz.quizId);
-  
+  // Validate quiz ID and ownership
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (!quiz) {
-    return { error: 'Invalid quizID', code: 403 };
+    return { error: 'Invalid QuizId', code: 403 };
   }
-  // Validate quiz ownership
-  
   if (quiz.userId !== originalToken.userId) {
     return { error: 'User does not own quiz', code: 403 };
   }
-  */
-  const quizIndex = data.quizzes.findIndex(quiz => quiz.userId === originalToken.userId);
-  if (quizIndex === -1) {
-    return { error: 'Invalid quizID', code: 403 };
-  }
 
-  // Find the question index by questionID
-  const question = data.quizzes[quizIndex].questions.find(q => q.questionId === questionId)
-  if (!question) {
-    return { error: 'Invalid questionID', code: 400 }
-  }
+  // Find the questionIndex within the quiz
 
-  // Remove the question from the quiz
-  data.quizzes[quizIndex].questions.filter((q) => q.questionId !== questionId);
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+  if (questionIndex === -1) {
+    return { error: 'Invalid questionID', code: 400 };
+  }
 
   // Update timeLastEdited, no. of questions and duration of the quiz
-  data.quizzes[quizIndex].timeLastEdited = Math.round(Date.now());
-  data.quizzes[quizIndex].numQuestions--;
-  data.quizzes[quizIndex].duration -= question.duration;
+  quiz.timeLastEdited = Math.round(Date.now());
+  quiz.numQuestions--;
+  quiz.duration -= quiz.questions[questionIndex].duration;
+
+  // Remove the question from the quiz
+  quiz.questions.splice(questionIndex, 1);
 
   // Update the dataStore
   setData(data);
@@ -294,13 +284,7 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
 };
 
 /// //////////////////           Move a Question           /////////////////////
-interface AdminQuestionMoveRequestBody {
-  token: string;
-  newPosition: number;
-}
-
-export const adminQuestionMove = (quizId: number, questionId: number, body: AdminQuestionMoveRequestBody): EmptyObject | ErrorObject => {
-  const{ token, newPosition } = body;
+export const adminQuestionMove = (token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
 
   // Check if token is valid
