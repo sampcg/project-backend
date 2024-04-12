@@ -600,11 +600,43 @@ describe('Testing GET /v1/admin/user/details', () => {
 
 // BEGINNING OF AUTH LOGOUT TESTING
 
-/*
 describe('Testing POST /v1/admin/auth/logout', () => {
+  test('Checking if token is valid, expect 200', () => {
+    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: {
+        email: 'aaa@bbb.com',
+        password: 'abcde12345',
+        nameFirst: 'Michael',
+        nameLast: 'Hourn'
+      }
+    });
 
-  test('Checking if token is valid', () => {
+    expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
+    const { token } = JSON.parse(AuthRegisterResponse.body.toString());
+    // Now Trying to logout with no valid token stored
 
+    const AuthLogoutResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
+      { json: { token: token } });
+    expect(AuthLogoutResponse2.statusCode).toStrictEqual(200);
+    const AuthLogoutJSON2 = JSON.parse(AuthLogoutResponse2.body.toString());
+    expect(AuthLogoutJSON2).toStrictEqual({});
+
+    const AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
+      { json: { email: 'aaa@bbb.com', password: 'abcde12345' } });
+    expect(AuthLoginResponse.statusCode).toStrictEqual(200);
+    const AuthLoginJSON = JSON.parse(AuthLoginResponse.body.toString());
+    expect(AuthLoginJSON).toStrictEqual({ token: expect.any(String) });
+    const { token: token2 } = AuthLoginJSON;
+
+    const AuthLogoutResponse3 = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
+      { json: { token: token2 } });
+    expect(AuthLogoutResponse3.statusCode).toStrictEqual(200);
+    const AuthLogoutJSON3 = JSON.parse(AuthLogoutResponse3.body.toString());
+    expect(AuthLogoutJSON3).toStrictEqual({});
+  });
+
+  test('Checking when double logout is done, expect 401', () => {
+    // Loginning the Admin
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
       json: {
         email: 'aaa@bbb.com',
@@ -617,33 +649,17 @@ describe('Testing POST /v1/admin/auth/logout', () => {
     expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
     const { token } = JSON.parse(AuthRegisterResponse.body.toString());
 
-    // Logout using token passed in the query parameter
-    const AuthLogoutResponse = request('POST', `${SERVER_URL}/v1/admin/auth/logout?token=${token}`);
-    expect(AuthLogoutResponse.statusCode).toStrictEqual(200);
-
-    // Log the response body
-    console.log('Logout response body:', AuthLogoutResponse.body.toString());
-
-    // Parse the response body as JSON
-    const AuthLogoutJSON = JSON.parse(AuthLogoutResponse.body.toString());
-    expect(AuthLogoutJSON).toStrictEqual({});
-
-    //Now Trying to logout with no valid token stored
-
     const AuthLogoutResponse2 = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
-    { json: { token: token }});
-    expect(AuthLogoutResponse2.statusCode).toStrictEqual(401);
+      { json: { token: token } });
+    expect(AuthLogoutResponse2.statusCode).toStrictEqual(200);
     const AuthLogoutJSON2 = JSON.parse(AuthLogoutResponse2.body.toString());
-    expect (AuthLogoutJSON2).toStrictEqual({ error: expect.any(String) });
-
-    let AuthLoginResponse = request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    { json: { email: 'aaa@bbb.com', password: 'abcde12345'}});
+    expect(AuthLogoutJSON2).toStrictEqual({});
 
     const AuthLogoutResponse3 = request('POST', `${SERVER_URL}/v1/admin/auth/logout`,
-    { json: { token: token }});
-    expect(AuthLogoutResponse3.statusCode).toStrictEqual(200);
+      { json: { token: token } });
+    expect(AuthLogoutResponse3.statusCode).toStrictEqual(401);
     const AuthLogoutJSON3 = JSON.parse(AuthLogoutResponse3.body.toString());
-    expect (AuthLogoutJSON3).toStrictEqual({});
+    expect(AuthLogoutJSON3).toStrictEqual({ error: expect.any(String) });
   });
 });
 
