@@ -144,6 +144,8 @@ export const adminQuizCreate = (token: string, name: string, description: string
   data.quizzes.push(newQuiz);
   setData(data);
 
+  setData(data);
+
   // Return quizId
   return {
     quizId: newQuizId
@@ -189,6 +191,8 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
   if (findQuiz.userId !== originalToken.userId) {
     throw HTTPError(403, 'User does not own quiz');
   }
+
+  // This will need to also have an error check for active session
 
   // Create object trashQuiz that contains all data in quiz + updates time last edited
   const trashQuiz: Quiz = {

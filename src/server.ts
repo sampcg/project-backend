@@ -197,7 +197,8 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 });
 // v2
 app.post('/v2/admin/quiz', (req: Request, res: Response) => {
-  const token = req.header('token') as string;
+  const token = req.header('token');
+  console.log(token);
   const { name, description } = req.body;
   const result = adminQuizCreate(token, name, description);
   if ('error' in result) {
@@ -338,9 +339,9 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
 ////////////////////////////   Delete Question   ///////////////////////////////
 // Delete a question
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
-  const { quizId, questionId } = req.params;
+  const { quizid, questionid } = req.params;
   const token: string = req.query.token as string;
-  const result = adminQuestionRemove(token, parseInt(quizId), parseInt(questionId));
+  const result = adminQuestionRemove(token, parseInt(quizid), parseInt(questionid));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
@@ -351,8 +352,8 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
 // Move a Question
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   const { quizid, questionid } = req.params;
-  const { token, questionBody } = req.body;
-  const result = adminQuestionMove(token, parseInt(quizid), parseInt(questionid), questionBody);
+  const { token, newPosition } = req.body;
+  const result = adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition));
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
