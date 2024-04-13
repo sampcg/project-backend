@@ -92,7 +92,6 @@ export const adminQuestionCreate = (token: string, quizId: number, questionBody:
   if (correctAnswers.length === 0) {
     return { error: 'There must be at least one correct answer', code: 400 };
   }
-  
 
   // Create new answer array
   // Generate answerID by indexing in question

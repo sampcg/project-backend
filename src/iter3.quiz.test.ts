@@ -19,7 +19,7 @@ const requestHelper = (method: HttpVerb, path: string, payload: Payload, headers
     json = payload;
   }
   const url = SERVER_URL + path;
-  const res = request(method, url, { qs, json,  headers, timeout: 20000 });
+  const res = request(method, url, { qs, json, headers, timeout: 20000 });
 
   let bodyObject: any;
   try {
@@ -395,7 +395,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
     const invalidToken = author.token + 'Math.random()';
     expect(requestUpdateQuizName(invalidToken, quiz.quizId, name)).toStrictEqual(makeCustomErrorForTest(401));
   });
-
 
   test('Testing: Error Case - Unauthorized access to quiz', () => {
     const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');

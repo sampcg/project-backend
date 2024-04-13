@@ -27,7 +27,6 @@ interface AdminQuizListReturn {
 // Feature
 export const adminQuizList = (token: string): AdminQuizListReturn | ErrorObject => {
   const data = getData();
-
   // Check to see if token structure is valid and decode it
   const originalToken = decodeToken(token);
   if (!originalToken) {
@@ -75,7 +74,6 @@ interface AdminQuizCreateReturn {
 // Feature
 export const adminQuizCreate = (token: string, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
   const data: DataStore = getData();
-
   // Check to see if token structure is valid and decode it
   const originalToken = decodeToken(token);
   if (!originalToken) {
@@ -144,12 +142,8 @@ export const adminQuizCreate = (token: string, name: string, description: string
   data.quizzes.push(newQuiz);
   setData(data);
 
-  setData(data);
-
   // Return quizId
-  return {
-    quizId: newQuizId
-  };
+  return { quizId: newQuizId };
 };
 
 /// //////////////////            Remove a Quiz             /////////////////////
@@ -164,7 +158,6 @@ export const adminQuizCreate = (token: string, name: string, description: string
 // Feature
 export const adminQuizRemove = (token: string, quizId: number): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
-
   // Check to see if token structure is valid and decode it
   const originalToken = decodeToken(token);
   if (!originalToken) {
@@ -210,12 +203,9 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
 
   // Add quiz to trash object
   data.trash.push(trashQuiz);
-  setData(data);
 
   // Remove quiz that has given quizId from quizzes
   data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== findQuiz.quizId);
-
-  // Set data
   setData(data);
 
   // Return empty object
@@ -235,7 +225,6 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
 export const adminQuizNameUpdate = (token: string, quizId: number, name: string): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
   const originalToken = decodeToken(token);
-
   // Check to see if token is valid
   if (!originalToken) {
     return { error: 'Invalid token', code: 401 };
