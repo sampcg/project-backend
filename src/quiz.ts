@@ -164,7 +164,7 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
     throw HTTPError(401, 'Invalid Token');
   }
   // Check to see if sessionId is valid
-  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  const sessionExists = data.token.find(session => originalToken.sessionId === session.sessionId);
   if (!sessionExists) {
     throw HTTPError(401, 'Invalid SessionID');
   }
