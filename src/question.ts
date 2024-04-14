@@ -10,6 +10,7 @@ interface QuestionBody {
   duration: number;
   points: number;
   answers: AnswerInput[];
+  thumbnailUrl: string;
 }
 
 interface AnswerInput {
@@ -22,7 +23,7 @@ interface AdminQuestionCreateReturn {
 }
 
 export const adminQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody): AdminQuestionCreateReturn | ErrorObject => {
-  const { question, duration, points, answers } = questionBody;
+  const { question, duration, points, answers, thumbnailUrl } = questionBody;
 
   const data: DataStore = getData();
   const originalToken = decodeToken(token);
@@ -111,6 +112,7 @@ export const adminQuestionCreate = (token: string, quizId: number, questionBody:
     duration: duration,
     points: points,
     answers: newAnswers,
+    thumbnailURL: thumbnailUrl,
     position: data.quizzes[quizIndex].questions.length
   };
 

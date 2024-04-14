@@ -17,6 +17,7 @@ export interface Question {
   duration: number;
   points: number;
   answers: Answer[];
+  thumbnailURL: string;
   position: number;
 }
 
@@ -50,6 +51,7 @@ export interface Quiz {
   numQuestions: number;
   questions: Question[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 export interface QuizInfo {
