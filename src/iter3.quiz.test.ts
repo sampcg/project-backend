@@ -71,7 +71,7 @@ const requestQuizInfo = (token: string, quizId: number) => {
 };
 
 const requestUpdateQuizThumbnail = (token: string, quizId: number, imgUrl: string) => {
-  return requestHelper('PUT', `/v2/admin/quiz/${quizId}/thumbnail`, {imgUrl}, {token});
+  return requestHelper('PUT', `/v2/admin/quiz/${quizId}/thumbnail`, { imgUrl }, { token });
 };
 
 const requestClear = () => {
@@ -552,7 +552,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
     // Standard value
     imgUrl = 'http://google.com/some/image/path.jpg';
   });
-  
+
   describe('Testing: Error Cases', () => {
     test("'imgUrl does not end with 'jpg', 'jpeg', or 'png'", () => {
       expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, 'http://invalid.file')).toStrictEqual(makeCustomErrorForTest(400));
@@ -568,7 +568,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
 
     test('Token is invalid (not logged in)', () => {
       requestAuthLogout(author.token);
-      expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, imgUrl)).toStrictEqual(makeCustomErrorForTest(401))
+      expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, imgUrl)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
     test('User does not own quiz', () => {
@@ -628,7 +628,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
       const quiz2: {quizId: number} = requestQuizCreate(author2.token, 'Quiz Auth 2', '');
       requestUpdateQuizThumbnail(author.token, quiz.quizId, imgUrl);
-      
+
       expect(requestQuizInfo(author.token, quiz2.quizId)).toStrictEqual({
         quizId: quiz2.quizId,
         name: 'Quiz Auth 2',

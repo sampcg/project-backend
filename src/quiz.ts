@@ -422,3 +422,45 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
 
   return {};
 };
+
+/**                           Update Quiz Thumbnail                           */
+export const adminUpdateQuizThumbnail = (token: string, quizId: number, imgUrl: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  // Check to see if token structure is valid and decode it
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+  // Check to see if userID is valid
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
+  }
+
+  // User does not own quiz
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
+  if (quiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  // imgUrl does not end with 'jpg', 'jpeg' or 'png' (case insensitive)
+  const imgUrlCase = imgUrl.toLowerCase();
+  if (!imgUrlCase.endsWith('jpg') && !imgUrlCase.endsWith('jpeg') && !imgUrlCase.endsWith('png')) {
+    throw HTTPError(400, "Thumbnail must be 'jpg', 'jpeg' or 'png'");
+  }
+
+  // imgUrl does no start with 'http://' or 'https://'
+  if (!imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
+    throw HTTPError(400, "Thumbnail URL must begin with 'http://' or 'https://'");
+  }
+
+  // Update quiz thumbnail and timeLastEdited
+  quiz.thumbnailUrl = imgUrl;
+  quiz.timeLastEdited = Math.round(Date.now() / 1000);
+  setData(data);
+  return {};
+};
