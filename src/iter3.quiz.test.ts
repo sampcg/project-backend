@@ -90,13 +90,11 @@ describe('Testing GET /v1/admin/quiz/list', () => {
 
   test('Testing: Error Case - Invalid token', () => {
     const invalidToken = author.token + 'Math.random()';
-    console.log(invalidToken);
     expect(requestQuizList(invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
   describe('Testing: Successful cases', () => {
     test('Empty list', () => {
-      console.log(author.token);
       expect(requestQuizList(author.token)).toStrictEqual({ quizzes: [] });
     });
 
@@ -301,8 +299,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
     test('Invalid token (does not correlate to given quiz)', () => {
       requestAuthLogout(author.token);
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      const quiz2: {quizId: number} = requestQuizCreate(author2.token, 'Quiz Name', '');
-      expect(requestQuizRemove(author.token, quiz2.quizId)).toStrictEqual(makeCustomErrorForTest(403));
+      expect(requestQuizRemove(author2.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(403));
     });
   });
 
