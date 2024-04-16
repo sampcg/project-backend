@@ -2,7 +2,7 @@ export type EmptyObject = Record<string, never>;
 
 export interface ErrorObject {
   error: string;
-  code?: number;
+  code: number;
 }
 export interface Answer {
   answerId: number;
@@ -42,7 +42,7 @@ export interface User {
 }
 
 export interface Quiz {
-  userId?: number;
+  userId: number;
   quizId: number;
   name: string;
   timeCreated: number;
@@ -55,7 +55,6 @@ export interface Quiz {
 }
 
 export interface QuizInfo {
-  userId?: number;
   quizId: number;
   name: string;
   timeCreated: number;
