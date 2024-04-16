@@ -14,12 +14,12 @@
   ],
   "quizzes": [
     {
-      "quizId": 5886662343366761,
       "userId": 0,
-      "name": "Quiz Name",
-      "timeCreated": 1713236196,
-      "timeLastEdited": 1713236196,
-      "description": "",
+      "quizId": 8860276538141001,
+      "name": "Quiz 1",
+      "timeCreated": 1713248196,
+      "timeLastEdited": 1713248196,
+      "description": "Quiz description",
       "numQuestions": 0,
       "questions": [],
       "duration": 0,
@@ -30,7 +30,7 @@
   "token": [
     {
       "userId": 0,
-      "sessionId": "oYjVP4Ls"
+      "sessionId": "vax9qFZh"
     }
   ]
 }
