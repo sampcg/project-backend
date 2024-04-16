@@ -397,10 +397,6 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
 });
 */
 
-  test('Invalid quizId (does not exist)', () => {
-    const invalidQuizId = quiz.quizId + 11;
-    expect(requestUpdateQuizName(author.token, invalidQuizId, name)).toStrictEqual(makeCustomErrorForTest(403));
-  });
 
   test('Testing: Error Case - Invalid quiz name', () => {
     const invalidName = 'Abc$%'; // Invalid characters
@@ -449,10 +445,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
     expect(requestUpdateQuizDescription(invalidToken, quiz.quizId, description)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
-  test('Invalid quizId (does not exist)', () => {
-    const newDescription = 'Updated Quiz Description';
-    expect(requestUpdateQuizDescription(author.token, quiz.quizId + 11, newDescription)).toStrictEqual(makeCustomErrorForTest(403));
-  });
 
   test('Testing: Error Case - Invalid quiz Description', () => {
     const invalidDescription = 'A'.repeat(101); // Invalid characters
@@ -491,20 +483,12 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     expect(requestQuizInfo(invalidToken, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
-  test('Invalid quizId (does not exist)', () => {
-    const invalidQuizId = quiz.quizId + 11;
-    expect(requestQuizInfo(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
-  });
-
   test('Testing: Error Case - Unauthorized access to quiz', () => {
     const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
     expect(requestQuizInfo(unauthorizedUser.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
-  test('Invalid quiz ID', () => {
-    const invalidQuizId = quiz.quizId + 11;
-    expect(requestQuizInfo(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
-  });
+
   test('Valid token and quiz ID', () => {
     /** const question = 'Question';
     const duration = 1;

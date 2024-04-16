@@ -167,6 +167,8 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
     throw HTTPError(401, 'Invalid UserID');
   }
 
+  isSessionValid(data, originalToken);
+
   // Check if quizId is valid
   const quizExists = data.quizzes.some(quiz => quiz.quizId === quizId);
   if (!quizExists) {
