@@ -351,7 +351,8 @@ export const adminQuizInfo = (token: string, quizId: number): QuizInfo | ErrorOb
     description: quiz.description,
     numQuestions: quiz.questions.length,
     questions: questionsInfo,
-    duration: quiz.duration
+    duration: quiz.duration,
+    thumbnailUrl: quiz.thumbnailUrl
   };
 
   return adminQuizInfoReturn;
