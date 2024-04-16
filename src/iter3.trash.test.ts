@@ -7,7 +7,7 @@ const SERVER_URL = `${url}:${port}`;
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
 
 interface Payload {
-  [key: string]: any;
+  [key: string]: string | number | boolean;
 }
 
 const requestHelper = (method: HttpVerb, path: string, payload: Payload, headers: IncomingHttpHeaders = {}) => {

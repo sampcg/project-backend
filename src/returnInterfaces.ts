@@ -63,7 +63,6 @@ export interface QuizInfo {
   numQuestions: number;
   questions: QuestionInfo[];
   duration: number;
-  thumbnailUrl: string;
 }
 
 export interface Token {
