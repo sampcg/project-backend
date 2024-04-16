@@ -397,7 +397,6 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
 });
 */
 
-
   test('Testing: Error Case - Invalid quiz name', () => {
     const invalidName = 'Abc$%'; // Invalid characters
     expect(requestUpdateQuizName(author.token, quiz.quizId, invalidName)).toStrictEqual(makeCustomErrorForTest(400));
@@ -445,7 +444,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
     expect(requestUpdateQuizDescription(invalidToken, quiz.quizId, description)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
-
   test('Testing: Error Case - Invalid quiz Description', () => {
     const invalidDescription = 'A'.repeat(101); // Invalid characters
     expect(requestUpdateQuizDescription(author.token, quiz.quizId, invalidDescription)).toStrictEqual(makeCustomErrorForTest(400));
@@ -487,7 +485,6 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
     expect(requestQuizInfo(unauthorizedUser.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
   });
-
 
   test('Valid token and quiz ID', () => {
     /** const question = 'Question';
