@@ -201,7 +201,7 @@ app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
 
 // v2
 app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
-  const  token  = req.header('token');
+  const token = req.header('token');
   const quizId = req.params.quizId;
   res.json(adminTrashRestore(token, parseInt(quizId)));
 });

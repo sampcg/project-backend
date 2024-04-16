@@ -42,9 +42,9 @@ const requestRegisterAuth = (email: string, password: string, nameFirst: string,
 };
 
 const requestAuthLogout = (token: string) => {
-    return requestHelper('POST', '/v1/admin/auth/logout', { token });
+  return requestHelper('POST', '/v1/admin/auth/logout', { token });
 };
-  
+
 const requestTrashList = (token: string) => {
   return requestHelper('GET', '/v2/admin/quiz/trash', {}, { token });
 };
@@ -53,22 +53,20 @@ const requestTrashRestore = (token: string, quizId: number) => {
   return requestHelper('POST', `/v2/admin/quiz/${quizId}/restore`, {}, { token });
 };
 
-  
 const requestQuizCreate = (token: string, name: string, description: string) => {
-    return requestHelper('POST', '/v2/admin/quiz', { name, description }, { token });
+  return requestHelper('POST', '/v2/admin/quiz', { name, description }, { token });
 };
-  
+
 const requestQuizList = (token: string) => {
-    return requestHelper('GET', '/v2/admin/quiz/list', {}, { token });
+  return requestHelper('GET', '/v2/admin/quiz/list', {}, { token });
 };
-  
+
 const requestQuizRemove = (token: string, quizId: number) => {
-    return requestHelper('DELETE', `/v2/admin/quiz/${quizId}`, {}, { token });
+  return requestHelper('DELETE', `/v2/admin/quiz/${quizId}`, {}, { token });
 };
-  
-  
+
 const requestClear = () => {
-    return requestHelper('DELETE', '/v1/clear', {});
+  return requestHelper('DELETE', '/v1/clear', {});
 };
 
 /// /////////////////////////////////////////////////////
@@ -85,16 +83,16 @@ describe('Testing GET /v2/admin/quiz/trash', () => {
     author = requestRegisterAuth('abcea@bbb.com', 'abcde12345', 'Samuel', 'Gray');
   });
 
-test('Testing: Error Case - Invalid token', () => {
+  test('Testing: Error Case - Invalid token', () => {
     const invalidToken = author.token + 'Math.random()';
     expect(requestTrashList(invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
-});
+  });
 
   describe('Testing: Successful cases for trash quiz list', () => {
     test('Empty list', () => {
       expect(requestTrashList(author.token)).toStrictEqual({ quizzes: [] });
     });
-  
+
     test('1 trashed quiz', () => {
       const quiz1: { quizId: number } = requestQuizCreate(author.token, 'Quiz 1', 'a');
       requestQuizRemove(author.token, quiz1.quizId);
@@ -107,16 +105,16 @@ test('Testing: Error Case - Invalid token', () => {
         ]
       });
     });
-  
+
     test('3 trashed quizzes', () => {
       const quiz1: { quizId: number } = requestQuizCreate(author.token, 'Quiz 1', 'a');
       const quiz2: { quizId: number } = requestQuizCreate(author.token, 'Quiz 2', 'b');
       const quiz3: { quizId: number } = requestQuizCreate(author.token, 'Quiz 3', 'c');
-      
+
       requestQuizRemove(author.token, quiz1.quizId);
       requestQuizRemove(author.token, quiz2.quizId);
       requestQuizRemove(author.token, quiz3.quizId);
-  
+
       expect(requestTrashList(author.token)).toStrictEqual({
         quizzes: [
           {
@@ -134,23 +132,23 @@ test('Testing: Error Case - Invalid token', () => {
         ]
       });
     });
-  
+
     test('Trashed quizzes logged by another author', () => {
       const quiz1: { quizId: number } = requestQuizCreate(author.token, 'Quiz 1', 'a');
       requestQuizRemove(author.token, quiz1.quizId);
-  
+
       requestAuthLogout(author.token);
-  
+
       const author2: { token: string } = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-  
+
       const quiz2: { quizId: number } = requestQuizCreate(author2.token, 'Quiz 2', 'b');
       const quiz3: { quizId: number } = requestQuizCreate(author2.token, 'Quiz 3', 'c');
       const quiz4: { quizId: number } = requestQuizCreate(author2.token, 'Quiz 4', 'd');
-      
+
       requestQuizRemove(author2.token, quiz2.quizId);
       requestQuizRemove(author2.token, quiz3.quizId);
       requestQuizRemove(author2.token, quiz4.quizId);
-  
+
       expect(requestTrashList(author2.token)).toStrictEqual({
         quizzes: [
           {

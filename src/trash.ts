@@ -34,7 +34,7 @@ export const adminTrashList = (token: string): AdminTrashListReturn | ErrorObjec
   if (!getUser(originalToken.userId)) {
     throw HTTPError(401, 'Invalid UserID');
   }
-  
+
   const trashedQuizzes = [];
 
   // Filter trashed quizzes owned by the user and push them to the array
@@ -54,7 +54,6 @@ export const adminTrashList = (token: string): AdminTrashListReturn | ErrorObjec
  * @returns {quizzes: {quizId: number, name: string}} - information on quizzes
  */
 
-
 export const adminTrashRestore = (token: string, quizId: number): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
 
@@ -71,7 +70,6 @@ export const adminTrashRestore = (token: string, quizId: number): EmptyObject | 
 
   isSessionValid(data, originalToken);
 
-
   const trashQuiz = getTrash(quizId);
   if (!trashQuiz) {
     throw HTTPError(400, 'Quiz ID does not refer to a quiz in the trash');
@@ -79,7 +77,7 @@ export const adminTrashRestore = (token: string, quizId: number): EmptyObject | 
 
   // Check if the user owns the quiz in the trash
   if (trashQuiz.userId !== originalToken.userId) {
-    throw HTTPError( 403, 'User does not own this quiz in the trash' );
+    throw HTTPError(403, 'User does not own this quiz in the trash');
   }
 
   // Add trashed quiz to quiz object
