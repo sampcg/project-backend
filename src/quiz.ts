@@ -5,7 +5,6 @@ import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUse
 import { ErrorObject, EmptyObject, Quiz, QuizInfo, Question } from './returnInterfaces';
 import HTTPError from 'http-errors';
 
-
 /// //////////////////           List all Quizzes           /////////////////////
 
 /**
@@ -222,12 +221,11 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
   const originalToken = decodeToken(token);
   // Check to see if token is valid
   if (!originalToken) {
-    throw HTTPError(401,'Invalid token');
+    throw HTTPError(401, 'Invalid token');
   }
   if (!getUser(originalToken.userId)) {
     throw HTTPError(401, 'Invalid UserID');
   }
-
 
   isSessionValid(data, originalToken);
 
@@ -240,7 +238,7 @@ export const adminQuizNameUpdate = (token: string, quizId: number, name: string)
   // Validate the name
   const validName = /^[a-zA-Z0-9\s]*$/.test(name);
   if (!validName) {
-    throw HTTPError (400, 'Name contains invalid characters.');
+    throw HTTPError(400, 'Name contains invalid characters.');
   }
 
   if (name.length < 3 || name.length > 30) {
@@ -277,7 +275,7 @@ export const adminQuizDescriptionUpdate = (token: string, quizId: number, descri
 
   // Check if token is valid
   if (!originalToken) {
-    throw HTTPError(401, 'Invalid Token' );
+    throw HTTPError(401, 'Invalid Token');
   }
 
   // Check to see if userID is valid
@@ -293,7 +291,7 @@ export const adminQuizDescriptionUpdate = (token: string, quizId: number, descri
   }
 
   if (description.length > 100) {
-    throw HTTPError( 400, 'Description is more than 100 characters in length.');
+    throw HTTPError(400, 'Description is more than 100 characters in length.');
   }
 
   // Update the description of the quiz
@@ -324,23 +322,22 @@ export const adminQuizInfo = (token: string, quizId: number): QuizInfo | ErrorOb
 
   // Check to see if token is valid
   if (!originalToken) {
-    throw  HTTPError( 401, 'Invalid token');
+    throw HTTPError(401, 'Invalid token');
   }
   if (!getUser(originalToken.userId)) {
     throw HTTPError(401, 'Invalid UserID');
   }
 
   isSessionValid(data, originalToken);
-  
+
   // Find the quiz by quizId
   const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
 
   // Check if the user owns the quiz
-    const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-    if (findQuiz.userId !== originalToken.userId) {
-      throw HTTPError(403, 'User does not own quiz');
-    }
-  
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
 
   const questionsInfo = quiz.questions.map(({ position, ...rest }) => rest);
 

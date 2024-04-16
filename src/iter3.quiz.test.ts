@@ -57,9 +57,8 @@ const requestQuizRemove = (token: string, quizId: number) => {
   return requestHelper('DELETE', `/v2/admin/quiz/${quizId}`, {}, { token });
 };
 
-
 const requestUpdateQuizName = (token: string, quizId: number, name: string) => {
-  return requestHelper('PUT', `/v2/admin/quiz/${quizId}/name`, {name}, { token });
+  return requestHelper('PUT', `/v2/admin/quiz/${quizId}/name`, { name }, { token });
 };
 
 const requestUpdateQuizDescription = (token: string, quizId: number, description: string) => {
@@ -69,7 +68,6 @@ const requestUpdateQuizDescription = (token: string, quizId: number, description
 const requestQuizInfo = (token: string, quizId: number) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
 };
-
 
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
@@ -379,7 +377,6 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
   });
 });
 
-
 /// /////////////////        Testing for Updating Quiz Name       ////////////////////
 describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
   let author: {token: string}, quiz: {quizId: number}, name:string;
@@ -414,7 +411,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
     const updatedName = 'New Name for Quiz';
     const updateResult = requestUpdateQuizName(author.token, quiz.quizId, updatedName);
     console.log(updateResult);
-    
+
     // Assert that the update operation was successful
     expect(updateResult).toEqual({}); // Assuming the function returns an empty object on success
 
@@ -483,19 +480,6 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
   });
 
   test('Valid token and quiz ID', () => {
-    const question = 'Question';
-    const duration = 1;
-    const points = 1;
-    const answers =
-          [{
-            answer: 'Answer 1',
-            correct: true
-          },
-          {
-            answer: 'Answer 2',
-            correct: false
-          }];
-
     // requestQuestionCreate
     const expectedData = {
       quizId: quiz.quizId,
@@ -512,4 +496,3 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     expect(requestQuizInfo(author.token, quiz.quizId)).toEqual(expectedData);
   });
 });
-

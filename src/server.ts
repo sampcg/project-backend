@@ -233,7 +233,6 @@ app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   res.json(adminQuizDescriptionUpdate(token, parseInt(quizId), description));
 });
 
-
 /**                                Quiz Info                                  */
 // Get info about quiz
 app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {

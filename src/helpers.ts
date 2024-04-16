@@ -18,18 +18,18 @@ const SERVER_URL = `${url}:${port}`;
  */
 
 export function getUser(authUserId: number) {
-  const user =  getData().users.find((user: { userId: number; }) => authUserId === user.userId);
- // if (!user) {
-//    throw HTTPError(404, 'Invalid UserID');
- // }
+  const user = getData().users.find((user: { userId: number; }) => authUserId === user.userId);
+  // if (!user) {
+  //    throw HTTPError(404, 'Invalid UserID');
+  // }
   return user;
 }
 
 export function getQuiz(quizId: number) {
   const quiz = getData().quizzes.find((quiz) => quizId === quiz.quizId);
- // if (!quiz) {
- //   throw HTTPError(403, 'Invalid QuizID' )
- // }
+  // if (!quiz) {
+  //   throw HTTPError(403, 'Invalid QuizID' )
+  // }
   return quiz;
 }
 
@@ -64,8 +64,6 @@ export function isSessionValid(data: DataStore, originalToken: Token) {
     throw HTTPError(401, 'Invalid SessionID');
   }
 }
-
-
 
 // ========================================================================= //
 
