@@ -41,6 +41,11 @@ import {
   adminQuestionMove
 } from './question';
 
+import {
+  // adminSessionView,
+  adminSessionStart
+} from './session';
+
 import { adminTrashList, adminTrashRestore } from './trash';
 
 // Set up web app
@@ -329,6 +334,30 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   if ('error' in result) {
     return res.status(result.code).json({ error: result.error });
   }
+  res.json(result);
+});
+
+/*
+// View a Session
+app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { token } = req.body;
+  const result = adminSessionView(parseInt(quizid), token);
+  if ('error' in result) {
+    console.log("hello world");
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+*/
+
+// Start a Session
+app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid } = req.params;
+  const { autoStartNum } = req.body;
+  console.log(quizid);
+  const result = adminSessionStart(parseInt(quizid), token, parseInt(autoStartNum));
   res.json(result);
 });
 

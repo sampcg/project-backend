@@ -1,8 +1,9 @@
-import { User, Quiz, Token } from './returnInterfaces';
+import { User, Quiz, Token, Session } from './returnInterfaces';
 
 export interface DataStore {
   users: User[],
   quizzes: Quiz[],
   trash: Quiz[],
-  token: Token[]
+  token: Token[],
+  session: Session[]
 }
