@@ -3,6 +3,7 @@ import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
 import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUserByEmail } from './helpers';
 import { ErrorObject, EmptyObject, Quiz, QuizInfo, Question } from './returnInterfaces';
+import HTTPError from 'http-errors';
 
 // Error return type
 
@@ -401,6 +402,55 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
   const targetQuiz = data.quizzes.some((quiz) => targetUserId === quiz.userId);
   if (targetQuiz) {
     return { error: 'Quiz ID refers to a quiz that has a name that is already used by the target user', code: 400 };
+  }
+  quiz.timeLastEdited = Date.now();
+
+  setData(data);
+
+  return {};
+};
+
+/**
+* <Transfers a quiz to another user>
+*
+* @param {string} token
+* @param {number} quizId
+* @param {string} userEmail
+* @returns {token: string, userEmail: string,}
+**/
+export const adminQuizTransferV2 = (quizId: number, token: string, userEmail: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  const originalToken = decodeToken(token);
+  validateTokenStructure(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Token is empty or invalid');
+  }
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'User with the provided token does not exist');
+  }
+  const user = data.users.find((user) => originalToken.userId === user.userId);
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
+  // Check for valid quiz
+  if (!quiz) {
+    throw HTTPError(400, 'Quiz ID does not refer to a valid quiz!');
+  }
+  // quiz does not refers to the user
+  if (quiz.userId !== originalToken.userId) {
+    throw HTTPError(400, 'You do not own this quiz!');
+  }
+  // Check if userEmail is a real user
+  if (!getUserByEmail(userEmail)) {
+    throw HTTPError(400, 'User is not a real user!');
+  }
+  // userEmail is the current logged in user
+  if (user.email === userEmail) {
+    throw HTTPError(400, 'User email cannot be the current logged in user!');
+  }
+  // Quiz ID refers to a quiz that has a name that is already used by the target user
+  const targetUserId = getUserByEmail(userEmail).userId;
+  const targetQuiz = data.quizzes.some((quiz) => targetUserId === quiz.userId);
+  if (targetQuiz) {
+    throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
   }
   quiz.timeLastEdited = Date.now();
 
