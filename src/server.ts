@@ -282,11 +282,7 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { token, questionBody } = req.body;
-  const result = adminQuestionCreate(token, parseInt(quizid), questionBody);
-  if ('error' in result) {
-    return res.status(result.code).json({ error: result.error });
-  }
-  res.json(result);
+  res.json(adminQuestionCreate(token, parseInt(quizid), questionBody));
 });
 
 // v2
@@ -294,11 +290,7 @@ app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const token = req.header('token') as string;
   const { quizid } = req.params;
   const { questionBody } = req.body;
-  const result = adminQuestionCreate(token, parseInt(quizid), questionBody);
-  if ('error' in result) {
-    return res.status(result.code).json({ error: result.error });
-  }
-  res.json(result);
+  res.json(adminQuestionCreate(token, parseInt(quizid), questionBody));
 });
 
 /**                            Update Question                                */
@@ -314,15 +306,17 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
 });
 
 /**                            Delete Question                                */
-// Delete a question
+// v1
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
   const { quizid, questionid } = req.params;
   const token: string = req.query.token as string;
-  const result = adminQuestionRemove(token, parseInt(quizid), parseInt(questionid));
-  if ('error' in result) {
-    return res.status(result.code).json({ error: result.error });
-  }
-  res.json(result);
+  res.json(adminQuestionRemove(token, parseInt(quizid), parseInt(questionid)));
+});
+// v2
+app.delete('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const { quizid, questionid } = req.params;
+  res.json(adminQuestionRemove(token, parseInt(quizid), parseInt(questionid)));
 });
 
 /**                             Move Question                                 */

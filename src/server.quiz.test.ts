@@ -510,6 +510,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
       numQuestions: expect.any(Number),
       questions: expect.any(Array),
       duration: expect.any(Number),
+      thumbnailUrl: expect.any(String)
     };
 
     // Call the function and compare with expected data
