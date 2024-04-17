@@ -42,7 +42,7 @@ import {
 } from './question';
 
 import {
-  // adminSessionView,
+  adminSessionView,
   adminSessionStart
 } from './session';
 
@@ -350,19 +350,15 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const { newPosition } = req.body;
   res.json(adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition)));
 });
-/*
+
 // View a Session
 app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
   const { quizid } = req.params;
-  const { token } = req.body;
-  const result = adminSessionView(parseInt(quizid), token);
-  if ('error' in result) {
-    console.log("hello world");
-    return res.status(result.code).json({ error: result.error });
-  }
+  const result = adminSessionView(token, parseInt(quizid));
   res.json(result);
 });
-*/
+
 
 // Start a Session
 app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
