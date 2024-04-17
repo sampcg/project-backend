@@ -237,7 +237,7 @@ export const adminQuestionUpdate = (token: string, quizId: number, questionId: n
   if (!thumbnailUrlCase.endsWith('jpg') && !thumbnailUrlCase.endsWith('jpeg') && !thumbnailUrlCase.endsWith('png')) {
     throw HTTPError(400, "thumbnailUrl must be 'jpg', 'jpeg' or 'png'");
   }
-  
+
   // thumbnailUrl doesn't begin with 'http://' or 'https://'
   if (!thumbnailUrl.startsWith('http://') && !thumbnailUrl.startsWith('https://')) {
     throw HTTPError(400, "thumbnailUrl must begin with 'http://' or 'https://'");
