@@ -93,7 +93,6 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
     test('Testing: Successful Case', () => {
       const sessionStatus = requestSessionStatus(author.token, quizId, sessionId);
       expect(sessionStatus).toHaveProperty('state', 'LOBBY');
-      // Add more assertions based on the expected structure of the response
     });
   });
   
