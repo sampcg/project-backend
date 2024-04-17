@@ -30,7 +30,8 @@ import {
   adminQuizNameUpdate,
   adminQuizTransfer,
   adminQuizDescriptionUpdate,
-  adminQuizInfo
+  adminQuizInfo,
+  submitAnswers
 } from './quiz';
 
 import {
@@ -300,6 +301,18 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
+});
+
+app.put('/v1/player/:playerId/question/:questionPosition/answer', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { questionPosition } = req.params;
+    const { answerId } = req.body;
+    const currentAnswerIds = JSON.parse(answerId as string);
+    res.json(submitAnswers(currentAnswerIds, parseInt(playerId), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Reset the state of the application back to the start
