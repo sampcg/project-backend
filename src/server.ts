@@ -157,13 +157,14 @@ app.get('/echo', (req: Request, res: Response) => {
 });
 
 /**                                List Trash                                 */
-app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
+app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  const result = adminTrashList(token);
-  if ('error' in result) {
-    return res.status(result.code).json({ error: result.error });
-  }
-  res.json(result);
+  res.json(adminTrashList(token));
+});
+
+app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminTrashList(token));
 });
 
 /**                               List Quizzes                                */
@@ -193,29 +194,31 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
 
 /**                               Trash Restore                               */
 // Restore a quiz from trash
-app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
+app.post('/v1/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
   const { token } = req.body;
   const quizId = req.params.quizId;
-
-  const result = adminTrashRestore(token, parseInt(quizId));
-  if ('error' in result) {
-    return res.status(result.code).json({ error: result.error });
-  }
-  res.json(result);
+  res.json(adminTrashRestore(token, parseInt(quizId)));
 });
 
+// v2
+app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const quizId = req.params.quizId;
+  res.json(adminTrashRestore(token, parseInt(quizId)));
+});
 /**                             Update Quiz Name                              */
 // Update Quiz name
 app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const { token, name } = req.body;
   const quizId = req.params.quizId;
+  res.json(adminQuizNameUpdate(token, parseInt(quizId), name));
+});
 
-  const result = adminQuizNameUpdate(token, parseInt(quizId), name);
-  if ('error' in result) {
-    return res.status(result.code).json({ error: result.error });
-  }
-
-  res.json(result);
+app.put('/v2/admin/quiz/:quizId/name', (req: Request, res: Response) => {
+  const { name } = req.body;
+  const token = req.header('token');
+  const quizId = req.params.quizId;
+  res.json(adminQuizNameUpdate(token, parseInt(quizId), name));
 });
 
 /**                          Update Quiz Description                          */
@@ -223,27 +226,28 @@ app.put('/v1/admin/quiz/:quizId/name', (req: Request, res: Response) => {
 app.put('/v1/admin/quiz/:quizId/description', (req: Request, res: Response) => {
   const { token, description } = req.body;
   const quizId = req.params.quizId;
-
-  const result = adminQuizDescriptionUpdate(token, parseInt(quizId), description);
-  if ('error' in result) {
-    return res.status(result.code).json({ error: result.error });
-  }
-
-  res.json(result);
+  res.json(adminQuizDescriptionUpdate(token, parseInt(quizId), description));
 });
-// save();
-// load();
+
+app.put('/v2/admin/quiz/:quizId/description', (req: Request, res: Response) => {
+  const { description } = req.body;
+  const token = req.header('token');
+  const quizId = req.params.quizId;
+  res.json(adminQuizDescriptionUpdate(token, parseInt(quizId), description));
+});
 
 /**                                Quiz Info                                  */
 // Get info about quiz
 app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const quizid: number = parseInt(req.params.quizid as string);
-  const result = adminQuizInfo(token, quizid);
-  if ('error' in result) {
-    return res.status(result.code).json({ error: result.error });
-  }
-  res.json(result);
+  res.json(adminQuizInfo(token, quizid));
+});
+
+app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const quizid: number = parseInt(req.params.quizid as string);
+  res.json(adminQuizInfo(token, quizid));
 });
 
 /**                               Trash Quiz                                  */
@@ -334,7 +338,7 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { imgUrl } = req.body;
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
-})
+});
 
 /**                                 Clear                                     */
 // Reset the state of the application back to the start

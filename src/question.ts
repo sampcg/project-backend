@@ -131,7 +131,7 @@ export const adminQuestionCreate = (token: string, quizId: number, questionBody:
     duration: duration,
     points: points,
     answers: newAnswers,
-    thumbnailURL: thumbnailUrl,
+    thumbnailUrl: thumbnailUrl,
     position: data.quizzes[quizIndex].questions.length
   };
 

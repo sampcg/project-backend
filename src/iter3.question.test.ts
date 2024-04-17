@@ -62,11 +62,11 @@ const requestQuizCreate = (token: string, name: string, description: string) => 
 };
 
 const requestQuizInfo = (token: string, quizId: number) => {
-  return requestHelper('GET', `/v1/admin/quiz/${quizId}`, {}, { token });
+  return requestHelper('GET', `/v2/admin/quiz/${quizId}`, {}, { token });
 };
 
 const requestQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody) => {
-  return requestHelper('POST', `/v1/admin/quiz/${quizId}/question`, { questionBody }, { token });
+  return requestHelper('POST', `/v2/admin/quiz/${quizId}/question`, { questionBody }, { token });
 };
 
 /*
@@ -80,7 +80,7 @@ const requestQuestionMove = (token: string, quizId: number, questionId: number, 
 */
 
 const requestQuestionDelete = (token: string, quizId: number, questionId: number) => {
-  return requestHelper('DELETE', `/v1/admin/quiz/${quizId}/question/${questionId}`, {}, { token });
+  return requestHelper('DELETE', `/v2/admin/quiz/${quizId}/question/${questionId}`, {}, { token });
 };
 
 const requestClear = () => {
