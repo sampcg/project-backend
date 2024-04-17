@@ -41,7 +41,7 @@ export const adminQuestionCreate = (token: string, quizId: number, questionBody:
   if (!getUser(originalToken.userId)) {
     throw HTTPError(401, 'Invalid UserID');
   }
-  
+
   // Validate quizID and ownership
   // findIndex will return -1 if not found or userID doesn't match, quizIndex used to refer to quiz later
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
@@ -131,7 +131,7 @@ export const adminQuestionCreate = (token: string, quizId: number, questionBody:
     duration: duration,
     points: points,
     answers: newAnswers,
-    thumbnailURL: thumbnailUrl,
+    thumbnailUrl: thumbnailUrl,
     position: data.quizzes[quizIndex].questions.length
   };
 
@@ -294,7 +294,7 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
 
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
   if (questionIndex === -1) {
-    throw HTTPError(400, 'Invalid QuestionID')
+    throw HTTPError(400, 'Invalid QuestionID');
   }
 
   // Update timeLastEdited, no. of questions and duration of the quiz

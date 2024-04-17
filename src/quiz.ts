@@ -352,6 +352,7 @@ export const adminQuizInfo = (token: string, quizId: number): QuizInfo | ErrorOb
     numQuestions: quiz.questions.length,
     questions: questionsInfo,
     duration: quiz.duration,
+    thumbnailUrl: quiz.thumbnailUrl
   };
 
   return adminQuizInfoReturn;
