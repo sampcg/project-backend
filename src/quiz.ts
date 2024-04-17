@@ -412,6 +412,7 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
   return {};
 };
 
+<<<<<<< HEAD
 // /// //////////////////     Duplication of a Quiz     /////////////////////
 
 
@@ -437,10 +438,17 @@ export function adminQuizQuestionDuplicate (quizId: number, questionId: number, 
   //   return {error: 'Question Id does not refer to a valid question within this quiz', code: 400}
   // }
 
+=======
+/**                           Update Quiz Thumbnail                           */
+export const adminUpdateQuizThumbnail = (token: string, quizId: number, imgUrl: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  // Check to see if token structure is valid and decode it
+>>>>>>> 89389358f4a1dae171aca3e2a104f4e05ae7adcb
   const originalToken = decodeToken(token);
   if (!originalToken) {
     throw HTTPError(401, 'Invalid Token');
   }
+<<<<<<< HEAD
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (!quiz) {
@@ -486,3 +494,38 @@ export function adminQuizQuestionDuplicate (quizId: number, questionId: number, 
     }
   }
 }
+=======
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+  // Check to see if userID is valid
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
+  }
+
+  // User does not own quiz
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
+  if (quiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  // imgUrl does not end with 'jpg', 'jpeg' or 'png' (case insensitive)
+  const imgUrlCase = imgUrl.toLowerCase();
+  if (!imgUrlCase.endsWith('jpg') && !imgUrlCase.endsWith('jpeg') && !imgUrlCase.endsWith('png')) {
+    throw HTTPError(400, "Thumbnail must be 'jpg', 'jpeg' or 'png'");
+  }
+
+  // imgUrl does no start with 'http://' or 'https://'
+  if (!imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
+    throw HTTPError(400, "Thumbnail URL must begin with 'http://' or 'https://'");
+  }
+
+  // Update quiz thumbnail and timeLastEdited
+  quiz.thumbnailUrl = imgUrl;
+  quiz.timeLastEdited = Math.round(Date.now() / 1000);
+  setData(data);
+  return {};
+};
+>>>>>>> 89389358f4a1dae171aca3e2a104f4e05ae7adcb

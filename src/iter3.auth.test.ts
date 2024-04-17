@@ -597,6 +597,7 @@ describe('Testing GET /v1/admin/user/details', () => {
     });
   });
 });
+<<<<<<< HEAD:src/server.test.ts
 
 // BEGINNING OF AUTH LOGOUT TESTING
 
@@ -779,3 +780,5 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
   });
 
 });
+=======
+>>>>>>> 89389358f4a1dae171aca3e2a104f4e05ae7adcb:src/iter3.auth.test.ts
