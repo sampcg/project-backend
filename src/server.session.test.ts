@@ -125,14 +125,14 @@ describe('Testing Put /v1/admin/quiz/{quizid}/sessions', () => {
   describe('Testing Error Cases', () => {
     test('Invalid Token', () => {
       const invalidToken = 'invalid-token';
-      expect(requestSessionStart(quiz.quizId, invalidToken, 35)).toStrictEqual(makeCustomErrorForTest(401));
+      expect(requestSessionView(quiz.quizId, invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
     test('User does not own quiz', () => {
       requestAuthLogout(author.token);
 
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      expect(requestSessionStart(quiz.quizId, author2.token, 35)).toStrictEqual(makeCustomErrorForTest(403));
+      expect(requestSessionView(quiz.quizId, author2.token)).toStrictEqual(makeCustomErrorForTest(403));
     });
   });
 
