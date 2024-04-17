@@ -666,7 +666,7 @@ describe('Testing POST /v1/admin/auth/logout', () => {
 // END OF AUTH LOGOUT TESTING
 
 // BEGINNING OF QUIZ QUESTION DUPLICATE
-/*
+
 describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
 
   test('Checking for a valid quiz question duplication', () => {
@@ -779,4 +779,3 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
   });
 
 });
-*/

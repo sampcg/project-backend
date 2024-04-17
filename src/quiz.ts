@@ -410,3 +410,78 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
 
   return {};
 };
+
+// /// //////////////////     Duplication of a Quiz     /////////////////////
+
+
+export function adminQuizQuestionDuplicate (quizId: number, questionId: number, token: any) {
+  const data = getData();
+
+  // for (const quiz of data.quizzes) {
+  //   if (quiz.quizId === quizId) {
+  //     quizValid = true;
+  //     for (const question of quiz.questions) {
+  //       if (question.questionId === questionId) {
+  //         questionOwnedByQuiz = true;
+  //         break;
+  //       }
+  //     }
+  //     break;
+  //   }
+  // }
+
+  // if (quizValid === false) {
+  //   return {error: 'Token is empty or invalid', code: 403}
+  // } else if (questionOwnedbyquiz === false) {
+  //   return {error: 'Question Id does not refer to a valid question within this quiz', code: 400}
+  // }
+
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
+  if (!quiz) {
+    return { error: 'You do not have permission to duplicate questions in this quiz', code: 403 };
+  }
+
+  for (const quiz of data.quizzes) {
+    if (quiz.quizId === quizId) {
+      // Find the index of the source question
+      const sourceQuestionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+      if (sourceQuestionIndex === -1) {
+        return { error: 'Question not found', code: 400 };
+      }
+
+      // Duplicate the question
+      const newQuestionId = data.nextQuestionId++;
+      const sourceQuestion = quiz.questions[sourceQuestionIndex];
+      const duplicatedQuestion: Question = {
+        questionId: newQuestionId,
+        question: sourceQuestion.question,
+        duration: sourceQuestion.duration,
+        points: sourceQuestion.points,
+        answers: sourceQuestion.answers.map(answer => ({ ...answer })),
+        position: sourceQuestionIndex + 1 // Insert immediately after the source question
+      };
+
+      // Insert the duplicated question into the quiz
+      quiz.questions.splice(sourceQuestionIndex + 1, 0, duplicatedQuestion);
+
+      // Update positions of subsequent questions
+      for (let i = sourceQuestionIndex + 2; i < quiz.questions.length; i++) {
+        quiz.questions[i].position++;
+      }
+
+      // Update time last edited of the quiz
+      quiz.timeLastEdited = Math.floor(Date.now() / 1000);
+
+      // Update data store
+      setData(data);
+
+      // Return the ID of the duplicated question
+      return { questionId: newQuestionId };
+    }
+  }
+}
