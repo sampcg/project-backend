@@ -306,6 +306,13 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   res.json(result);
 });
 
+app.put('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, questionid } = req.params;
+  const { questionBody } = req.body;
+  res.json(adminQuestionUpdate(token, parseInt(quizid), parseInt(questionid), questionBody));
+});
+
 /**                            Delete Question                                */
 // v1
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
@@ -331,6 +338,13 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   }
   res.json(result);
 });
+
+app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, questionid } = req.params;
+  const { newPosition } = req.body;
+  res.json(adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition)));
+})
 
 /**                         Update Quiz Thumbnail                             */
 app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
