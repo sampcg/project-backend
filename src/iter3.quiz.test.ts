@@ -66,7 +66,11 @@ const requestUpdateQuizDescription = (token: string, quizId: number, description
 };
 
 const requestQuizInfo = (token: string, quizId: number) => {
-  return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
+  return requestHelper('GET', `/v2/admin/quiz/${quizId}`, {}, { token });
+};
+
+const requestUpdateQuizThumbnail = (token: string, quizId: number, imgUrl: string) => {
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/thumbnail`, { imgUrl }, { token });
 };
 
 const requestClear = () => {
@@ -78,6 +82,7 @@ const requestClear = () => {
 beforeEach(() => {
   requestClear();
 });
+
 /// /////////////////       Testing for Listing Quizzes      ////////////////////
 
 describe('Testing GET /v1/admin/quiz/list', () => {
@@ -495,5 +500,106 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
 
     // Call the function and compare with expected data
     expect(requestQuizInfo(author.token, quiz.quizId)).toEqual(expectedData);
+  });
+});
+
+/**                    Testing for Update Quiz Thumbnail                      */
+describe('Testing PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
+  let author: {token: string}, quiz: {quizId: number}, imgUrl: string;
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz Name', '');
+    // Standard value
+    imgUrl = 'http://google.com/some/image/path.jpg';
+  });
+
+  describe('Testing: Error Cases', () => {
+    test("'imgUrl does not end with 'jpg', 'jpeg', or 'png'", () => {
+      expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, 'http://invalid.file')).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test("imgUrl does not begin with 'http://' or 'https://'", () => {
+      expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, 'invalid.file.jpeg')).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test('Token is empty', () => {
+      expect(requestUpdateQuizThumbnail('', quiz.quizId, imgUrl)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    test('Token is invalid (not logged in)', () => {
+      requestAuthLogout(author.token);
+      expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, imgUrl)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    test('User does not own quiz', () => {
+      const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      expect(requestUpdateQuizThumbnail(author2.token, quiz.quizId, imgUrl)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+  });
+
+  describe('Testing: Successful Cases', () => {
+    test('Works', () => {
+      requestUpdateQuizThumbnail(author.token, quiz.quizId, imgUrl);
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz Name',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: '',
+        numQuestions: 0,
+        questions: [],
+        duration: 0,
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      });
+    });
+
+    test('Works on second quiz', () => {
+      requestUpdateQuizThumbnail(author.token, quiz.quizId, 'http://google.com/some/image/path.jpeg');
+      const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 2', '');
+      requestUpdateQuizThumbnail(author.token, quiz2.quizId, 'http://google.com/some/image/path.png');
+
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz Name',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: '',
+        numQuestions: 0,
+        questions: [],
+        duration: 0,
+        thumbnailUrl: 'http://google.com/some/image/path.jpeg'
+      });
+
+      expect(requestQuizInfo(author.token, quiz2.quizId)).toStrictEqual({
+        quizId: quiz2.quizId,
+        name: 'Quiz 2',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: '',
+        numQuestions: 0,
+        questions: [],
+        duration: 0,
+        thumbnailUrl: 'http://google.com/some/image/path.png'
+      });
+    });
+
+    test('Works from second author', () => {
+      requestAuthLogout(author.token);
+      const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      const quiz2: {quizId: number} = requestQuizCreate(author2.token, 'Quiz Auth 2', '');
+      requestUpdateQuizThumbnail(author2.token, quiz2.quizId, imgUrl);
+
+      expect(requestQuizInfo(author2.token, quiz2.quizId)).toStrictEqual({
+        quizId: quiz2.quizId,
+        name: 'Quiz Auth 2',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: '',
+        numQuestions: 0,
+        questions: [],
+        duration: 0,
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      });
+    });
   });
 });

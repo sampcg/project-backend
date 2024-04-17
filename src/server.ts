@@ -30,7 +30,8 @@ import {
   adminQuizNameUpdate,
   adminQuizTransfer,
   adminQuizDescriptionUpdate,
-  adminQuizInfo
+  adminQuizInfo,
+  adminUpdateQuizThumbnail
 } from './quiz';
 
 import {
@@ -329,6 +330,14 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
+});
+
+/**                         Update Quiz Thumbnail                             */
+app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const { quizid } = req.params;
+  const { imgUrl } = req.body;
+  res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
 });
 
 /**                                 Clear                                     */
