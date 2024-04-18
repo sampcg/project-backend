@@ -92,11 +92,11 @@ const requestQuestionMove = (quizId: number, questionId: number, body: CreateQue
 const requestQuestionDelete = (token: string, quizId: number, questionId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}/question/${questionId}`, { quizId, questionId }, {token});
 };
+*/
 
 const requestSessionView = (quizId: number, token: string) => {
-  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/sessions`, { quizId }, {token});
-}
-*/
+  return requestHelper('GET', `/v1/admin/quiz/${quizId}/sessions`, null, { token });
+};
 
 const requestSessionStart = (quizId: number, token: string, autoStartNum: number) => {
   return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
@@ -116,8 +116,7 @@ beforeEach(() => {
   requestClear();
 });
 
-/*
-////////////////////////  Testing for Viewing Session  /////////////////////////
+/// /////////////////////  Testing for Viewing Session  /////////////////////////
 describe('Testing Put /v1/admin/quiz/{quizid}/sessions', () => {
   let author: {token: string}, quiz: {quizId: number};
 
@@ -127,28 +126,31 @@ describe('Testing Put /v1/admin/quiz/{quizid}/sessions', () => {
   });
 
   describe('Testing Error Cases', () => {
-    test('Invalid token', () => {
-      expect(requestSessionView(quiz.quizId, author.token + 1)).toStrictEqual({ error: 'Token is empty or invalid (does not refer to valid logged in user session)', code: 401 });
+    test('Invalid Token', () => {
+      const invalidToken = 'invalid-token';
+      expect(requestSessionView(quiz.quizId, invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
     test('User does not own quiz', () => {
       requestAuthLogout(author.token);
+
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      expect(requestSessionView(quiz.quizId, author2.token)).toStrictEqual({ error: 'Valid token is provided, but user is not an owner of this quiz', code: 403 });
+      expect(requestSessionView(quiz.quizId, author2.token)).toStrictEqual(makeCustomErrorForTest(403));
     });
   });
 
   describe('Testing Success Cases', () => {
+    /*
     test('Function Correctly prints active and inactive sessions', () => {
       // To make this work properly I need the sessionStart and sessionEnd functions
       const activeSessions = [5, 4, 3];
       const inactiveSessions = [2, 1, 6];
       const sessions = {activeSessions, inactiveSessions}
-      expect(requestSessionView(quiz.quizId, author.token)).toStrictEqual(sessions);
-    });
+      expect(adminSessionView(author.token, quiz.quizId)).toStrictEqual(sessions);
+    })
+    */
   });
 });
-*/
 
 /// /////////////////////  Testing for Starting Session  ////////////////////////
 describe('Testing Post /v1/admin/quiz/{quizid}/session/start', () => {
