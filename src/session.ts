@@ -154,9 +154,72 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
     throw HTTPError(400, 'Action provided is not a valid Action enum');
   }
 
-  if(States.LOBBY) {
-    if (action !== 'NEXT_QUESTION' || action !== 'END') {
+  if(session.state === States.LOBBY) {
+    if (action !== 'NEXT_QUESTION' && action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state')
+    }
+    else if (action === 'NEXT_QUESTION') {
+      session.state = States.QUESTION_COUNTDOWN;
+      console.log('Comparison1:', data.session);
+    }
+    else if (action === 'END') {
+      session.state = States.END;
+      console.log('Comparison2:', data.session);
+    }
+  } 
+  if(session.state === States.QUESTION_COUNTDOWN) {
+    if (action !== 'SKIP_COUNTDOWN' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state')
+    }
+    else if (action === 'SKIP_COUNTDOWN') {
+      session.state = States.QUESTION_OPEN;
+    }
+    else if (action === 'END') {
+      session.state = States.END;
+    }
+  } 
+  if(session.state === States.QUESTION_OPEN) {
+    if (action !== 'GO_TO_ANSWER' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state')
+    }
+    else if (action === 'GO_TO_ANSWER') {
+      session.state = States.ANSWER_SHOW;
+    }
+    else if (action === 'END') {
+      session.state = States.END;
+    }
+  } 
+  if(session.state === States.QUESTION_CLOSE) {
+    if (action !== 'GO_TO_ANSWER' && action !== 'GO_TO_FINAL_RESULTS' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state')
+    }
+    else if (action === 'GO_TO_ANSWER') {
+      session.state = States.ANSWER_SHOW;
+    }
+    else if (action === 'GO_TO_FINAL_RESULTS') {
+      session.state = States.FINAL_RESULTS;
+    }
+    else if (action === 'END') {
+      session.state = States.END;
+    }
+  }
+  if(session.state === States.ANSWER_SHOW) {
+    if (action !== 'NEXT_QUESTION' && action !== 'GO_TO_FINAL_RESULTS' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state')
+    }
+    else if (action === 'GO_TO_FINAL_RESULTS') {
+      session.state = States.FINAL_RESULTS;
+    }
+    else if (action === 'END') {
+      session.state = States.END;
+    }
+  }
+  if(session.state === States.FINAL_RESULTS) {
+    if (action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state')
+    }
+    else if (action === 'END') {
+      session.state = States.END;
     }
   } 
 

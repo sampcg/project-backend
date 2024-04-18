@@ -58,14 +58,6 @@ export function isValidAction(action: string): boolean {
   return Object.values(Actions).includes(action as Actions);
 }
 
-export function isValidCurrent(action: string): boolean {
-  if(States.LOBBY) {
-    if (!Actions.NextQuestion || !Actions.End) {
-      throw HTTPError(400, )
-    }
-  }
-}
-
 
 // ========================================================================= //
 /**

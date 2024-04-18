@@ -14,11 +14,11 @@
   ],
   "quizzes": [
     {
-      "quizId": 6972923526462449,
+      "quizId": 3043988271237705,
       "userId": 0,
       "name": "Quiz 1",
-      "timeCreated": 1713424669,
-      "timeLastEdited": 1713424669,
+      "timeCreated": 1713428363,
+      "timeLastEdited": 1713428362,
       "description": "Quiz 1 Des",
       "numQuestions": 0,
       "questions": [
@@ -32,13 +32,13 @@
               "answerId": 1,
               "answer": "Answer 1",
               "correct": true,
-              "colour": "blue"
+              "colour": "brown"
             },
             {
               "answerId": 2,
               "answer": "Answer 2",
               "correct": false,
-              "colour": "purple"
+              "colour": "red"
             }
           ],
           "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -53,18 +53,18 @@
   "token": [
     {
       "userId": 0,
-      "sessionId": "d9fRQubr"
+      "sessionId": "HkVNholL"
     }
   ],
   "session": [
     {
-      "quizSessionId": 6126998646143673,
+      "quizSessionId": 4861751888995045,
       "quiz": {
-        "quizId": 6972923526462449,
+        "quizId": 3043988271237705,
         "userId": 0,
         "name": "Quiz 1",
-        "timeCreated": 1713424669,
-        "timeLastEdited": 1713424669,
+        "timeCreated": 1713428363,
+        "timeLastEdited": 1713428362,
         "description": "Quiz 1 Des",
         "numQuestions": 0,
         "questions": [
@@ -78,13 +78,13 @@
                 "answerId": 1,
                 "answer": "Answer 1",
                 "correct": true,
-                "colour": "blue"
+                "colour": "brown"
               },
               {
                 "answerId": 2,
                 "answer": "Answer 2",
                 "correct": false,
-                "colour": "purple"
+                "colour": "red"
               }
             ],
             "thumbnailUrl": "http://google.com/some/image/path.jpg",

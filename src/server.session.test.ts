@@ -1,6 +1,7 @@
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
 import { IncomingHttpHeaders } from 'http';
+import { States } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -286,9 +287,15 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'SKIP_COUNTDOWN')).toStrictEqual({});
     });
 
-    test('QuestionCountdown -> End', () => {
+    test('QuestionCountdown -> AnsweShow', () => {
       requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION');
       expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'END')).toStrictEqual({});
+    });
+
+    test('QuestionOpen -> End', () => {
+      requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION');
+      requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'SKIP_COUNTDOWN');
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'GO_TO_ANSWER')).toStrictEqual({});
     });
 
   });
