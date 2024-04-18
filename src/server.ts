@@ -52,6 +52,7 @@ import {
 } from './session';
 
 import {
+  getQuestionResults,
   submitAnswers,
 } from './results';
 
@@ -344,6 +345,17 @@ app.put('/v1/player/:playerId/question/:questionPosition/answer', (req: Request,
     const { answerId } = req.body;
     const currentAnswerIds = JSON.parse(answerId as string);
     res.json(submitAnswers(currentAnswerIds, parseInt(playerId), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// results for a question
+app.get('/v1/player/:playerId/question/:questionPosition/results', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { questionPosition } = req.params;
+    res.json(getQuestionResults(parseInt(playerId), parseInt(questionPosition)));
   } catch (err) {
     next(err);
   }

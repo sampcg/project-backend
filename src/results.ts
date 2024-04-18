@@ -71,3 +71,62 @@ export const submitAnswers = (answerIds: number[], playerId: number, questionPos
   setData(data);
   return {};
 };
+
+interface QuestionCorrectnessBreakdown {
+  answerId: number;
+  playersCorrect: string[];
+}
+
+/**
+ * results for a question
+ * @param {number} playerId
+ * @param {number} questionPosition
+ * @returns {} - empty object
+ */
+
+export function getQuestionResults(playerId: number, questionPosition: number) {
+  const data = getData();
+  const session = data.session.find((session) =>
+    session.players.some((player) => player.playerId === playerId && session.atQuestion === questionPosition)
+  );
+
+  if (!session) {
+    throw HTTPError(400, 'Player ID does not exist');
+  }
+
+  if (session.atQuestion !== questionPosition) {
+    throw HTTPError(400, 'Question position is not valid for the session this player is in');
+  }
+
+  if (session.state !== 'ANSWER_CLOSE') {
+    throw HTTPError(400, 'Session is not in ANSWER_SHOW state');
+  }
+
+  // Find the corresponding quiz
+  const quiz = data.quizzes.find((q) => q.quizId === session.quiz.quizId);
+
+  // Find the active question
+
+  const questionAnswerResult = session.playerAnswers.filter((q) => q.questionPosition === questionPosition);
+  const questionCorrectBreakdown = [] as QuestionCorrectnessBreakdown[];
+  const answers = quiz.questions[questionPosition].answers;
+  const numCorrectAnswers = session.playerAnswers.filter((q) => q.isCorrect);
+  let playerNames: string[];
+  for (const answer of answers) {
+    const correctUsers = questionAnswerResult.filter((q) => q.answersId.includes(answer.answerId));
+    playerNames = correctUsers.map((u) => session.players.find((p) => u.playerId === p.playerId).name);
+    questionCorrectBreakdown.push({
+      answerId: answer.answerId,
+      playersCorrect: playerNames,
+    });
+  }
+  const correctPercentage = numCorrectAnswers.length / questionAnswerResult.length * 100;
+  const averageAnswerTime = 45;
+
+  return {
+    questionId: quiz.questions[questionPosition].questionId,
+    playersCorrectList: questionCorrectBreakdown,
+    averageAnswerTime: averageAnswerTime,
+    correctPercentage: correctPercentage
+  };
+}

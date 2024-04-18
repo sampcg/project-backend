@@ -97,6 +97,10 @@ const createGuestPlayer = (sessionId: number, name: string) => {
 //   return createRequest('GET', `/v1/player/${playerid}`, {});
 // };
 
+const playerQuestionView = (playerId: number, questionPosition: number) => {
+  return createRequest('GET', '/v1/player/' + playerId + '/question/' + questionPosition, { playerId, questionPosition });
+};
+
 const submitAnswers = (answerIds: number[], playerId: number, questionPosition: number) => {
   const answerId = JSON.stringify(answerIds);
   return createRequest('PUT', '/v1/player/' + playerId + '/question/' + questionPosition + '/answer', { answerId, playerId, questionPosition });
@@ -118,7 +122,6 @@ let sessionId: number;
 let player: number;
 let question: string, duration: number, points: number, answers: AnswerInput[], thumbnailUrl: string;
 beforeEach(() => {
-  clear();
   user = adminAuthRegister('hayden123@unsw.edu.au', '1234123abcd@#$', 'Haydennn', 'Smith');
   quizId = adminQuizCreateV2(user.body.token, 'RandomQuiz', 'I dont know what to type').body.quizId;
   // Standard values
@@ -140,6 +143,8 @@ beforeEach(() => {
   sessionId = adminSessionStart(quizId, user.body.token, 5).body.sessionId;
   player = createGuestPlayer(sessionId, 'Hayden').body.playerId;
 });
+
+// player submission of answers
 describe('Errors', () => {
   test('Invalid Player Id', () => {
     adminSessionUpdate(quizId, sessionId, user.body.token, Actions.NextQuestion);
@@ -192,5 +197,94 @@ describe('Success', () => {
     adminSessionUpdate(quizId, sessionId, user.body.token, Actions.GoToAnswer);
     const successView2 = getQuestionResults(player, status.body.atQuestion);
     expect(successView2.statusCode).toStrictEqual(SUCCESS);
+  });
+});
+
+// results for a question
+describe('Errors', () => {
+  test('Invalid Player Id', () => {
+    const status = adminSessionStatus(quizId, sessionId, user.body.token);
+    adminSessionUpdate(quizId, sessionId, user.body.token, Actions.NextQuestion);
+    adminSessionUpdate(quizId, sessionId, user.body.token, Actions.NextQuestion);
+    const successView = playerQuestionView(player - 99, status.body.atQuestion);
+    expect(successView.statusCode).toStrictEqual(BADREQUEST);
+    expect(successView.body).toStrictEqual(ERROR);
+  });
+
+  test('Question Position is Invalid', () => {
+    question = 'New Course?';
+    duration = 4;
+    points = 3;
+    answers =
+             [{
+               answer: 'Answer 1',
+               correct: false
+             },
+             {
+               answer: 'Answer 2',
+               correct: false
+             }];
+    thumbnailUrl = 'http://google.com/some/image/path.jpg';
+    const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, thumbnailUrl: thumbnailUrl };
+    adminQuestionCreateV2(user.body.token, quizId, questionBody);
+    adminSessionUpdate(quizId, sessionId, user.body.token, Actions.NextQuestion);
+    adminSessionUpdate(quizId, sessionId, user.body.token, Actions.NextQuestion);
+    const successView = getQuestionResults(player, -7);
+    const successView2 = getQuestionResults(player, 2);
+    expect(successView.statusCode).toStrictEqual(BADREQUEST);
+    expect(successView.body).toStrictEqual(ERROR);
+    expect(successView2.statusCode).toStrictEqual(BADREQUEST);
+    expect(successView2.body).toStrictEqual(ERROR);
+  });
+
+  test('Session is not in LOBBY state', () => {
+    const status = adminSessionStatus(quizId, sessionId, user.body.token);
+    question = 'New Course?';
+    duration = 4;
+    points = 3;
+    answers =
+             [{
+               answer: 'Answer 1',
+               correct: true
+             },
+             {
+               answer: 'Answer 2',
+               correct: false
+             }];
+    thumbnailUrl = 'http://google.com/some/image/path.jpg';
+    const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, thumbnailUrl: thumbnailUrl };
+    adminQuestionCreateV2(user.body.token, quizId, questionBody);
+    const successView = getQuestionResults(player, status.body.atQuestion);
+    expect(successView.statusCode).toStrictEqual(BADREQUEST);
+    expect(successView.body).toStrictEqual(ERROR);
+    adminSessionUpdate(quizId, sessionId, user.body.token, Actions.End);
+    const successView2 = getQuestionResults(player, status.body.atQuestion);
+    expect(successView2.statusCode).toStrictEqual(BADREQUEST);
+    expect(successView2.body).toStrictEqual(ERROR);
+  });
+});
+
+describe('Success', () => {
+  test('Return type', () => {
+    question = 'New Course?';
+    duration = 4;
+    points = 3;
+    answers =
+             [{
+               answer: 'Answer 1',
+               correct: true
+             },
+             {
+               answer: 'Answer 2',
+               correct: false
+             }];
+    thumbnailUrl = 'http://google.com/some/image/path.jpg';
+    const questionBody: QuestionBody = { question: question, duration: duration, points: points, answers: answers, thumbnailUrl: thumbnailUrl };
+    adminQuestionCreateV2(user.body.token, quizId, questionBody);
+    adminSessionUpdate(quizId, sessionId, user.body.token, Actions.NextQuestion);
+    adminSessionUpdate(quizId, sessionId, user.body.token, Actions.GoToAnswer);
+    const status = adminSessionStatus(quizId, sessionId, user.body.token);
+    const successView = getQuestionResults(player, status.body.atQuestion);
+    expect(successView.statusCode).toStrictEqual(SUCCESS);
   });
 });
