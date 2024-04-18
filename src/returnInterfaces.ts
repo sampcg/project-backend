@@ -2,7 +2,7 @@ export type EmptyObject = Record<string, never>;
 
 export interface ErrorObject {
   error: string;
-  code?: number;
+  code: number;
 }
 export interface Answer {
   answerId: number;
@@ -17,6 +17,7 @@ export interface Question {
   duration: number;
   points: number;
   answers: Answer[];
+  thumbnailUrl: string;
   position: number;
 }
 
@@ -41,7 +42,7 @@ export interface User {
 }
 
 export interface Quiz {
-  userId?: number;
+  userId: number;
   quizId: number;
   name: string;
   timeCreated: number;
@@ -50,10 +51,10 @@ export interface Quiz {
   numQuestions: number;
   questions: Question[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 export interface QuizInfo {
-  userId?: number;
   quizId: number;
   name: string;
   timeCreated: number;
@@ -62,9 +63,27 @@ export interface QuizInfo {
   numQuestions: number;
   questions: QuestionInfo[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 export interface Token {
   userId: number;
   sessionId: string;
+}
+
+export enum States {
+  LOBBY = 'LOBBY',
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN',
+  QUESTION_OPEN = 'QUESTION_OPEN',
+  QUESTION_CLOSE = 'QUESTION_CLOSE',
+  ANSWER_CLOSE = 'ANSWER_CLOSE',
+  FINAL_RESULTS = 'FINAL_RESULTS',
+  END = 'END'
+}
+
+export interface Session {
+  quizSessionId: number;
+  quiz: Quiz;
+  state: States;
+  autoStartNum: number;
 }

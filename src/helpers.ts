@@ -4,6 +4,7 @@ import { port, url } from './config.json';
 import { User, Token } from './returnInterfaces';
 import validator from 'validator';
 import HTTPError from 'http-errors';
+import { DataStore } from './dataInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -17,12 +18,20 @@ const SERVER_URL = `${url}:${port}`;
  *
  */
 
-export function getUser(authUserId: number): User {
-  return getData().users.find((user: { userId: number; }) => authUserId === user.userId);
+export function getUser(authUserId: number) {
+  const user = getData().users.find((user: { userId: number; }) => authUserId === user.userId);
+  // if (!user) {
+  //    throw HTTPError(404, 'Invalid UserID');
+  // }
+  return user;
 }
 
 export function getQuiz(quizId: number) {
-  return getData().quizzes.find((quiz) => quizId === quiz.quizId);
+  const quiz = getData().quizzes.find((quiz) => quizId === quiz.quizId);
+  // if (!quiz) {
+  //   throw HTTPError(403, 'Invalid QuizID' )
+  // }
+  return quiz;
 }
 
 export function getTrash(quizId: number) {
@@ -44,6 +53,20 @@ export function decodeToken(encodedToken: string): Token | null {
     return null;
   }
 }
+
+// ========================================================================= //
+/**
+ * HELPER FUNCTIONS WITH THROW ERRORS
+ */
+
+export function isSessionValid(data: DataStore, originalToken: Token) {
+  const sessionExists = data.token.find(session => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+}
+
+// ========================================================================= //
 
 /**
  *

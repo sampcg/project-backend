@@ -47,9 +47,6 @@ function adminAuthRegister(email: string, password: string,
     return { error: 'Password must contain at least 1 letter and number' };
   }
 
-  // const randomString = require('randomized-string');
-  // const randomToken = randomString.generate(8);
-
   // Bit of Code that pushes the data after the filter
   const newData = {
     userId: data.users.length,
@@ -180,36 +177,26 @@ function adminUserDetails(token: any) {
 }
 
 //  Fourth Function By Abrar
-export function adminAuthLogout(token: string | number) {
-  //  Getting data from dataStore
+export function adminAuthLogout(token: string) {
+  // Getting data from dataStore
   const data = getData();
-  let idPresent = false;
 
-  const tokenString = typeof token === 'number' ? token.toString() : token;
+  // Decoded Token
+  const decodedToken = JSON.parse(decodeURIComponent(token));
 
-  try {
-    // Decode and parse the token
-    const decodedToken = decodeURIComponent(tokenString);
-    const originalToken = JSON.parse(decodedToken);
+  // Find the index of the token object with the matching sessionId
+  const index = data.token.findIndex(tokenObject => tokenObject.sessionId === decodedToken.sessionId);
 
-    // Check if the given token is valid
-    for (let i = 0; i < data.token.length; i++) {
-      if (data.token[i].sessionId === originalToken.sessionId) {
-        idPresent = true;
-        // Remove the originalToken from the data.token array
-        data.token.splice(i, 1);
-        break;
-      }
-    }
-  } catch (error) {
-    // Handle decoding or parsing errors
-    return { error: 'Invalid token format' };
-  }
-
-  if (idPresent === false) {
+  if (index !== -1) {
+    // Remove the token object from the array
+    data.token.splice(index, 1);
+    console.log(`Token array length after removing token: ${data.token.length}`);
+    setData(data);
+    return {};
+  } else {
+    // Return an error if token is not found
     return { error: 'Token is empty or invalid' };
   }
-  return {};
 }
 
 /**

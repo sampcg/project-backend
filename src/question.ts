@@ -1,19 +1,17 @@
 import { getData, setData } from './dataStore';
-import { getUser, getQuiz, decodeToken, getRandomColour } from './helpers';
-import { EmptyObject, ErrorObject, Quiz, Question, Answer } from './returnInterfaces';
+import { getUser, decodeToken, getRandomColour } from './helpers';
+import { ErrorObject, Question, Answer, EmptyObject } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
+import HTTPError from 'http-errors';
 
 /// //////////////////           Create a Question           /////////////////////
 
-interface AdminQuestionCreateRequestBody {
-    token: string;
-    questionBody: {
-        question: string;
-        duration: number;
-        points: number;
-        answers: AnswerInput[];
-        position: number;
-    };
+interface QuestionBody {
+  question: string;
+  duration: number;
+  points: number;
+  answers: AnswerInput[];
+  thumbnailUrl: string;
 }
 
 interface AnswerInput {
@@ -25,39 +23,45 @@ interface AdminQuestionCreateReturn {
     questionId: number;
 }
 
-export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateRequestBody): AdminQuestionCreateReturn | ErrorObject => {
-  const { token, questionBody } = body;
-  const { question, duration, points, answers } = questionBody;
+export const adminQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody): AdminQuestionCreateReturn | ErrorObject => {
+  const { question, duration, points, answers, thumbnailUrl } = questionBody;
 
   const data: DataStore = getData();
+  // Check to see if token structure is valid and decode it
   const originalToken = decodeToken(token);
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
   }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SesssionID');
+  }
+  // Check to see if userID is valid
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid UserID');
   }
 
   // Validate quizID and ownership
   // findIndex will return -1 if not found or userID doesn't match, quizIndex used to refer to quiz later
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
-    return { error: 'Invalid quizID', code: 403 };
+    throw HTTPError(403, 'Invalid quizID');
   }
 
   // Check if question is < 5 or > 50 characters
   if (question.length < 5 || question.length > 50) {
-    return { error: 'Question must be between 5 and 50 characters', code: 400 };
+    throw HTTPError(400, 'Question must be between 5 and 50 characters');
   }
 
   // Check if question has < 2 or > 6 answers
   if (answers.length < 2 || answers.length > 6) {
-    return { error: 'There must be between 2 and 6 answers', code: 400 };
+    throw HTTPError(400, 'There must be between 2 and 6 answers');
   }
 
   // Check if question duration is not a positive number
   if (duration < 1) {
-    return { error: 'Duration must be 1 or greater', code: 400 };
+    throw HTTPError(400, 'Duration must be 1 or greater');
   }
 
   // Check if sum of question duration > 3 minutes
@@ -66,18 +70,18 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
   // Now add current question duration to total to see if it exceeds 180 seconds
   const totalQuizDuration: number = totalExistingQuizDuration + duration;
   if (totalQuizDuration > 180) {
-    return { error: 'Duration of quiz cannot exceed 3 minutes', code: 400 };
+    throw HTTPError(400, 'Duration of quiz cannot exceed 3 minutes');
   }
 
   // Check if points for question is < 1 or > 10
   if (points < 1 || points > 10) {
-    return { error: 'Question must have between 1 or 10 points', code: 400 };
+    throw HTTPError(400, 'Question must have between 1 or 10 points');
   }
 
   // Check if answer is < 1 or > 30 characters
   for (const answer of answers) {
     if (answer.answer.length < 1 || answer.answer.length > 30) {
-      return { error: 'Answers must be between 1 and 30 characters', code: 400 };
+      throw HTTPError(400, 'Answes must be between 1 and 30 characters');
     }
   }
 
@@ -88,13 +92,24 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
   // Check to see if any answers match one another
   const isDuplicateAnswer = answerStrings.some((answer, index) => answerStrings.indexOf(answer) !== index);
   if (isDuplicateAnswer) {
-    return { error: 'Answers must be unique', code: 400 };
+    throw HTTPError(400, 'Answers must be unique');
   }
 
   // There are no correct answer
   const correctAnswers = answers.filter(answer => answer.correct);
   if (correctAnswers.length === 0) {
-    return { error: 'There must be at least one correct answer', code: 400 };
+    throw HTTPError(400, 'There must be at least one correct answer');
+  }
+
+  // thumbnailUrl doesn't end with 'jpg', 'jpeg', 'png' (case insensitive)
+  const thumbnailUrlCase = thumbnailUrl.toLowerCase();
+  if (!thumbnailUrlCase.endsWith('jpg') && !thumbnailUrlCase.endsWith('jpeg') && !thumbnailUrlCase.endsWith('png')) {
+    throw HTTPError(400, "thumbnailUrl must be 'jpg', 'jpeg' or 'png'");
+  }
+
+  // thumbnailUrl doesn't begin with 'http://' or 'https://'
+  if (!thumbnailUrl.startsWith('http://') && !thumbnailUrl.startsWith('https://')) {
+    throw HTTPError(400, "thumbnailUrl must begin with 'http://' or 'https://'");
   }
 
   // Create new answer array
@@ -116,6 +131,7 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
     duration: duration,
     points: points,
     answers: newAnswers,
+    thumbnailUrl: thumbnailUrl,
     position: data.quizzes[quizIndex].questions.length
   };
 
@@ -136,48 +152,50 @@ export const adminQuestionCreate = (quizId: number, body: AdminQuestionCreateReq
 };
 
 /// //////////////////           Update a Question           /////////////////////
-export const adminQuestionUpdate = (quizId: number, questionId: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
-  const { token, questionBody } = body;
-  const { question, duration, points, answers } = questionBody;
+export const adminQuestionUpdate = (token: string, quizId: number, questionId: number, questionBody: QuestionBody): EmptyObject | ErrorObject => {
+  const { question, duration, points, answers, thumbnailUrl } = questionBody;
   const data: DataStore = getData();
 
   // Check if token is valid
   const originalToken = decodeToken(token);
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
+  }
+  if (!data.token.find(session => session.sessionId === originalToken.sessionId)) {
+    throw HTTPError(401, 'Invalid SessionID');
   }
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid UserID');
   }
 
   // Validate quiz ID and ownership
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
-    return { error: 'Invalid quizID', code: 403 };
+    throw HTTPError(403, 'Invalid QuizID');
   }
 
   // Find the question within the quiz
   const quiz = data.quizzes[quizIndex];
   const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
   if (questionIndex === -1) {
-    return { error: 'Invalid questionID', code: 400 };
+    throw HTTPError(400, 'Invalid QuestionID');
   }
 
   const existingQuestion = quiz.questions[questionIndex];
 
   // Check if question string length is valid
   if (question.length < 5 || question.length > 50) {
-    return { error: 'Question must be between 5 and 50 characters', code: 400 };
+    throw HTTPError(400, 'QUestion must be between 5 and 50 characters');
   }
 
   // Check if number of answers is valid
   if (answers.length < 2 || answers.length > 6) {
-    return { error: 'There must be between 2 and 6 answers', code: 400 };
+    throw HTTPError(400, 'There must be between 2 and 6 answers');
   }
 
   // Check if question duration is valid
   if (duration < 1) {
-    return { error: 'Duration must be 1 or greater', code: 400 };
+    throw HTTPError(400, 'Duration must be 1 or greater');
   }
 
   // Calculate total quiz duration after updating question
@@ -186,18 +204,18 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
 
   // Check if total quiz duration exceeds 180 seconds
   if (totalQuizDuration > 180) {
-    return { error: 'Duration of quiz cannot exceed 3 minutes', code: 400 };
+    throw HTTPError(400, 'Duration of quiz cannot exceed 3 minutes');
   }
 
   // Check if points for question is valid
   if (points < 1 || points > 10) {
-    return { error: 'Question must have between 1 or 10 points', code: 400 };
+    throw HTTPError(400, 'Question must have between 1 or 10 points');
   }
 
   // Check if answers are valid
   for (const answer of answers) {
     if (answer.answer.length < 1 || answer.answer.length > 30) {
-      return { error: 'Answers must be between 1 and 30 characters', code: 400 };
+      throw HTTPError(400, 'Answers must be between 1 and 30 characters');
     }
   }
 
@@ -205,24 +223,25 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
   const answerStrings = answers.map(answer => answer.answer);
   const isDuplicateAnswer = answerStrings.some((answer, index) => answerStrings.indexOf(answer) !== index);
   if (isDuplicateAnswer) {
-    return { error: 'Answers must be unique', code: 400 };
+    throw HTTPError(400, 'Answers must be unique');
   }
 
   // Check if there is at least one correct answer
   const correctAnswers = answers.filter(answer => answer.correct);
   if (correctAnswers.length === 0) {
-    return { error: 'There must be at least one correct answer', code: 400 };
+    throw HTTPError(400, 'There must be at least one correct answer');
   }
 
-  // Update answerID
-  /*
-  const newAnswers: Answer[] = answers.map((answer, index) => ({
-    answerId: index,
-    answer: answer.answer,
-    correct: answer.correct,
-    colour: getRandomColour()
-  }));
-  */
+  // thumbnailUrl doesn't end with 'jpg', 'jpeg', 'png' (case insensitive)
+  const thumbnailUrlCase = thumbnailUrl.toLowerCase();
+  if (!thumbnailUrlCase.endsWith('jpg') && !thumbnailUrlCase.endsWith('jpeg') && !thumbnailUrlCase.endsWith('png')) {
+    throw HTTPError(400, "thumbnailUrl must be 'jpg', 'jpeg' or 'png'");
+  }
+
+  // thumbnailUrl doesn't begin with 'http://' or 'https://'
+  if (!thumbnailUrl.startsWith('http://') && !thumbnailUrl.startsWith('https://')) {
+    throw HTTPError(400, "thumbnailUrl must begin with 'http://' or 'https://'");
+  }
 
   // Update existing question
   existingQuestion.question = question;
@@ -234,6 +253,7 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
     correct: answer.correct,
     colour: getRandomColour()
   }));
+  existingQuestion.thumbnailUrl = thumbnailUrl;
 
   // Update total duration of quiz
   quiz.duration = totalQuizDuration;
@@ -249,39 +269,46 @@ export const adminQuestionUpdate = (quizId: number, questionId: number, body: Ad
 };
 
 /// //////////////////           Delete a Question           /////////////////////
-
 export const adminQuestionRemove = (token: string, quizId: number, questionId: number): EmptyObject | ErrorObject => {
   const data = getData();
-
-  // Check if token is valid
+  // Check to see if token structure is valid and decode it
   const originalToken = decodeToken(token);
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
   }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SesssionID');
+  }
+  // Check to see if userID is valid
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 403 };
+    throw HTTPError(401, 'Invalid UserID');
   }
 
-  // Validate quizID and ownership
-  const quiz: Quiz = getQuiz(quizId);
-
+  // Validate quiz ID and ownership
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (!quiz) {
-    return { error: 'Invalid quizId or user does not own the quiz', code: 403 };
+    throw HTTPError(403, 'Invalid QuizID');
+  }
+  if (quiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
   }
 
-  // Find the question index by questionId
+  // Find the questionIndex within the quiz
+
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
   if (questionIndex === -1) {
-    return { error: 'Invalid questionID', code: 400 };
+    throw HTTPError(400, 'Invalid QuestionID');
   }
-
-  // Remove the question from the quiz
-  quiz.questions.splice(questionIndex, 1);
 
   // Update timeLastEdited, no. of questions and duration of the quiz
   quiz.timeLastEdited = Math.round(Date.now());
-  quiz.numQuestions -= 1;
+  quiz.numQuestions--;
   quiz.duration -= quiz.questions[questionIndex].duration;
+
+  // Remove the question from the quiz
+  quiz.questions.splice(questionIndex, 1);
 
   // Update the dataStore
   setData(data);
@@ -289,40 +316,40 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
 };
 
 /// //////////////////           Move a Question           /////////////////////
-export const adminQuestionMove = (quizId: number, questionId: number, body: AdminQuestionCreateRequestBody): EmptyObject | ErrorObject => {
-  const { token, questionBody } = body;
+export const adminQuestionMove = (token: string, quizId: number, questionId: number, newPosition: number): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
 
   // Check if token is valid
   const originalToken = decodeToken(token);
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
+  }
+  if (!data.token.find(session => session.sessionId === originalToken.sessionId)) {
+    throw HTTPError(401, 'Invalid SessionID');
   }
 
   // Validate quiz ID and ownership
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
-    return { error: 'Invalid quizID', code: 403 };
+    throw HTTPError(403, 'Invalid QuizID');
   }
 
   // Find the question within the quiz
   const quiz = data.quizzes[quizIndex];
   const questionIndex = quiz.questions.findIndex(q => q.questionId === questionId);
   if (questionIndex === -1) {
-    return { error: 'Invalid questionID', code: 400 };
+    throw HTTPError(400, 'Invalid QuestionID');
   }
-
-  const { position: newPosition } = questionBody;
 
   // Check if newPosition < 0 or >= numberOfQuestions
   const numQuestions = quiz.questions.length;
   if (newPosition < 0 || newPosition >= numQuestions) {
-    return { error: 'Invalid newPosition: Number was too high or too low', code: 400 };
+    throw HTTPError(400, 'Invalid position: Too high or too low');
   }
 
   // Check if newPosition is the position of the current question
   if (newPosition === quiz.questions[questionIndex].position) {
-    return { error: 'Invalid newPosition: newPosition is the position of the current question', code: 400 };
+    throw HTTPError(400, 'Invalid position: new position is the position of the current question');
   }
 
   // Move the question to the new position
