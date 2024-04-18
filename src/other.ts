@@ -13,7 +13,8 @@ export const clear = (): EmptyObject => {
     quizzes: [],
     trash: [],
     token: [],
-    session: []
+    session: [],
+    guest: []
   });
   return {};
 };

@@ -21,7 +21,7 @@ import {
   adminAuthLogout,
   adminUserDetailsUpdate,
   adminUserDetailsUpdateV2,
-  adminUserPasswordUpdate,
+  // adminUserPasswordUpdate,
   adminUserPasswordUpdateV2,
   createGuestPlayer
 } from './auth';

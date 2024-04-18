@@ -298,7 +298,7 @@ export const adminUserDetailsUpdateV2 = (token: string, email: string, nameFirst
 
 function createGuestPlayer(sessionId: number, name: string): { playerId: number } | ErrorObject {
   const data = getData(); // Get session data from somewhere
-  const session = data.sessions.find((sess: Session) => sess.quizSessionId === sessionId);
+  const session = data.session.find((sess: Session) => sess.quizSessionId === sessionId);
 
   // Check if session exists and is in LOBBY state
   if (!session || session.state !== States.LOBBY) {
