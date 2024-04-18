@@ -1,5 +1,5 @@
 
-import express, { json, Request, Response } from 'express';
+import express, { json, NextFunction, Request, Response } from 'express';
 // import { getData, setData } from './dataStore';
 import { echo } from './newecho';
 import morgan from 'morgan';
@@ -20,7 +20,9 @@ import {
   adminUserDetails,
   adminAuthLogout,
   adminUserDetailsUpdate,
+  adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
+  adminUserPasswordUpdateV2,
 } from './auth';
 
 import {
@@ -42,8 +44,10 @@ import {
 } from './question';
 
 import {
-  adminSessionView,
+  // adminSessionView,
   adminSessionStart,
+  adminSessionUpdate,
+  adminSessionView,
   getSessionStatus
 } from './session';
 
@@ -131,6 +135,16 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   res.json(response);
 });
 
+// update details of an admin user
+app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { token, email, nameFirst, nameLast } = req.body;
+    res.json(adminUserDetailsUpdateV2(token, email, nameFirst, nameLast));
+  } catch (err) {
+    next(err);
+  }
+});
+
 /**                              Update Password                              */
 // update the password of an admin user
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
@@ -140,6 +154,17 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
     return res.status(response.code).json({ error: response.error });
   }
   res.json(response);
+});
+
+// update the password of an admin user
+app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // const token = req.header('token') as string;
+    const { token, oldPassword, newPassword } = req.body;
+    res.json(adminUserPasswordUpdateV2(token, oldPassword, newPassword));
+  } catch (err) {
+    next(err);
+  }
 });
 
 /**                                Auth Logout                                */
@@ -287,6 +312,16 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   const token = req.header('token') as string;
   const { quizid, sessionid } = req.params;
   res.json(getSessionStatus(parseInt(quizid), parseInt(sessionid), token));
+});
+
+/**                       Update a Quiz Session State                         */
+app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, sessionid } = req.params;
+  const { action } = req.body;
+  console.log(quizid);
+  const result = adminSessionUpdate(parseInt(quizid), parseInt(sessionid), token, action);
+  res.json(result);
 });
 
 /**                         Update Quiz Thumbnail                             */

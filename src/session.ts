@@ -2,8 +2,8 @@ import {
   getData, /* setData */
   setData
 } from './dataStore';
-import { getUser, /* getQuiz */ decodeToken /* getRandomColour */ } from './helpers';
-import { /* EmptyObject */ ErrorObject, /* Quiz, Question, Answer */ States, Session, SessionStatus, Player } from './returnInterfaces';
+import { getUser, /* getQuiz */ decodeToken, isValidAction /* getRandomColour */ } from './helpers';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
 
@@ -113,10 +113,6 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
   while (data.session.find(session => session.quizSessionId === newSessionId)) {
     newSessionId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
   }
-  /**
-   * Edits sam made below
-   */
-
   // Initialize players array as empty
   const players: Player[] = [];
 
@@ -137,9 +133,8 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
   return { sessionId: newSessionId };
 };
 
-/// ///////////////////////////   Get a Session Status   /////////////////////////////
-
-export const getSessionStatus = (quizId: number, sessionId: number, token: string): SessionStatus | ErrorObject => {
+/// //////////////////////  Update a Quiz Session State  ///////////////////////
+export const adminSessionUpdate = (quizId: number, sessionId: number, token: string, action: string): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
   const originalToken = decodeToken(token);
 
@@ -152,44 +147,139 @@ export const getSessionStatus = (quizId: number, sessionId: number, token: strin
     throw HTTPError(401, 'Invalid UserID');
   }
 
-  // Validate user ownership of quiz
+  // Validate quiz ID and ownership
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
-    throw HTTPError(403, 'User is not the owner of the quiz');
+    throw HTTPError(403, 'Invalid quizID');
   }
-
 
   // Validate session ID
   const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
-
-
-  // If session not found
+  console.log(session);
+  console.log('Input: ', sessionId);
+  console.log('Comparison:', data.quizzes);
+  console.log('Comparison:', data.session);
+  console.log('Output: ', session);
   if (!session) {
-    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+    throw HTTPError(400, 'Session ID does not refer to a valid session within this quiz');
   }
 
-  // If user is not the owner of this session's quiz
-  if (session.quiz.userId !== originalToken.userId) {
-    throw HTTPError(403, 'User is not an owner of this quiz');
+  if (!isValidAction(action)) {
+    throw HTTPError(400, 'Action provided is not a valid Action enum');
   }
 
-  // Construct and return the SessionStatus object
-  const sessionStatus: SessionStatus = {
-    state: session.state,
-    atQuestion: session.atQuestion,
-    players: session.players,
-    metadata: {
-      quizId: session.quiz.quizId,
-      name: session.quiz.name,
-      timeCreated: session.quiz.timeCreated,
-      timeLastEdited: session.quiz.timeLastEdited,
-      description: session.quiz.description,
-      numQuestions: session.quiz.questions.length,
-      questions: session.quiz.questions,
-      duration: session.quiz.duration,
-      thumbnailUrl: session.quiz.thumbnailUrl
+  if (session.state === States.LOBBY) {
+    if (action !== 'NEXT_QUESTION' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'NEXT_QUESTION') {
+      session.state = States.QUESTION_COUNTDOWN;
+      console.log('Comparison1:', data.session);
+    } else if (action === 'END') {
+      session.state = States.END;
+      console.log('Comparison2:', data.session);
     }
-  };
+  } else if (session.state === States.QUESTION_COUNTDOWN) {
+    if (action !== 'SKIP_COUNTDOWN' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'SKIP_COUNTDOWN') {
+      session.state = States.QUESTION_OPEN;
+    } else if (action === 'END') {
+      session.state = States.END;
+    }
+  } else if (session.state === States.QUESTION_OPEN) {
+    if (action !== 'GO_TO_ANSWER' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'GO_TO_ANSWER') {
+      session.state = States.ANSWER_SHOW;
+    } else if (action === 'END') {
+      session.state = States.END;
+    }
+  } else if (session.state === States.QUESTION_CLOSE) {
+    if (action !== 'GO_TO_ANSWER' && action !== 'GO_TO_FINAL_RESULTS' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'GO_TO_ANSWER') {
+      session.state = States.ANSWER_SHOW;
+    } else if (action === 'GO_TO_FINAL_RESULTS') {
+      session.state = States.FINAL_RESULTS;
+    } else if (action === 'END') {
+      session.state = States.END;
+    }
+  } else if (session.state === States.ANSWER_SHOW) {
+    if (action !== 'NEXT_QUESTION' && action !== 'GO_TO_FINAL_RESULTS' && action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'GO_TO_FINAL_RESULTS') {
+      session.state = States.FINAL_RESULTS;
+    } else if (action === 'END') {
+      session.state = States.END;
+    }
+  } else if (session.state === States.FINAL_RESULTS) {
+    if (action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'END') {
+      session.state = States.END;
+    }
+  }
 
-  return sessionStatus;
+  setData(data);
+
+  return {};
+
 };
+
+/// ///////////////////////////   Get a Session Status   /////////////////////////////
+
+export const getSessionStatus = (quizId: number, sessionId: number, token: string): SessionStatus | ErrorObject => {
+    const data: DataStore = getData();
+    const originalToken = decodeToken(token);
+  
+    // Check if token is valid
+    if (!originalToken) {
+      throw HTTPError(401, 'Invalid Token');
+    }
+    // Find what I need
+    if (!getUser(originalToken.userId)) {
+      throw HTTPError(401, 'Invalid UserID');
+    }
+  
+    // Validate user ownership of quiz
+    const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
+    if (quizIndex === -1) {
+      throw HTTPError(403, 'User is not the owner of the quiz');
+    }
+  
+  
+    // Validate session ID
+    const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+  
+  
+    // If session not found
+    if (!session) {
+      throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+    }
+  
+    // If user is not the owner of this session's quiz
+    if (session.quiz.userId !== originalToken.userId) {
+      throw HTTPError(403, 'User is not an owner of this quiz');
+    }
+  
+    // Construct and return the SessionStatus object
+    const sessionStatus: SessionStatus = {
+      state: session.state,
+      atQuestion: session.atQuestion,
+      players: session.players,
+      metadata: {
+        quizId: session.quiz.quizId,
+        name: session.quiz.name,
+        timeCreated: session.quiz.timeCreated,
+        timeLastEdited: session.quiz.timeLastEdited,
+        description: session.quiz.description,
+        numQuestions: session.quiz.questions.length,
+        questions: session.quiz.questions,
+        duration: session.quiz.duration,
+        thumbnailUrl: session.quiz.thumbnailUrl
+      }
+    };
+  
+    return sessionStatus;
+  };
+  
