@@ -267,6 +267,23 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
   });
 
   describe('Testing Success Cases', () => {
+    test('Lobby -> QuestionCountdown', () => {
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION')).toStrictEqual({});
+    });
 
+    test('Lobby -> End', () => {
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'END')).toStrictEqual({});
+    });
+
+    test('QuestionCountdown -> QuestionOpen', () => {
+      requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION');
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'SKIP_COUNTDOWN')).toStrictEqual({});
+    });
+
+    test('QuestionCountdown -> End', () => {
+      requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION');
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'END')).toStrictEqual({});
+    });
+
+    });
   });
-});
