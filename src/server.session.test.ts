@@ -287,7 +287,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'SKIP_COUNTDOWN')).toStrictEqual({});
     });
 
-    test('QuestionCountdown -> AnsweShow', () => {
+    test('QuestionCountdown -> AnswerShow', () => {
       requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION');
       expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'END')).toStrictEqual({});
     });

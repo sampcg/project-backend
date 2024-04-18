@@ -167,7 +167,7 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       console.log('Comparison2:', data.session);
     }
   } 
-  if(session.state === States.QUESTION_COUNTDOWN) {
+  else if(session.state === States.QUESTION_COUNTDOWN) {
     if (action !== 'SKIP_COUNTDOWN' && action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state')
     }
@@ -178,7 +178,7 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       session.state = States.END;
     }
   } 
-  if(session.state === States.QUESTION_OPEN) {
+  else if(session.state === States.QUESTION_OPEN) {
     if (action !== 'GO_TO_ANSWER' && action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state')
     }
@@ -189,7 +189,7 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       session.state = States.END;
     }
   } 
-  if(session.state === States.QUESTION_CLOSE) {
+  else if(session.state === States.QUESTION_CLOSE) {
     if (action !== 'GO_TO_ANSWER' && action !== 'GO_TO_FINAL_RESULTS' && action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state')
     }
@@ -203,7 +203,7 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       session.state = States.END;
     }
   }
-  if(session.state === States.ANSWER_SHOW) {
+  else if(session.state === States.ANSWER_SHOW) {
     if (action !== 'NEXT_QUESTION' && action !== 'GO_TO_FINAL_RESULTS' && action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state')
     }
@@ -214,14 +214,16 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       session.state = States.END;
     }
   }
-  if(session.state === States.FINAL_RESULTS) {
+  else if(session.state === States.FINAL_RESULTS) {
     if (action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state')
     }
     else if (action === 'END') {
       session.state = States.END;
     }
-  } 
+  }
+  
+  setData(data);
 
   return {};
 }

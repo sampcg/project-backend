@@ -14,11 +14,11 @@
   ],
   "quizzes": [
     {
-      "quizId": 3043988271237705,
+      "quizId": 1446926243358635,
       "userId": 0,
       "name": "Quiz 1",
-      "timeCreated": 1713428363,
-      "timeLastEdited": 1713428362,
+      "timeCreated": 1713434742,
+      "timeLastEdited": 1713434742,
       "description": "Quiz 1 Des",
       "numQuestions": 0,
       "questions": [
@@ -32,13 +32,13 @@
               "answerId": 1,
               "answer": "Answer 1",
               "correct": true,
-              "colour": "brown"
+              "colour": "purple"
             },
             {
               "answerId": 2,
               "answer": "Answer 2",
               "correct": false,
-              "colour": "red"
+              "colour": "brown"
             }
           ],
           "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -53,18 +53,18 @@
   "token": [
     {
       "userId": 0,
-      "sessionId": "HkVNholL"
+      "sessionId": "BOmGVAOF"
     }
   ],
   "session": [
     {
-      "quizSessionId": 4861751888995045,
+      "quizSessionId": 3422726515342605,
       "quiz": {
-        "quizId": 3043988271237705,
+        "quizId": 1446926243358635,
         "userId": 0,
         "name": "Quiz 1",
-        "timeCreated": 1713428363,
-        "timeLastEdited": 1713428362,
+        "timeCreated": 1713434742,
+        "timeLastEdited": 1713434742,
         "description": "Quiz 1 Des",
         "numQuestions": 0,
         "questions": [
@@ -78,13 +78,13 @@
                 "answerId": 1,
                 "answer": "Answer 1",
                 "correct": true,
-                "colour": "brown"
+                "colour": "purple"
               },
               {
                 "answerId": 2,
                 "answer": "Answer 2",
                 "correct": false,
-                "colour": "red"
+                "colour": "brown"
               }
             ],
             "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -94,7 +94,7 @@
         "duration": 5,
         "thumbnailUrl": ""
       },
-      "state": "LOBBY",
+      "state": "ANSWER_CLOSE",
       "autoStartNum": 35
     }
   ]
