@@ -81,6 +81,14 @@ export enum States {
   END = 'END'
 }
 
+export enum Actions {
+  NextQuestion = 'NEXT_QUESTION',
+  SkipCountdown = 'SKIP_COUNTDOWN',
+  GoToAnswer = 'GO_TO_ANSWER',
+  GoToFinalResults = 'GO_TO_FINAL_RESULTS',
+  End = 'END'
+}
+
 export interface Session {
   quizSessionId: number;
   quiz: Quiz;

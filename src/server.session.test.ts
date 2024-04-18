@@ -221,10 +221,47 @@ describe('Testing Post /v1/admin/quiz/{quizid}/session/start', () => {
 
 /// /////////////////////  Testing for Updating Session  ////////////////////////
 describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
-  let author: {token: string}, quiz: {quizId: number}, session: {sessionId: number};
+  let author: {token: string}, quiz: {quizId: number}, session: {sessionId: number}, answers: AnswerInput[];
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+    answers =
+        [{
+          answer: 'Answer 1',
+          correct: true
+        },
+        {
+          answer: 'Answer 2',
+          correct: false
+        }];
+    const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
+    const question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    const session = requestSessionStart(quiz.quizId, author.token, 35)
+  });
 
   describe('Testing Error Cases', () => {
+    test('Session Id does not refer to a valid session within this quiz', () => {
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION')).toStrictEqual(makeCustomErrorForTest(400));
+    });
 
+    test('Action provided is not a valid Action enum', () => {
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'BLUE')).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test('Action enum cannot be applied in the current state', () => {
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'GO_TO_ANSWER')).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test('Invalid Token', () => {
+      const invalidToken = 'invalid-token';
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, invalidToken, 'NEXT_QUESTION')).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    test('User does not own quiz', () => {
+      requestAuthLogout(author.token);
+      const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author2.token, 'NEXT_QUESTION')).toStrictEqual(makeCustomErrorForTest(403));
+    });
   });
 
   describe('Testing Success Cases', () => {
