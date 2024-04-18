@@ -6,7 +6,6 @@ import {
   validateAdminInputsV2,
   validateTokenStructureV2
 } from './helpers';
-import HTTPError from 'http-errors';
 
 import {
   ErrorObject,
