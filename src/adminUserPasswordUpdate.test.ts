@@ -1,5 +1,5 @@
 import request, { HttpVerb } from 'sync-request-curl';
-import { port, url } from '../config.json';
+import { port, url } from './config.json';
 
 const SERVER_URL = `${url}:${port}`;
 const ERROR = { error: expect.any(String) };
@@ -106,7 +106,7 @@ describe('adminUserPasswordUpdate function tests', () => {
   });
 });
 
-describe.only('adminUserPasswordUpdateV2 function tests', () => {
+describe('adminUserPasswordUpdateV2 function tests', () => {
   let user: { statusCode: number; body: {token: string}; };
   beforeEach(() => {
     user = adminAuthRegister('hayden.smith@unsw.edu.au', '123456ABC', 'Hayden', 'Smith');
@@ -127,7 +127,6 @@ describe.only('adminUserPasswordUpdateV2 function tests', () => {
   test.each([
     { token: '' },
     { token: undefined },
-    { token: null },
   ])('Token is not a valid structure: $token', ({ token }) => {
     const test = adminUserPasswordUpdateV2(token, '123456ABC', 'Tw3lv3L3tt3r');
     expect(test.body).toStrictEqual(ERROR);

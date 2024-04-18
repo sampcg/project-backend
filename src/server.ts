@@ -156,8 +156,8 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 // update the password of an admin user
 app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.header('token') as string;
-    const { oldPassword, newPassword } = req.body;
+    // const token = req.header('token') as string;
+    const { token, oldPassword, newPassword } = req.body;
     res.json(adminUserPasswordUpdateV2(token, oldPassword, newPassword));
   } catch (err) {
     next(err);
