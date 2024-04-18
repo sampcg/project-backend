@@ -2,7 +2,9 @@
 import { getData, setData } from './dataStore';
 import {
   decodeToken,
-  validateTokenStructure
+  validateTokenStructure,
+  validateAdminInputsV2,
+  validateTokenStructureV2
 } from './helpers';
 import HTTPError from 'http-errors';
 
@@ -15,6 +17,7 @@ import {
   Session
 } from './returnInterfaces';
 import validator from 'validator';
+import HTTPError from 'http-errors';
 
 // First Function By Abrar
 function adminAuthRegister(email: string, password: string,
@@ -252,6 +255,41 @@ export const adminUserDetailsUpdate = (token: string, email : string,
 };
 
 /**
+ * Updates the details of an admin user.
+ *
+ * @param {string} token - The authentication token of the user.
+ * @param {string} email - The new email of the user.
+ * @param {string} nameFirst - The new first name of the user.
+ * @param {string} nameLast - The new last name of the user.
+ *
+ * @return {EmptyObject | ErrorObject} An empty object if the operation is successful, or an error object if there was an issue.
+ */
+export const adminUserDetailsUpdateV2 = (token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Token is empty or invalid');
+  }
+  const user = data.users.find(u => originalToken.userId === u.userId);
+  if (!user) {
+    throw HTTPError(401, 'User with the provided token does not exist');
+  }
+  validateTokenStructureV2(token);
+  /** Check for duplicate email */
+  if (data.users.some((user) => user.email === email && !originalToken.sessionId.includes(token))) {
+    throw HTTPError(400, 'Email is currently used by another user');
+  }
+  validateAdminInputsV2(email, nameFirst, nameLast);
+  /** correct output */
+  user.email = email;
+  user.nameFirst = nameFirst;
+  user.nameLast = nameLast;
+  setData(data);
+  return {};
+};
+
+/**
  * Updates the password of an admin user
  * @param {number} authUserId - unique identifier for admin user
  * @param {string} oldPassword - old password of user
@@ -321,6 +359,67 @@ function generateRandomName(): string {
 function generatePlayerId(): number {
   return Math.floor(Math.random() * 10000) + 1;
 }
+
+/**
+ * Updates the password of an admin user
+ * @param {number} authUserId - unique identifier for admin user
+ * @param {string} oldPassword - old password of user
+ * @param {string} newPassword - new password of user
+ * @returns {} - empty object
+ */
+
+export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
+  newPassword: string): EmptyObject | ErrorObject => {
+  /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const data = getData();
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Token is empty or invalid');
+  }
+  const user = data.users.find((user) => originalToken.userId === user.userId);
+  if (!user) {
+    throw HTTPError(401, 'User with the provided token does not exist');
+  }
+  validateTokenStructureV2(token);
+  /** Old Password is not the correct old password */
+  if (oldPassword !== user.password) {
+    throw HTTPError(400, 'Old Password is not the correct old password');
+  }
+  /** Old Password and New Password match exactly */
+  if (oldPassword === newPassword) {
+    throw HTTPError(400, 'Old Password and New Password match exactly');
+  }
+  /** New Password has already been used before by this user */
+  if (user.oldPassword === newPassword) {
+    throw HTTPError(400, 'New Password has already been used before by this user');
+  }
+  /** New Password is less than 8 characters */
+  if (newPassword.length < 8) {
+    throw HTTPError(400, 'New Password is less than 8 characters');
+  }
+  /** New Password does not contain at least one number and at least one letter */
+  let hasNumber = false;
+  let hasLower = false;
+  let hasUpper = false;
+  for (const character of newPassword) {
+    if (!isNaN(Number(character))) {
+      hasNumber = true;
+    } else if (character >= 'a' && character <= 'z') {
+      hasLower = true;
+    } else if (character >= 'A' && character <= 'Z') {
+      hasUpper = true;
+    }
+  }
+
+  if (!(hasNumber && (hasLower || hasUpper))) {
+    throw HTTPError(400, 'New Password does not contain at least one number and at least one letter');
+  }
+  /** correct output */
+  user.oldPassword = user.password;
+  user.password = newPassword;
+  setData(data);
+  return {};
+};
 
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js
