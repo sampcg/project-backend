@@ -3,6 +3,7 @@ import { getData, setData } from './dataStore';
 import {
   decodeToken,
   validateTokenStructure,
+  validateAdminInputsV2,
   validateTokenStructureV2
 } from './helpers';
 import {
@@ -240,6 +241,41 @@ export const adminUserDetailsUpdate = (token: string, email : string,
   if (!namecharL) {
     return { error: 'Invalid last name', code: 400 };
   }
+  /** correct output */
+  user.email = email;
+  user.nameFirst = nameFirst;
+  user.nameLast = nameLast;
+  setData(data);
+  return {};
+};
+
+/**
+ * Updates the details of an admin user.
+ *
+ * @param {string} token - The authentication token of the user.
+ * @param {string} email - The new email of the user.
+ * @param {string} nameFirst - The new first name of the user.
+ * @param {string} nameLast - The new last name of the user.
+ *
+ * @return {EmptyObject | ErrorObject} An empty object if the operation is successful, or an error object if there was an issue.
+ */
+export const adminUserDetailsUpdateV2 = (token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Token is empty or invalid');
+  }
+  const user = data.users.find(u => originalToken.userId === u.userId);
+  if (!user) {
+    throw HTTPError(401, 'User with the provided token does not exist');
+  }
+  validateTokenStructureV2(token);
+  /** Check for duplicate email */
+  if (data.users.some((user) => user.email === email && !originalToken.sessionId.includes(token))) {
+    throw HTTPError(400, 'Email is currently used by another user');
+  }
+  validateAdminInputsV2(email, nameFirst, nameLast);
   /** correct output */
   user.email = email;
   user.nameFirst = nameFirst;
