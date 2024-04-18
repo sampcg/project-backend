@@ -5,5 +5,6 @@ export interface DataStore {
   quizzes: Quiz[],
   trash: Quiz[],
   token: Token[],
-  session: Session[]
+  session: Session[],
+  guest: Guest[]
 }

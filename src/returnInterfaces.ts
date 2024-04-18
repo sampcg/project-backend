@@ -87,3 +87,9 @@ export interface Session {
   state: States;
   autoStartNum: number;
 }
+
+export interface Guest {
+  sessionId: number,
+  name: string,
+  playerId: number
+}
