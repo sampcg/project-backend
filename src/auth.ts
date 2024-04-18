@@ -307,6 +307,11 @@ export const adminUserPasswordUpdate = (token: string, oldPassword: string,
   return {};
 };
 
+
+
+
+
+
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js
 export { adminAuthRegister };
