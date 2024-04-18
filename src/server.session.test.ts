@@ -1,7 +1,7 @@
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
 import { IncomingHttpHeaders } from 'http';
-import { States } from './returnInterfaces';
+// import { States } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -242,12 +242,13 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
     session = requestSessionStart(quiz.quizId, author.token, 35);
     console.log('Session: ', session);
     console.log('SessionId before: ', session.sessionId);
+    console.log(question1);
   });
 
   describe('Testing Error Cases', () => {
     test('Session Id does not refer to a valid session within this quiz', () => {
       console.log('SessionId test1: ', session.sessionId);
-      let quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
+      const quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
       const incorrectSession = requestSessionStart(quiz2.quizId, author.token, 36);
       console.log('Incorrect Id: ', incorrectSession);
       expect(requestSessionUpdate(quiz.quizId, incorrectSession.sessionId, author.token, 'NEXT_QUESTION')).toStrictEqual(makeCustomErrorForTest(400));
@@ -297,6 +298,5 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'SKIP_COUNTDOWN');
       expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'GO_TO_ANSWER')).toStrictEqual({});
     });
-
   });
 });

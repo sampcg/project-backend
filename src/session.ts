@@ -1,7 +1,9 @@
-import { getData, /* setData */ 
-setData} from './dataStore';
+import {
+  getData, /* setData */
+  setData
+} from './dataStore';
 import { getUser, /* getQuiz */ decodeToken, isValidAction /* getRandomColour */ } from './helpers';
-import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Actions } from './returnInterfaces';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
 
@@ -132,13 +134,13 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
   if (!getUser(originalToken.userId)) {
     throw HTTPError(401, 'Invalid UserID');
   }
-  
+
   // Validate quiz ID and ownership
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
     throw HTTPError(403, 'Invalid quizID');
   }
-  
+
   // Validate session ID
   const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
   console.log(session);
@@ -150,80 +152,63 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
     throw HTTPError(400, 'Session ID does not refer to a valid session within this quiz');
   }
 
-  if(!isValidAction(action)) {
+  if (!isValidAction(action)) {
     throw HTTPError(400, 'Action provided is not a valid Action enum');
   }
 
-  if(session.state === States.LOBBY) {
+  if (session.state === States.LOBBY) {
     if (action !== 'NEXT_QUESTION' && action !== 'END') {
-      throw HTTPError(400, 'Action enum cannot be applied in the current state')
-    }
-    else if (action === 'NEXT_QUESTION') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'NEXT_QUESTION') {
       session.state = States.QUESTION_COUNTDOWN;
       console.log('Comparison1:', data.session);
-    }
-    else if (action === 'END') {
+    } else if (action === 'END') {
       session.state = States.END;
       console.log('Comparison2:', data.session);
     }
-  } 
-  else if(session.state === States.QUESTION_COUNTDOWN) {
+  } else if (session.state === States.QUESTION_COUNTDOWN) {
     if (action !== 'SKIP_COUNTDOWN' && action !== 'END') {
-      throw HTTPError(400, 'Action enum cannot be applied in the current state')
-    }
-    else if (action === 'SKIP_COUNTDOWN') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'SKIP_COUNTDOWN') {
       session.state = States.QUESTION_OPEN;
-    }
-    else if (action === 'END') {
+    } else if (action === 'END') {
       session.state = States.END;
     }
-  } 
-  else if(session.state === States.QUESTION_OPEN) {
+  } else if (session.state === States.QUESTION_OPEN) {
     if (action !== 'GO_TO_ANSWER' && action !== 'END') {
-      throw HTTPError(400, 'Action enum cannot be applied in the current state')
-    }
-    else if (action === 'GO_TO_ANSWER') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'GO_TO_ANSWER') {
       session.state = States.ANSWER_SHOW;
-    }
-    else if (action === 'END') {
+    } else if (action === 'END') {
       session.state = States.END;
     }
-  } 
-  else if(session.state === States.QUESTION_CLOSE) {
+  } else if (session.state === States.QUESTION_CLOSE) {
     if (action !== 'GO_TO_ANSWER' && action !== 'GO_TO_FINAL_RESULTS' && action !== 'END') {
-      throw HTTPError(400, 'Action enum cannot be applied in the current state')
-    }
-    else if (action === 'GO_TO_ANSWER') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'GO_TO_ANSWER') {
       session.state = States.ANSWER_SHOW;
-    }
-    else if (action === 'GO_TO_FINAL_RESULTS') {
+    } else if (action === 'GO_TO_FINAL_RESULTS') {
       session.state = States.FINAL_RESULTS;
-    }
-    else if (action === 'END') {
+    } else if (action === 'END') {
       session.state = States.END;
     }
-  }
-  else if(session.state === States.ANSWER_SHOW) {
+  } else if (session.state === States.ANSWER_SHOW) {
     if (action !== 'NEXT_QUESTION' && action !== 'GO_TO_FINAL_RESULTS' && action !== 'END') {
-      throw HTTPError(400, 'Action enum cannot be applied in the current state')
-    }
-    else if (action === 'GO_TO_FINAL_RESULTS') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'GO_TO_FINAL_RESULTS') {
       session.state = States.FINAL_RESULTS;
-    }
-    else if (action === 'END') {
+    } else if (action === 'END') {
       session.state = States.END;
     }
-  }
-  else if(session.state === States.FINAL_RESULTS) {
+  } else if (session.state === States.FINAL_RESULTS) {
     if (action !== 'END') {
-      throw HTTPError(400, 'Action enum cannot be applied in the current state')
-    }
-    else if (action === 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state');
+    } else if (action === 'END') {
       session.state = States.END;
     }
   }
-  
+
   setData(data);
 
   return {};
-}
+};

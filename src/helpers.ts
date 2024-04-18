@@ -1,7 +1,7 @@
 import { getData } from './dataStore';
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { User, Token, States } from './returnInterfaces';
+import { User, Token } from './returnInterfaces';
 import HTTPError from 'http-errors';
 import { DataStore } from './dataInterfaces';
 import { Actions } from './returnInterfaces';
@@ -57,7 +57,6 @@ export function decodeToken(encodedToken: string): Token | null {
 export function isValidAction(action: string): boolean {
   return Object.values(Actions).includes(action as Actions);
 }
-
 
 // ========================================================================= //
 /**
