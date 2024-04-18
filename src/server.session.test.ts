@@ -105,7 +105,7 @@ const requestSessionStart = (quizId: number, token: string, autoStartNum: number
 
 const requestSessionStatus = (quizId: number, sessionid: number, token: string) => {
   return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionid}`, {}, { token });
-} 
+};
 
 const requestSessionUpdate = (quizId: number, sessionId: number, token: string, action: string) => {
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}/session/${sessionId}`, { action }, { token });
@@ -243,7 +243,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       correct: false
     }];
     const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
-    const question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    requestQuestionCreate(author.token, quiz.quizId, questionBody);
     session = requestSessionStart(quiz.quizId, author.token, 35);
   });
 
@@ -253,7 +253,7 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
   });
 
   test('Testing: Error Case - Session Id does not exist', () => {
-    let quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
+    const quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
     const incorrectSession = requestSessionStart(quiz2.quizId, author.token, 36);
     expect(requestSessionStatus(quiz.quizId, incorrectSession.sessionId, author.token)).toStrictEqual(makeCustomErrorForTest(400));
   });
@@ -266,23 +266,23 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
   test('Testing: Successful Case', () => {
     const sessionStatus = requestSessionStatus(quiz.quizId, session.sessionId, author.token);
     const expectedData = {
-        state: sessionStatus.state,
-        atQuestion: sessionStatus.atQuestion,
-        players: sessionStatus.players,
-        metadata: {
-          quizId: quiz.quizId,
-          name: expect.any(String),
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: expect.any(String),
-          numQuestions: expect.any(Number),
-          questions: expect.any(Array),
-          duration: expect.any(Number),
-          thumbnailUrl: expect.any(String)
-        }
-    }
+      state: sessionStatus.state,
+      atQuestion: sessionStatus.atQuestion,
+      players: sessionStatus.players,
+      metadata: {
+        quizId: quiz.quizId,
+        name: expect.any(String),
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: expect.any(String),
+        numQuestions: expect.any(Number),
+        questions: expect.any(Array),
+        duration: expect.any(Number),
+        thumbnailUrl: expect.any(String)
+      }
+    };
     expect(sessionStatus).toStrictEqual(expectedData);
-});
+  });
 });
 
 /// /////////////////////  Testing for Updating Session  ////////////////////////

@@ -223,63 +223,59 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
   setData(data);
 
   return {};
-
 };
 
 /// ///////////////////////////   Get a Session Status   /////////////////////////////
 
 export const getSessionStatus = (quizId: number, sessionId: number, token: string): SessionStatus | ErrorObject => {
-    const data: DataStore = getData();
-    const originalToken = decodeToken(token);
-  
-    // Check if token is valid
-    if (!originalToken) {
-      throw HTTPError(401, 'Invalid Token');
+  const data: DataStore = getData();
+  const originalToken = decodeToken(token);
+
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Find what I need
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
+  }
+
+  // Validate user ownership of quiz
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
+  if (quizIndex === -1) {
+    throw HTTPError(403, 'User is not the owner of the quiz');
+  }
+
+  // Validate session ID
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+
+  // If session not found
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  // If user is not the owner of this session's quiz
+  if (session.quiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User is not an owner of this quiz');
+  }
+
+  // Construct and return the SessionStatus object
+  const sessionStatus: SessionStatus = {
+    state: session.state,
+    atQuestion: session.atQuestion,
+    players: session.players,
+    metadata: {
+      quizId: session.quiz.quizId,
+      name: session.quiz.name,
+      timeCreated: session.quiz.timeCreated,
+      timeLastEdited: session.quiz.timeLastEdited,
+      description: session.quiz.description,
+      numQuestions: session.quiz.questions.length,
+      questions: session.quiz.questions,
+      duration: session.quiz.duration,
+      thumbnailUrl: session.quiz.thumbnailUrl
     }
-    // Find what I need
-    if (!getUser(originalToken.userId)) {
-      throw HTTPError(401, 'Invalid UserID');
-    }
-  
-    // Validate user ownership of quiz
-    const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
-    if (quizIndex === -1) {
-      throw HTTPError(403, 'User is not the owner of the quiz');
-    }
-  
-  
-    // Validate session ID
-    const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
-  
-  
-    // If session not found
-    if (!session) {
-      throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
-    }
-  
-    // If user is not the owner of this session's quiz
-    if (session.quiz.userId !== originalToken.userId) {
-      throw HTTPError(403, 'User is not an owner of this quiz');
-    }
-  
-    // Construct and return the SessionStatus object
-    const sessionStatus: SessionStatus = {
-      state: session.state,
-      atQuestion: session.atQuestion,
-      players: session.players,
-      metadata: {
-        quizId: session.quiz.quizId,
-        name: session.quiz.name,
-        timeCreated: session.quiz.timeCreated,
-        timeLastEdited: session.quiz.timeLastEdited,
-        description: session.quiz.description,
-        numQuestions: session.quiz.questions.length,
-        questions: session.quiz.questions,
-        duration: session.quiz.duration,
-        thumbnailUrl: session.quiz.thumbnailUrl
-      }
-    };
-  
-    return sessionStatus;
   };
-  
+
+  return sessionStatus;
+};
