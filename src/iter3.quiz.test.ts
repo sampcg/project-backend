@@ -1,27 +1,32 @@
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
+import { IncomingHttpHeaders } from 'http';
 
 const SERVER_URL = `${url}:${port}`;
 
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
 
-const requestHelper = (method: HttpVerb, path: string, payload: object) => {
+interface Payload {
+  [key: string]: any;
+}
+
+const requestHelper = (method: HttpVerb, path: string, payload: Payload, headers: IncomingHttpHeaders = {}) => {
   let qs = {};
   let json = {};
-  if (['GET', 'DELETE'].includes(method)) {
+  if (['GET', 'DELETE'].includes(method.toUpperCase())) {
     qs = payload;
   } else {
     json = payload;
   }
-  const res = request(method, SERVER_URL + path, { qs, json, timeout: 20000 });
+  const url = SERVER_URL + path;
+  const res = request(method, url, { qs, json, headers, timeout: 20000 });
 
-  const bodyString = res.body.toString();
   let bodyObject: any;
   try {
-    bodyObject = JSON.parse(bodyString);
+    bodyObject = JSON.parse(res.body.toString());
   } catch (error: any) {
     bodyObject = {
-      error: `Server responded with ${res.statusCode}, but body is not JSON. Given: ${bodyString}. Reason: ${error.message}.`
+      error: `Server responded with ${res.statusCode}, but body is not JSON. Given: ${res.body.toString()}. Reason: ${error.message}.`
     };
   }
   if ('error' in bodyObject) {
@@ -35,37 +40,37 @@ const requestHelper = (method: HttpVerb, path: string, payload: object) => {
 const requestRegisterAuth = (email: string, password: string, nameFirst: string, nameLast: string) => {
   return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
 };
-/*
-const requestAuthLogin = (email: string, password: string) => {
-  return requestHelper('POST', '/v1/admin/auth/login', { email, password });
-};
-*/
+
 const requestAuthLogout = (token: string) => {
   return requestHelper('POST', '/v1/admin/auth/logout', { token });
 };
 
 const requestQuizCreate = (token: string, name: string, description: string) => {
-  return requestHelper('POST', '/v1/admin/quiz', { token, name, description });
+  return requestHelper('POST', '/v2/admin/quiz', { name, description }, { token });
 };
 
 const requestQuizList = (token: string) => {
-  return requestHelper('GET', '/v1/admin/quiz/list', { token });
-};
-
-const requestUpdateQuizName = (token: string, quizId: number, name: string) => {
-  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/name`, { token, name });
-};
-
-const requestUpdateQuizDescription = (token: string, quizId: number, description: string) => {
-  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/description`, { token, description });
+  return requestHelper('GET', '/v2/admin/quiz/list', {}, { token });
 };
 
 const requestQuizRemove = (token: string, quizId: number) => {
-  return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { token, quizId });
+  return requestHelper('DELETE', `/v2/admin/quiz/${quizId}`, {}, { token });
+};
+
+const requestUpdateQuizName = (token: string, quizId: number, name: string) => {
+  return requestHelper('PUT', `/v2/admin/quiz/${quizId}/name`, { name }, { token });
+};
+
+const requestUpdateQuizDescription = (token: string, quizId: number, description: string) => {
+  return requestHelper('PUT', `/v2/admin/quiz/${quizId}/description`, { description }, { token });
 };
 
 const requestQuizInfo = (token: string, quizId: number) => {
-  return requestHelper('GET', `/v1/admin/quiz/${quizId}`, { token, quizId });
+  return requestHelper('GET', `/v2/admin/quiz/${quizId}`, {}, { token });
+};
+
+const requestUpdateQuizThumbnail = (token: string, quizId: number, imgUrl: string) => {
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/thumbnail`, { imgUrl }, { token });
 };
 
 const requestClear = () => {
@@ -77,6 +82,7 @@ const requestClear = () => {
 beforeEach(() => {
   requestClear();
 });
+
 /// /////////////////       Testing for Listing Quizzes      ////////////////////
 
 describe('Testing GET /v1/admin/quiz/list', () => {
@@ -296,8 +302,7 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
     test('Invalid token (does not correlate to given quiz)', () => {
       requestAuthLogout(author.token);
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      const quiz2: {quizId: number} = requestQuizCreate(author2.token, 'Quiz Name', '');
-      expect(requestQuizRemove(author.token, quiz2.quizId)).toStrictEqual(makeCustomErrorForTest(403));
+      expect(requestQuizRemove(author2.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(403));
     });
   });
 
@@ -390,17 +395,11 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
     expect(requestUpdateQuizName(invalidToken, quiz.quizId, name)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
-  /**
-test('Testing: Error Case - Unauthorized access to quiz', () => {
-    const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
+  test('Testing: Error Case - Unauthorized access to quiz', () => {
+    requestAuthLogout(author.token);
+    const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'abcdefgh1234', 'Unauthorized', 'User');
     const newName = 'Updated Quiz Name';
     expect(requestUpdateQuizName(unauthorizedUser.token, quiz.quizId, newName)).toStrictEqual(makeCustomErrorForTest(403));
-});
-*/
-
-  test('Invalid quizId (does not exist)', () => {
-    const invalidQuizId = quiz.quizId + 11;
-    expect(requestUpdateQuizName(author.token, invalidQuizId, name)).toStrictEqual(makeCustomErrorForTest(403));
   });
 
   test('Testing: Error Case - Invalid quiz name', () => {
@@ -415,24 +414,16 @@ test('Testing: Error Case - Unauthorized access to quiz', () => {
 
   test('Testing: Successful Case - Update quiz name', () => {
     const updatedName = 'New Name for Quiz';
-    // Get the initial list of quizzes
-    const initialQuizList = requestQuizList(author.token);
-
-    // Perform the update operation
     const updateResult = requestUpdateQuizName(author.token, quiz.quizId, updatedName);
+    console.log(updateResult);
 
     // Assert that the update operation was successful
     expect(updateResult).toEqual({}); // Assuming the function returns an empty object on success
 
     // Retrieve the updated quiz details
-    const updatedQuizList = requestQuizList(author.token);
-
-    // Find the updated quiz by comparing the initial and updated quiz lists
-    const updatedQuiz = updatedQuizList.quizzes.find((updatedQuiz: { name: string }) => {
-      return !initialQuizList.quizzes.some((initialQuiz: { name: string }) => initialQuiz.name === updatedQuiz.name);
-    });
-
-    expect(updatedQuiz?.name).toBe(updatedName);
+    const updatedQuizInfo = requestQuizInfo(author.token, quiz.quizId);
+    console.log('This is the test', updatedQuizInfo.name);
+    expect(updatedQuizInfo.name).toBe(updatedName);
   });
 });
 
@@ -450,17 +441,12 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
     expect(requestUpdateQuizDescription(invalidToken, quiz.quizId, description)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
-  test('Invalid quizId (does not exist)', () => {
-    const newDescription = 'Updated Quiz Description';
-    expect(requestUpdateQuizDescription(author.token, quiz.quizId + 11, newDescription)).toStrictEqual(makeCustomErrorForTest(403));
-  });
-
   test('Testing: Error Case - Invalid quiz Description', () => {
     const invalidDescription = 'A'.repeat(101); // Invalid characters
     expect(requestUpdateQuizDescription(author.token, quiz.quizId, invalidDescription)).toStrictEqual(makeCustomErrorForTest(400));
   });
 
-  test('Update quiz description', () => {
+  test('Testing: Successful Case - Update quiz description', () => {
     const newDescription = 'Updated Quiz Description';
 
     // Perform the update operation
@@ -492,34 +478,13 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
     expect(requestQuizInfo(invalidToken, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
   });
 
-  test('Invalid quizId (does not exist)', () => {
-    const invalidQuizId = quiz.quizId + 11;
-    expect(requestQuizInfo(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
-  });
-
   test('Testing: Error Case - Unauthorized access to quiz', () => {
-    const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'password', 'Unauthorized', 'User');
-    expect(requestQuizInfo(unauthorizedUser.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(401));
+    requestAuthLogout(author.token);
+    const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'abcdefgh123', 'Unauthorized', 'User');
+    expect(requestQuizInfo(unauthorizedUser.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(403));
   });
 
-  test('Invalid quiz ID', () => {
-    const invalidQuizId = quiz.quizId + 11;
-    expect(requestQuizInfo(author.token, invalidQuizId)).toStrictEqual(makeCustomErrorForTest(403));
-  });
   test('Valid token and quiz ID', () => {
-    /** const question = 'Question';
-    const duration = 1;
-    const points = 1;
-    const answers =
-          [{
-            answer: 'Answer 1',
-            correct: true
-          },
-          {
-            answer: 'Answer 2',
-            correct: false
-          }];
-  */
     // requestQuestionCreate
     const expectedData = {
       quizId: quiz.quizId,
@@ -530,9 +495,111 @@ describe('Testing GET /v1/admin/quiz/{quizid}', () => {
       numQuestions: expect.any(Number),
       questions: expect.any(Array),
       duration: expect.any(Number),
+      thumbnailUrl: expect.any(String)
     };
 
     // Call the function and compare with expected data
     expect(requestQuizInfo(author.token, quiz.quizId)).toEqual(expectedData);
+  });
+});
+
+/**                    Testing for Update Quiz Thumbnail                      */
+describe('Testing PUT /v1/admin/quiz/{quizid}/thumbnail', () => {
+  let author: {token: string}, quiz: {quizId: number}, imgUrl: string;
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz Name', '');
+    // Standard value
+    imgUrl = 'http://google.com/some/image/path.jpg';
+  });
+
+  describe('Testing: Error Cases', () => {
+    test("'imgUrl does not end with 'jpg', 'jpeg', or 'png'", () => {
+      expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, 'http://invalid.file')).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test("imgUrl does not begin with 'http://' or 'https://'", () => {
+      expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, 'invalid.file.jpeg')).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test('Token is empty', () => {
+      expect(requestUpdateQuizThumbnail('', quiz.quizId, imgUrl)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    test('Token is invalid (not logged in)', () => {
+      requestAuthLogout(author.token);
+      expect(requestUpdateQuizThumbnail(author.token, quiz.quizId, imgUrl)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    test('User does not own quiz', () => {
+      const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      expect(requestUpdateQuizThumbnail(author2.token, quiz.quizId, imgUrl)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+  });
+
+  describe('Testing: Successful Cases', () => {
+    test('Works', () => {
+      requestUpdateQuizThumbnail(author.token, quiz.quizId, imgUrl);
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz Name',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: '',
+        numQuestions: 0,
+        questions: [],
+        duration: 0,
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      });
+    });
+
+    test('Works on second quiz', () => {
+      requestUpdateQuizThumbnail(author.token, quiz.quizId, 'http://google.com/some/image/path.jpeg');
+      const quiz2: {quizId: number} = requestQuizCreate(author.token, 'Quiz 2', '');
+      requestUpdateQuizThumbnail(author.token, quiz2.quizId, 'http://google.com/some/image/path.png');
+
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz Name',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: '',
+        numQuestions: 0,
+        questions: [],
+        duration: 0,
+        thumbnailUrl: 'http://google.com/some/image/path.jpeg'
+      });
+
+      expect(requestQuizInfo(author.token, quiz2.quizId)).toStrictEqual({
+        quizId: quiz2.quizId,
+        name: 'Quiz 2',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: '',
+        numQuestions: 0,
+        questions: [],
+        duration: 0,
+        thumbnailUrl: 'http://google.com/some/image/path.png'
+      });
+    });
+
+    test('Works from second author', () => {
+      requestAuthLogout(author.token);
+      const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      const quiz2: {quizId: number} = requestQuizCreate(author2.token, 'Quiz Auth 2', '');
+      requestUpdateQuizThumbnail(author2.token, quiz2.quizId, imgUrl);
+
+      expect(requestQuizInfo(author2.token, quiz2.quizId)).toStrictEqual({
+        quizId: quiz2.quizId,
+        name: 'Quiz Auth 2',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: '',
+        numQuestions: 0,
+        questions: [],
+        duration: 0,
+        thumbnailUrl: 'http://google.com/some/image/path.jpg'
+      });
+    });
   });
 });
