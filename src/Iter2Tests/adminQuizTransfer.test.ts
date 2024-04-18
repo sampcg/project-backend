@@ -1,10 +1,5 @@
-test('expect 2', () => {
-  expect(1 + 1).toStrictEqual(2);
-});
-
-/*
 import request, { HttpVerb } from 'sync-request-curl';
-import { port, url } from './config.json';
+import { port, url } from '../config.json';
 
 const SERVER_URL = `${url}:${port}`;
 const ERROR = { error: expect.any(String) };
@@ -42,7 +37,9 @@ const adminQuizCreate = (token: string, name: string, description: string) => {
 const adminQuizTransfer = (quizId: number, token: string, userEmail: string) => {
   return createRequest('POST', `/v1/admin/quiz/${quizId}/transfer`, { quizId, token, userEmail });
 };
-
+const adminQuizTransferV2 = (quizId: number, token: string, userEmail: string) => {
+  return createRequest('POST', `/v1/admin/quiz/${quizId}/transfer`, { quizId, token, userEmail });
+};
 /// /////////////////////////////////////////////////////////////////////////////
 
 beforeEach(() => {
@@ -94,4 +91,50 @@ describe('adminQuizTransfer function tests', () => {
     expect(transfer.statusCode).toBe(FORBIDDEN);
   });
 });
-*/
+
+// adminQuizTransferV2
+describe.only('adminQuizTransferV2 function tests', () => {
+  let user: { statusCode: number; body: {token: string}; };
+  let user2: { statusCode: number; body: {token: string}; };
+  let quiz: { statusCode: number; body: {quizId: number}; };
+  let quiz2: { statusCode: number; body: {quizId: number}; };
+  beforeEach(() => {
+    user = adminAuthRegister('hayden.smith@unsw.edu.au', '123456ABC', 'Hayden', 'Smith');
+    user2 = adminAuthRegister('validemail@gmail.com', '123456ABC', 'Jake', 'Renzella');
+    quiz = adminQuizCreate(user.body.token, 'my quiz name', 'my quiz description');
+    quiz2 = adminQuizCreate(user2.body.token, 'my quiz name', 'my origin quiz description');
+  });
+  test('Test transferring a quiz successfully', () => {
+    const transfer = adminQuizTransferV2(quiz.body.quizId, user.body.token, 'validemail@gmail.com');
+    expect(transfer.body).toStrictEqual({});
+    expect(transfer.statusCode).toBe(SUCCESS);
+  });
+  test('userEmail is not a real user', () => {
+    const transfer = adminQuizTransferV2(quiz.body.quizId, user.body.token, 'validema1531il@gmail.com');
+    expect(transfer.body).toStrictEqual(ERROR);
+    expect(transfer.statusCode).toBe(BADREQUEST);
+  });
+  test('userEmail is the current logged in user', () => {
+    const transfer = adminQuizTransferV2(quiz.body.quizId, user.body.token, 'hayden.smith@unsw.edu.au');
+    expect(transfer.body).toStrictEqual(ERROR);
+    expect(transfer.statusCode).toBe(BADREQUEST);
+  });
+  test('Quiz ID refers to a quiz that has a name that is already used by the target user', () => {
+    const transfer = adminQuizTransferV2(quiz2.body.quizId, user2.body.token, 'hayden.smith@unsw.edu.au');
+    expect(transfer.body).toStrictEqual(ERROR);
+    expect(transfer.statusCode).toBe(BADREQUEST);
+  });
+  test('Token is empty or invalid (does not refer to valid logged in user session)', () => {
+    const transfer = adminQuizTransferV2(quiz.body.quizId, user.body.token + 'Math.random()', 'validema1531il@gmail.com');
+    expect(transfer.body).toStrictEqual(ERROR);
+    expect(transfer.statusCode).toBe(UNAUTHORIZED);
+    const transfer2 = adminQuizTransferV2(quiz.body.quizId, '', 'validema1531il@gmail.com');
+    expect(transfer2.body).toStrictEqual(ERROR);
+    expect(transfer2.statusCode).toBe(UNAUTHORIZED);
+  });
+  test('Valid token is provided, but either the quiz ID is invalid, or the user does not own the quiz', () => {
+    const transfer = adminQuizTransferV2(quiz.body.quizId, user2.body.token, 'hayden.smith@unsw.edu.au');
+    expect(transfer.body).toStrictEqual(ERROR);
+    expect(transfer.statusCode).toBe(FORBIDDEN);
+  });
+});

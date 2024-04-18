@@ -1,7 +1,7 @@
 
 import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
-import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUserByEmail, isSessionValid } from './helpers';
+import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUserByEmail, isSessionValid, validateTokenStructureV2 } from './helpers';
 import { ErrorObject, EmptyObject, Quiz, QuizInfo, Question } from './returnInterfaces';
 
 // Error return type
@@ -425,7 +425,7 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
 export const adminQuizTransferV2 = (quizId: number, token: string, userEmail: string): EmptyObject | ErrorObject => {
   const data = getData();
   const originalToken = decodeToken(token);
-  validateTokenStructure(token);
+  validateTokenStructureV2(token);
   if (!originalToken) {
     throw HTTPError(401, 'Token is empty or invalid');
   }
@@ -459,6 +459,7 @@ export const adminQuizTransferV2 = (quizId: number, token: string, userEmail: st
   quiz.timeLastEdited = Date.now();
 
   setData(data);
+  return {};
 };
 
 /**                           Update Quiz Thumbnail                           */
