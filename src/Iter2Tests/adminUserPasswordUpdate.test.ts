@@ -61,7 +61,6 @@ describe('adminUserPasswordUpdate function tests', () => {
     expect(adminAuthLogin('hayden.smith@unsw.edu.au', 'Tw3lv3L3tt3r').statusCode).toStrictEqual(SUCCESS);
   });
   /** error cases */
-/*
   test('Token is empty or invalid (does not refer to valid logged in user session)', () => {
     const test = adminUserPasswordUpdate('1531', '123456ABC', 'Tw3lv3L3tt3r');
     expect(test.body).toStrictEqual(ERROR);
