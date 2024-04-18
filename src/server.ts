@@ -53,6 +53,8 @@ import {
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
+import { showChatList } from './chat';
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -330,6 +332,12 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { imgUrl } = req.body;
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
+});
+
+/**                              Show Chat List                               */
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const { playerid } = req.params;
+  res.json(showChatList(parseInt(playerid)));
 });
 
 /**                                 Clear                                     */
