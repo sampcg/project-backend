@@ -34,7 +34,6 @@ import {
   adminQuizDescriptionUpdate,
   adminQuizInfo,
   adminUpdateQuizThumbnail,
-  submitAnswers,
 } from './quiz';
 
 import {
@@ -51,6 +50,10 @@ import {
   adminSessionView,
   getSessionStatus
 } from './session';
+
+import {
+  submitAnswers,
+} from './results';
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
@@ -333,6 +336,7 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
 });
 
+// player submission of answers
 app.put('/v1/player/:playerId/question/:questionPosition/answer', (req: Request, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
