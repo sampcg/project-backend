@@ -126,7 +126,8 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
     state: States.LOBBY,
     autoStartNum: autoStartNum,
     players: players,
-    atQuestion: atQuestion
+    atQuestion: atQuestion,
+    messages: []
   };
   data.session.push(newSession);
   setData(data);

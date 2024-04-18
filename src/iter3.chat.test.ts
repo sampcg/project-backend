@@ -1,7 +1,6 @@
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
 import { IncomingHttpHeaders } from 'http';
-import { Actions } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -63,19 +62,19 @@ const requestQuestionCreate = (token: string, quizId: number, questionBody: Ques
 };
 
 const requestSessionStart = (token: string, quizId: number, autoStartNum: number) => {
-    return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
 };
 
 const requestPlayerJoin = (sessionId: number, name: string) => {
-    return requestHelper('POST', `/v1/player/join`, {sessionId, name}, {});
+  return requestHelper('POST', '/v1/player/join', { sessionId, name }, {});
 };
 
 const requestChatList = (playerId: number) => {
-    return requestHelper('GET', `/v1/player/${playerId}/chat`, {}, {});
+  return requestHelper('GET', `/v1/player/${playerId}/chat`, {}, {});
 };
 
 const requestSendChat = (playerId: number, message: { messageBody: string }) => {
-    return requestHelper('POST', `/v1/player/${playerId}/chat`, {message}, {});
+  return requestHelper('POST', `/v1/player/${playerId}/chat`, { message }, {});
 };
 
 const requestClear = () => {
@@ -88,12 +87,12 @@ beforeEach(() => {
 });
 
 /**                             Testing Send Chat                             */
-describe("Testing POST /v1/player/{playerid}/chat", () => {
-    let author: {token: string}, quiz: {quizId: number}, player: {playerId: number}, session: {sessionId: number};
-    beforeEach(() => {
-        author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-        quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
-        const answers: AnswerInput[] =
+describe('Testing POST /v1/player/{playerid}/chat', () => {
+  let author: {token: string}, quiz: {quizId: number}, player: {playerId: number}, session: {sessionId: number};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+    const answers: AnswerInput[] =
             [{
               answer: 'Answer 1',
               correct: true
@@ -102,45 +101,45 @@ describe("Testing POST /v1/player/{playerid}/chat", () => {
               answer: 'Answer 2',
               correct: false
             }];
-        const thumbnailUrl: string = 'http://google.com/some/image/path.jpg';
-        const questionBody: QuestionBody = { question: 'Question', duration: 1, points: 1, answers: answers, thumbnailUrl: thumbnailUrl };
-        requestQuestionCreate(author.token, quiz.quizId, questionBody);
-        session = requestSessionStart(author.token, quiz.quizId, 3);
-        player = requestPlayerJoin(session.sessionId, 'Michael Hourn');
-    });
-    
-    describe("TESTING: Error Cases", () => {
-        test('playerID does not exist', () => {
-            expect(requestSendChat(player.playerId + 1, { messageBody: 'hello' })).toStrictEqual(makeCustomErrorForTest(400));
-        });
+    const thumbnailUrl = 'http://google.com/some/image/path.jpg';
+    const questionBody: QuestionBody = { question: 'Question', duration: 1, points: 1, answers: answers, thumbnailUrl: thumbnailUrl };
+    requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    session = requestSessionStart(author.token, quiz.quizId, 3);
+    player = requestPlayerJoin(session.sessionId, 'Michael Hourn');
+  });
 
-        test('messageBody less than 1 character', () => {
-            expect(requestSendChat(player.playerId, { messageBody: '' })).toStrictEqual(makeCustomErrorForTest(400));
-        });
-
-        test.todo('messageBody more than 100 characters', () => {
-            const longMessage = '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789';
-            expect(requestSendChat(player.playerId, { messageBody: longMessage })).toStrictEqual(makeCustomErrorForTest(400));
-        });
+  describe('TESTING: Error Cases', () => {
+    test('playerID does not exist', () => {
+      expect(requestSendChat(player.playerId + 1, { messageBody: 'hello' })).toStrictEqual(makeCustomErrorForTest(400));
     });
 
-    describe("TESTING: Success Cases", () => {
-        test('Correct return type', () => {
-            expect(requestSendChat(player.playerId, { messageBody: 'hello' })).toStrictEqual({});
-        });
-
-        test('Message appears', () => {
-            requestSendChat(player.playerId, { messageBody: 'hello everyone' });
-            expect(requestChatList(player.playerId)).toStrictEqual({
-                messages: [
-                    {
-                        messageBody: 'hello everyone',
-                        playerId: player.playerId,
-                        playerName: 'Michael Hourn',
-                        timeSent: expect.any(Number)
-                    }
-                ]
-            });
-        });
+    test('messageBody less than 1 character', () => {
+      expect(requestSendChat(player.playerId, { messageBody: '' })).toStrictEqual(makeCustomErrorForTest(400));
     });
+
+    test.todo('messageBody more than 100 characters', () => {
+      const longMessage = '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789';
+      expect(requestSendChat(player.playerId, { messageBody: longMessage })).toStrictEqual(makeCustomErrorForTest(400));
+    });
+  });
+
+  describe('TESTING: Success Cases', () => {
+    test('Correct return type', () => {
+      expect(requestSendChat(player.playerId, { messageBody: 'hello' })).toStrictEqual({});
+    });
+
+    test('Message appears', () => {
+      requestSendChat(player.playerId, { messageBody: 'hello everyone' });
+      expect(requestChatList(player.playerId)).toStrictEqual({
+        messages: [
+          {
+            messageBody: 'hello everyone',
+            playerId: player.playerId,
+            playerName: 'Michael Hourn',
+            timeSent: expect.any(Number)
+          }
+        ]
+      });
+    });
+  });
 });

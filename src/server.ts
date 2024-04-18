@@ -53,6 +53,8 @@ import {
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
+import { sendChatMessage } from './chat';
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -213,6 +215,7 @@ app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
   const quizId = req.params.quizId;
   res.json(adminTrashRestore(token, parseInt(quizId)));
 });
+
 /**                             Update Quiz Name                              */
 app.put('/v2/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const { name } = req.body;
@@ -330,6 +333,13 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { imgUrl } = req.body;
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
+});
+
+/**                            Send Chat Message                              */
+app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const { playerid } = req.params;
+  const { message } = req.body;
+  res.json(sendChatMessage(parseInt(playerid), message));
 });
 
 /**                                 Clear                                     */
