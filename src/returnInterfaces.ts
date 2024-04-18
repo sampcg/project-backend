@@ -76,9 +76,17 @@ export enum States {
   QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN',
   QUESTION_OPEN = 'QUESTION_OPEN',
   QUESTION_CLOSE = 'QUESTION_CLOSE',
-  ANSWER_CLOSE = 'ANSWER_CLOSE',
+  ANSWER_SHOW = 'ANSWER_CLOSE',
   FINAL_RESULTS = 'FINAL_RESULTS',
   END = 'END'
+}
+
+export enum Actions {
+  NextQuestion = 'NEXT_QUESTION',
+  SkipCountdown = 'SKIP_COUNTDOWN',
+  GoToAnswer = 'GO_TO_ANSWER',
+  GoToFinalResults = 'GO_TO_FINAL_RESULTS',
+  End = 'END'
 }
 
 export interface Session {

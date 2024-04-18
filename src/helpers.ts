@@ -5,6 +5,7 @@ import { User, Token } from './returnInterfaces';
 import validator from 'validator';
 import HTTPError from 'http-errors';
 import { DataStore } from './dataInterfaces';
+import { Actions } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -52,6 +53,10 @@ export function decodeToken(encodedToken: string): Token | null {
     console.error('Invalid token');
     return null;
   }
+}
+
+export function isValidAction(action: string): boolean {
+  return Object.values(Actions).includes(action as Actions);
 }
 
 // ========================================================================= //
