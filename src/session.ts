@@ -1,4 +1,7 @@
-import { getData /* setData */ } from './dataStore';
+import {
+  getData, /* setData */
+  setData
+} from './dataStore';
 import { getUser, /* getQuiz */ decodeToken /* getRandomColour */ } from './helpers';
 import { /* EmptyObject */ ErrorObject, /* Quiz, Question, Answer */ States, Session, SessionStatus, Player } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
@@ -111,69 +114,82 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
     newSessionId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
   }
   /**
-   * Edits sam made below 
+   * Edits sam made below
    */
 
-    // Initialize players array as empty
-    const players: Player[] = [];
+  // Initialize players array as empty
+  const players: Player[] = [];
 
-    // Initialize atQuestion to 0
-    const atQuestion = 0;
-  
+  // Initialize atQuestion to 0
+  const atQuestion = 0;
+
   const copiedQuiz = { ...quiz };
-  const newSession:Session = { 
+  const newSession:Session = {
     quizSessionId: newSessionId,
-    quiz: copiedQuiz, 
-    state: States.LOBBY, 
+    quiz: copiedQuiz,
+    state: States.LOBBY,
     autoStartNum: autoStartNum,
     players: players,
     atQuestion: atQuestion
- };
+  };
   data.session.push(newSession);
-
+  setData(data);
   return { sessionId: newSessionId };
 };
 
-
 /// ///////////////////////////   Get a Session Status   /////////////////////////////
 
+export const getSessionStatus = (quizId: number, sessionId: number, token: string): SessionStatus | ErrorObject => {
+  const data: DataStore = getData();
+  const originalToken = decodeToken(token);
 
-export const getSessionStatus = (quizSessionId: number, token: string): SessionStatus | ErrorObject => {
-    const data: DataStore = getData();
-    const originalToken = decodeToken(token);
-  
-    // Check if token is valid
-    if (!originalToken) {
-      throw HTTPError(401, 'Invalid Token');
-    }
-  
-    // Find what I need
-    if (!getUser(originalToken.userId)) {
-      throw HTTPError(401, 'Invalid UserID');
-    }
-  
-    // Find the session by ID
-    const session = data.session.find(session => session.quizSessionId === quizSessionId);
-  
-    // If session not found
-    if (!session) {
-      throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
-    }
-  
-    // If user is not the owner of this session's quiz
-    if (session.quiz.userId !== originalToken.userId) {
-      throw HTTPError(403, 'User is not an owner of this quiz');
-    }
-  
-    // Prepare the session status response
-    const sessionStatus: SessionStatus = {
-      state: session.state,
-      atQuestion: session.atQuestion,
-      players: session.players,
-      metadata: session.quiz,
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Find what I need
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
+  }
 
-    };
-  
-    return sessionStatus;
+  // Validate user ownership of quiz
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
+  if (quizIndex === -1) {
+    throw HTTPError(403, 'User is not the owner of the quiz');
+  }
+
+
+  // Validate session ID
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+
+
+  // If session not found
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  // If user is not the owner of this session's quiz
+  if (session.quiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User is not an owner of this quiz');
+  }
+
+  // Construct and return the SessionStatus object
+  const sessionStatus: SessionStatus = {
+    state: session.state,
+    atQuestion: session.atQuestion,
+    players: session.players,
+    metadata: {
+      quizId: session.quiz.quizId,
+      name: session.quiz.name,
+      timeCreated: session.quiz.timeCreated,
+      timeLastEdited: session.quiz.timeLastEdited,
+      description: session.quiz.description,
+      numQuestions: session.quiz.questions.length,
+      questions: session.quiz.questions,
+      duration: session.quiz.duration,
+      thumbnailUrl: session.quiz.thumbnailUrl
+    }
   };
-  
+
+  return sessionStatus;
+};

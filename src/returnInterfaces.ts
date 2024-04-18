@@ -43,6 +43,7 @@ export interface User {
 
 export interface Player {
   name: string;
+  playerId: number;
 }
 
 export interface Quiz {

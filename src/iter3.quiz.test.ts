@@ -62,11 +62,7 @@ const requestUpdateQuizName = (token: string, quizId: number, name: string) => {
 };
 
 const requestUpdateQuizDescription = (token: string, quizId: number, description: string) => {
-<<<<<<< HEAD
-  return requestHelper('PUT', `/v2/admin/quiz/${quizId}/description`, {description},{ token });
-=======
   return requestHelper('PUT', `/v2/admin/quiz/${quizId}/description`, { description }, { token });
->>>>>>> e4e762618feb7b5595ebd6458a5aaa297c5a18b3
 };
 
 const requestQuizInfo = (token: string, quizId: number) => {

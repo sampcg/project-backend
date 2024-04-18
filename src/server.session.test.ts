@@ -102,9 +102,9 @@ const requestSessionStart = (quizId: number, token: string, autoStartNum: number
   return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
 };
 
-const requestSessionStatus = (token: string, quizId: number, sessionid: number) => {
-    return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionid}`, {}, {token} )
-}
+const requestSessionStatus = (quizId: number, sessionid: number, token: string) => {
+  return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionid}`, {}, { token });
+};
 
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {}, {});
@@ -221,36 +221,61 @@ describe('Testing Post /v1/admin/quiz/{quizid}/session/start', () => {
   });
 });
 
-
 /// /////////////////////  Get quiz session status  ////////////////////////
 
 describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
-    let author: {token: string}, quiz: {quizId: number}, answers: AnswerInput[], session: {quizSessionId: number}
-    beforeEach(() => {
-      author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-      quiz = requestQuizCreate(author.token, 'Quiz 1', 'a').quizId;
-      session = requestSessionStart( quiz.quizId, author.token, 35);
-    });
-  
-    test('Testing: Error Case - Invalid Token', () => {
-      const invalidToken = author.token + 'Math.random()';
-      expect(requestSessionStatus(invalidToken, quiz.quizId, session.quizSessionId)).toStrictEqual(makeCustomErrorForTest(401));
-    });
-  
-    test('Testing: Error Case - Session Id does not exist', () => {
-      const nonExistingSessionId = session.quizSessionId + 100;
-      expect(requestSessionStatus(author.token, quiz.quizId, nonExistingSessionId)).toStrictEqual(makeCustomErrorForTest(400));
-    });
-  
-    test('Testing: Error Case - User not owner of the quiz', () => {
-      const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'abcdefgh1234', 'Unauthorized', 'User');
-      expect(requestSessionStatus(unauthorizedUser.token, quiz.quizId, session.quizSessionId)).toStrictEqual(makeCustomErrorForTest(403));
-    });
-  
-    test('Testing: Successful Case', () => {
-      const sessionStatus = requestSessionStatus(author.token, quiz.quizId, session.quizSessionId);
-      expect(sessionStatus).toHaveProperty('state', 'LOBBY');
-    });
+  let author: {token: string}, quiz: {quizId: number}, answers: AnswerInput[], session: {sessionId: number};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'a');
+    answers =
+    [{
+      answer: 'Answer 1',
+      correct: true
+    },
+    {
+      answer: 'Answer 2',
+      correct: false
+    }];
+    const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
+    const question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    session = requestSessionStart(quiz.quizId, author.token, 35);
   });
-  
-  
+
+  test('Testing: Error Case - Invalid Token', () => {
+    const invalidToken = 'invalid-token';
+    expect(requestSessionStatus(quiz.quizId, session.sessionId, invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
+  });
+
+  test('Testing: Error Case - Session Id does not exist', () => {
+    let quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
+    const incorrectSession = requestSessionStart(quiz2.quizId, author.token, 36);
+    expect(requestSessionStatus(quiz.quizId, incorrectSession.sessionId, author.token)).toStrictEqual(makeCustomErrorForTest(400));
+  });
+
+  test('Testing: Error Case - User not owner of the quiz', () => {
+    const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'abcdefgh1234', 'Unauthorized', 'User');
+    expect(requestSessionStatus(quiz.quizId, session.sessionId, unauthorizedUser.token)).toStrictEqual(makeCustomErrorForTest(403));
+  });
+
+  test('Testing: Successful Case', () => {
+    const sessionStatus = requestSessionStatus(quiz.quizId, session.sessionId, author.token);
+    const expectedData = {
+        state: sessionStatus.state,
+        atQuestion: sessionStatus.atQuestion,
+        players: sessionStatus.players,
+        metadata: {
+          quizId: quiz.quizId,
+          name: expect.any(String),
+          timeCreated: expect.any(Number),
+          timeLastEdited: expect.any(Number),
+          description: expect.any(String),
+          numQuestions: expect.any(Number),
+          questions: expect.any(Array),
+          duration: expect.any(Number),
+          thumbnailUrl: expect.any(String)
+        }
+    }
+    expect(sessionStatus).toStrictEqual(expectedData);
+  });
+});
