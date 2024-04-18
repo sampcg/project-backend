@@ -1,6 +1,6 @@
 import { getData /* setData */ } from './dataStore';
 import { getUser, /* getQuiz */ decodeToken /* getRandomColour */ } from './helpers';
-import { /* EmptyObject */ ErrorObject, /* Quiz, Question, Answer */ States, Session } from './returnInterfaces';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
 
@@ -118,3 +118,8 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
 
   return { sessionId: newSessionId };
 };
+
+/// //////////////////////  Update a Quiz Session State  ///////////////////////
+export const adminSessionUpdate = (quizId: number, sessionId: number, token: string, action: string): EmptyObject | ErrorObject => {
+  return {};
+}

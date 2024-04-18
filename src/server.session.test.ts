@@ -102,6 +102,10 @@ const requestSessionStart = (quizId: number, token: string, autoStartNum: number
   return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
 };
 
+const requestSessionUpdate = (quizId: number, sessionId: number, token: string, action: string) => {
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { sessionId, action }, { token });
+};
+
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {}, {});
 };
@@ -212,5 +216,18 @@ describe('Testing Post /v1/admin/quiz/{quizid}/session/start', () => {
       console.log(requestQuizInfo(author.token, quiz.quizId).questions);
       expect(requestSessionStart(quiz.quizId, author.token, 35)).toStrictEqual({ sessionId: expect.any(Number) });
     });
+  });
+});
+
+/// /////////////////////  Testing for Updating Session  ////////////////////////
+describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
+  let author: {token: string}, quiz: {quizId: number}, session: {sessionId: number};
+
+  describe('Testing Error Cases', () => {
+
+  });
+
+  describe('Testing Success Cases', () => {
+
   });
 });

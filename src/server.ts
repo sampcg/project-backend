@@ -43,7 +43,8 @@ import {
 
 import {
   // adminSessionView,
-  adminSessionStart
+  adminSessionStart,
+  adminSessionUpdate
 } from './session';
 
 import { adminTrashList, adminTrashRestore } from './trash';
@@ -283,6 +284,16 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
   const { autoStartNum } = req.body;
   console.log(quizid);
   const result = adminSessionStart(parseInt(quizid), token, parseInt(autoStartNum));
+  res.json(result);
+});
+
+/**                       Update a Quiz Session State                         */
+app.put('/v1/admin/quiz/{quizid}/session/{sessionid}', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, sessionid } = req.params;
+  const { action } = req.body;
+  console.log(quizid);
+  const result = adminSessionUpdate(parseInt(quizid), parseInt(sessionid), token, action);
   res.json(result);
 });
 
