@@ -4,10 +4,15 @@ import {
   decodeToken,
   validateTokenStructure
 } from './helpers';
+import HTTPError from 'http-errors';
+
 import {
   ErrorObject,
   EmptyObject,
-  Token
+  Token,
+  Guest,
+  States,
+  Session
 } from './returnInterfaces';
 import validator from 'validator';
 
@@ -254,66 +259,72 @@ export const adminUserDetailsUpdate = (token: string, email : string,
  * @returns {} - empty object
  */
 
-export const adminUserPasswordUpdate = (token: string, oldPassword: string,
-  newPassword: string): EmptyObject | ErrorObject => {
-  /** Token is empty or invalid (does not refer to valid logged in user session) */
-  const data = getData();
-  const originalToken = decodeToken(token);
-  if (!originalToken) {
-    return { error: 'Token is empty or invalid', code: 401 };
-  }
-  const user = data.users.find((user) => originalToken.userId === user.userId);
-  if (!user) {
-    return { error: 'User with the provided token does not exist', code: 401 };
-  }
-  validateTokenStructure(token);
-  /** Old Password is not the correct old password */
-  if (oldPassword !== user.password) {
-    return { error: 'Old Password is not the correct old password', code: 400 };
-  }
-  /** Old Password and New Password match exactly */
-  if (oldPassword === newPassword) {
-    return { error: 'Old Password and New Password match exactly', code: 400 };
-  }
-  /** New Password has already been used before by this user */
-  if (user.oldPassword === newPassword) {
-    return { error: 'New Password has already been used before by this user', code: 400 };
-  }
-  /** New Password is less than 8 characters */
-  if (newPassword.length < 8) {
-    return { error: 'New Password is less than 8 characters', code: 400 };
-  }
-  /** New Password does not contain at least one number and at least one letter */
-  let hasNumber = false;
-  let hasLower = false;
-  let hasUpper = false;
-  for (const character of newPassword) {
-    if (!isNaN(Number(character))) {
-      hasNumber = true;
-    } else if (character >= 'a' && character <= 'z') {
-      hasLower = true;
-    } else if (character >= 'A' && character <= 'Z') {
-      hasUpper = true;
-    }
+function createGuestPlayer(sessionId: number, name: string): { playerId: number } | ErrorObject {
+  const data = getData(); // Get session data from somewhere
+  const session = data.sessions.find((sess: Session) => sess.quizSessionId === sessionId);
+
+  // Check if session exists and is in LOBBY state
+  if (!session || session.state !== States.LOBBY) {
+    throw HTTPError(400, 'Session not found or not in LOBBY state');
   }
 
-  if (!(hasNumber && (hasLower || hasUpper))) {
-    return { error: 'New Password does not contain at least one number and at least one letter', code: 400 };
+  // Check if the name is empty, generate a random name if so
+  if (name.trim() === '') {
+    name = generateRandomName();
   }
-  /** correct output */
-  user.oldPassword = user.password;
-  user.password = newPassword;
+
+  // Check if the name is unique
+  if (data.guest.some((guest: Guest) => guest.name === name && guest.sessionId === sessionId)) {
+    throw HTTPError(400, 'Name Not Unique within the session');
+  }
+
+  // Generate a playerId for the guest
+  const playerId = generatePlayerId();
+
+  // Add the guest to the session
+  const guest: Guest = {
+    sessionId: sessionId,
+    name: name,
+    playerId: playerId
+  };
+  data.guest.push(guest);
+
+  // Update session data
   setData(data);
-  return {};
-};
 
+  return { playerId };
+}
 
+// Function to generate a random name with the structure "[5 letters][3 numbers]"
+function generateRandomName(): string {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  let name = '';
 
+  // Generate 5 random letters
+  for (let i = 0; i < 5; i++) {
+    name += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
 
+  // Generate 3 random numbers ensuring no repetition
+  const numbersArray = numbers.split('');
+  for (let i = 0; i < 3; i++) {
+    const index = Math.floor(Math.random() * numbersArray.length);
+    name += numbersArray[index];
+    numbersArray.splice(index, 1);
+  }
 
+  return name;
+}
+
+// Function to generate a random playerId (just for illustration, you may have your own logic)
+function generatePlayerId(): number {
+  return Math.floor(Math.random() * 10000) + 1;
+}
 
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js
 export { adminAuthRegister };
 export { adminAuthLogin };
 export { adminUserDetails };
+export { createGuestPlayer };

@@ -121,7 +121,7 @@ beforeEach(() => {
 });
 
 /// /////////////////      Testing for Creating Guest     ////////////////////
-describe('Testing POST /v1/player/join', () => { 
+describe('Testing POST /v1/player/join', () => {
 
     let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, answers: AnswerInput[];
     beforeEach(() => {
@@ -143,7 +143,7 @@ describe('Testing POST /v1/player/join', () => {
     describe('Creating a Guest Player', () => {
 
         // Going to request a New Session from SessionStart Function
-        test('Name of user entered is not unique (compared to other users who have already joined), expect 400', () => { 
+        test('Name of user entered is not unique (compared to other users who have already joined), expect 400', () => {
           const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
           const validName = 'Hayden'
           expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));
@@ -152,14 +152,14 @@ describe('Testing POST /v1/player/join', () => {
           expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(400)));
         });
 
-        test('Session Id does not refer to a valid session, expect 400', () => { 
+        test('Session Id does not refer to a valid session, expect 400', () => {
           const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
           const invalidSessionid = sessionId + 1;
           const validName = 'Hayden'
           expect(requestGuestCreate(invalidSessionid, validName).toStrictEqual(makeCustomErrorForTest(400)));
         });
 
-        test('Session is not in LOBBY state, expect 400', () => { 
+        test('Session is not in LOBBY state, expect 400', () => {
           const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
           const invalidSessionid = sessionId + 1;
           const validName = 'Hayden'
@@ -167,18 +167,17 @@ describe('Testing POST /v1/player/join', () => {
           expect(requestGuestCreate(invalidSessionid, validName).toStrictEqual(makeCustomErrorForTest(400)));
         });
 
-        test('Creating A Valid Guest Player, Should return a Unique PlayerId, expect 200', () => { 
+        test('Creating A Valid Guest Player, Should return a Unique PlayerId, expect 200', () => {
           const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
           // Should Generate a Unique Id
           const validName = ''
           expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));
         });
 
-
     });
 });
 
-describe('Testing GET /v1/player/${playerId}', () => { 
+describe('Testing GET /v1/player/${playerId}', () => {
 
   let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, answers: AnswerInput[];
     beforeEach(() => {
@@ -196,10 +195,10 @@ describe('Testing GET /v1/player/${playerId}', () => {
     const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
     question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
     });
-  
+
     describe ('Getting the Status of a Guest Player', () => {
 
-      test('Going to Pass in invalid player ID, expect 400', () => { 
+      test('Going to Pass in invalid player ID, expect 400', () => {
         const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
         const validName = 'Hayden'
         const playerId = expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));
@@ -207,7 +206,7 @@ describe('Testing GET /v1/player/${playerId}', () => {
         expect(requestGuestStatus(playerId + 5).toStrictEqual(makeCustomErrorForTest(400)));
       });
 
-      test('Going to Pass in invalid player ID, expect 400', () => { 
+      test('Going to Pass in invalid player ID, expect 400', () => {
         const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
         const validName = 'Hayden'
         const playerId = expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));
@@ -223,7 +222,7 @@ describe('Testing GET /v1/player/${playerId}', () => {
 
 });
 
-describe('Testing GET /v1/player/${playerId}/question/${questionposition}', () => { 
+describe('Testing GET /v1/player/${playerId}/question/${questionposition}', () => {
 
   let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, answers: AnswerInput[];
     beforeEach(() => {
@@ -241,10 +240,10 @@ describe('Testing GET /v1/player/${playerId}/question/${questionposition}', () =
     const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
     question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
     });
-  
+
     describe ('Getting question status of the player, expect 200 and object', () => {
 
-      test('Successful Cases of the guest question status function', () => { 
+      test('Successful Cases of the guest question status function', () => {
         const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
         const validName = 'Hayden'
         const playerId = expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));
@@ -257,7 +256,7 @@ describe('Testing GET /v1/player/${playerId}/question/${questionposition}', () =
 
     describe ('Unsuccessful Cases of the guest question status function, expect 400s', () => {
 
-      test('PlayerId doesnt exist', () => { 
+      test('PlayerId doesnt exist', () => {
         const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
         const validName = 'Hayden'
         const playerId = expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));
@@ -267,7 +266,7 @@ describe('Testing GET /v1/player/${playerId}/question/${questionposition}', () =
         expect(requestGuestQuestionStatus(playerId + 1, questionposition).toStrictEqual(makeCustomErrorForTest(400)));
       });
 
-      test('Invalid States of the session', () => { 
+      test('Invalid States of the session', () => {
         const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
         const validName = 'Hayden'
         const playerId = expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));

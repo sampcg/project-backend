@@ -1,4 +1,4 @@
-import { User, Quiz, Token, Session } from './returnInterfaces';
+import { User, Quiz, Token, Session, Guest } from './returnInterfaces';
 
 export interface DataStore {
   users: User[],

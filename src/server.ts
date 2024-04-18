@@ -21,6 +21,7 @@ import {
   adminAuthLogout,
   adminUserDetailsUpdate,
   adminUserPasswordUpdate,
+  createGuestPlayer
 } from './auth';
 
 import {
@@ -78,6 +79,25 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // const save = () => {
 //   fs.writeFileSync('./database.json', JSON.stringify(getData()));
 // };
+/**                               Guest Register                               */
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  const { sessionId, name } = req.body;
+
+  try {
+    // Call the function to create a guest player
+    const playerInfo = createGuestPlayer(sessionId, name);
+    res.status(200).json(playerInfo);
+  } catch (error) {
+    // Handle errors
+    if (error.code) {
+      // If it's an HTTP error, return the error object
+      res.status(error.code).json({ error: error.message });
+    } else {
+      // If it's any other error, return a generic 500 error
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+});
 
 /**                               Auth Register                               */
 // First Function By Abrar
