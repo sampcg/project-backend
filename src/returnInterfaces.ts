@@ -41,6 +41,10 @@ export interface User {
   newPassword: string;
 }
 
+export interface Player {
+  name: string;
+}
+
 export interface Quiz {
   userId: number;
   quizId: number;
@@ -69,4 +73,30 @@ export interface QuizInfo {
 export interface Token {
   userId: number;
   sessionId: string;
+}
+
+export enum States {
+  LOBBY = 'LOBBY',
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN',
+  QUESTION_OPEN = 'QUESTION_OPEN',
+  QUESTION_CLOSE = 'QUESTION_CLOSE',
+  ANSWER_CLOSE = 'ANSWER_CLOSE',
+  FINAL_RESULTS = 'FINAL_RESULTS',
+  END = 'END'
+}
+
+export interface Session {
+  quizSessionId: number;
+  quiz: Quiz;
+  state: States;
+  atQuestion: number;
+  players: Player[];
+  autoStartNum: number;
+}
+
+export interface SessionStatus {
+  state: States;
+  atQuestion: number;
+  players: Player[];
+  metadata: QuizInfo;
 }

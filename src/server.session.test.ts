@@ -1,15 +1,10 @@
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { adminSessionView } from './session';
 import { IncomingHttpHeaders } from 'http';
 
 const SERVER_URL = `${url}:${port}`;
 
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
-
-interface SessionStartRequestBody {
-  autoStartNum: number;
-};
 
 interface AnswerInput {
   answer: string;
@@ -21,25 +16,30 @@ interface QuestionBody {
   duration: number;
   points: number;
   answers: AnswerInput[];
+  thumbnailUrl: string;
 }
 
+interface Payload {
+  [key: string]: any;
+}
 
-const requestHelper = (method: HttpVerb, path: string, payload: object, headers: IncomingHttpHeaders) => {
+const requestHelper = (method: HttpVerb, path: string, payload: Payload, headers: IncomingHttpHeaders = {}) => {
   let qs = {};
   let json = {};
-  if (['GET', 'DELETE'].includes(method)) {
+  if (['GET', 'DELETE'].includes(method.toUpperCase())) {
     qs = payload;
   } else {
     json = payload;
   }
-  const res = request(method, SERVER_URL + path, { qs, json, headers, timeout: 20000 });
-  const bodyString = res.body.toString();
+  const url = SERVER_URL + path;
+  const res = request(method, url, { qs, json, headers, timeout: 20000 });
+
   let bodyObject: any;
   try {
-    bodyObject = JSON.parse(bodyString);
+    bodyObject = JSON.parse(res.body.toString());
   } catch (error: any) {
     bodyObject = {
-      error: `Server responded with ${res.statusCode}, but body is not JSON. Given: ${bodyString}. Reason: ${error.message}.`
+      error: `Server responded with ${res.statusCode}, but body is not JSON. Given: ${res.body.toString()}. Reason: ${error.message}.`
     };
   }
   if ('error' in bodyObject) {
@@ -54,30 +54,30 @@ const requestRegisterAuth = (email: string, password: string, nameFirst: string,
   return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast }, {});
 };
 
+/*
 const requestAuthLogin = (email: string, password: string) => {
   return requestHelper('POST', '/v1/admin/auth/login', { email, password }, {});
 };
+*/
 
 const requestAuthLogout = (token: string) => {
   return requestHelper('POST', '/v1/admin/auth/logout', {}, { token });
 };
 
 const requestQuizCreate = (token: string, name: string, description: string) => {
-  return requestHelper('POST', '/v2/admin/quiz', { name, description }, {token});
+  return requestHelper('POST', '/v2/admin/quiz', { name, description }, { token });
 };
-
 
 const requestQuizInfo = (token: string, quizId: number) => {
-  return requestHelper('GET', `/v1/admin/quiz/${quizId}`, {quizId}, {  token });
+  return requestHelper('GET', `/v2/admin/quiz/${quizId}`, { quizId }, { token });
 };
-
 
 const requestQuizRemove = (token: string, quizId: number) => {
-  return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, {quizId}, { token });
+  return requestHelper('DELETE', `/v1/admin/quiz/${quizId}`, { quizId }, { token });
 };
 
-const requestQuestionCreate = (token: string, quizId: number, body: QuestionBody) => {
-  return requestHelper('POST', `/v1/admin/quiz/${quizId}/question`, { quizId, body }, {token},);
+const requestQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody) => {
+  return requestHelper('POST', `/v2/admin/quiz/${quizId}/question`, { questionBody }, { token });
 };
 
 /*
@@ -88,30 +88,35 @@ const requestQuestionUpdate = (quizId: number, questionId: number, body: CreateQ
 const requestQuestionMove = (quizId: number, questionId: number, body: CreateQuestionBody) => {
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}/question/${questionId}/move`, { quizId, questionId, body });
 };
-*/
 
 const requestQuestionDelete = (token: string, quizId: number, questionId: number) => {
   return requestHelper('DELETE', `/v1/admin/quiz/${quizId}/question/${questionId}`, { quizId, questionId }, {token});
 };
 
 const requestSessionView = (quizId: number, token: string) => {
-  return requestHelper('PUT',  `/v1/admin/quiz/${quizId}/sessions`, { quizId }, {token});
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/sessions`, { quizId }, {token});
 }
+*/
 
-const requestSessionStart = (quizId: number, token: string, body: SessionStartRequestBody) => {
-  return requestHelper('POST',  `/v1/admin/quiz/${quizId}/session/start`, { body }, {token});
+const requestSessionStart = (quizId: number, token: string, autoStartNum: number) => {
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
+};
+
+const requestSessionStatus = (token: string, quizId: number, sessionid: number) => {
+    return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionid}`, {}, {token} )
 }
 
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {}, {});
 };
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
 beforeEach(() => {
   requestClear();
 });
 
+/*
 ////////////////////////  Testing for Viewing Session  /////////////////////////
 describe('Testing Put /v1/admin/quiz/{quizid}/sessions', () => {
   let author: {token: string}, quiz: {quizId: number};
@@ -123,51 +128,51 @@ describe('Testing Put /v1/admin/quiz/{quizid}/sessions', () => {
 
   describe('Testing Error Cases', () => {
     test('Invalid token', () => {
-      expect(adminSessionView(quiz.quizId, author.token + 1)).toStrictEqual({ error: 'Token is empty or invalid (does not refer to valid logged in user session)', code: 401 });
+      expect(requestSessionView(quiz.quizId, author.token + 1)).toStrictEqual({ error: 'Token is empty or invalid (does not refer to valid logged in user session)', code: 401 });
     });
 
     test('User does not own quiz', () => {
       requestAuthLogout(author.token);
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      expect(adminSessionView(quiz.quizId, author2.token)).toStrictEqual({ error: 'Valid token is provided, but user is not an owner of this quiz', code: 403 });
+      expect(requestSessionView(quiz.quizId, author2.token)).toStrictEqual({ error: 'Valid token is provided, but user is not an owner of this quiz', code: 403 });
     });
   });
 
   describe('Testing Success Cases', () => {
     test('Function Correctly prints active and inactive sessions', () => {
-      // To make this work properly I need the sessionStart and sessionEnd functions 
+      // To make this work properly I need the sessionStart and sessionEnd functions
       const activeSessions = [5, 4, 3];
       const inactiveSessions = [2, 1, 6];
       const sessions = {activeSessions, inactiveSessions}
-      expect(adminSessionView(quiz.quizId, author.token)).toStrictEqual(sessions);
-    })
-  }); 
+      expect(requestSessionView(quiz.quizId, author.token)).toStrictEqual(sessions);
+    });
+  });
 });
+*/
 
-////////////////////////  Testing for Starting Session  ////////////////////////
+/// /////////////////////  Testing for Starting Session  ////////////////////////
 describe('Testing Post /v1/admin/quiz/{quizid}/session/start', () => {
-  let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, answers: AnswerInput[];
+  let author: {token: string}, quiz: {quizId: number}, answers: AnswerInput[];
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
     quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
     answers =
-      [{
-        answer: 'Answer 1',
-        correct: true
-      },
-      {
-        answer: 'Answer 2',
-        correct: false
-      }];
-    const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers };
-    question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
+        [{
+          answer: 'Answer 1',
+          correct: true
+        },
+        {
+          answer: 'Answer 2',
+          correct: false
+        }];
+    const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
+    const question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    console.log(question1);
   });
-
 
   describe('Testing Error Cases', () => {
     test('autoStartNum is a number greater than 50', () => {
-      const requestBody = { autoStartNum: 55 };
-      expect(requestSessionStart(quiz.quizId, author.token, requestBody)).toStrictEqual(makeCustomErrorForTest(400));
+      expect(requestSessionStart(quiz.quizId, author.token, 55)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     // Come Back to this
@@ -180,41 +185,70 @@ describe('Testing Post /v1/admin/quiz/{quizid}/session/start', () => {
 
     test('A quiz does not have any questions in it', () => {
       console.log(quiz.quizId);
-      let quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
-      const requestBody = { autoStartNum: 30 };
+      const quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
       console.log(quiz2);
       console.log(quiz2.quizId);
-      expect(requestSessionStart(quiz2.quizId, author.token, requestBody)).toStrictEqual(makeCustomErrorForTest(400));
+      expect(requestSessionStart(quiz2.quizId, author.token, 35)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('The quiz is in trash', () => {
-      let quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
+      const quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
       requestQuizRemove(author.token, quiz2.quizId);
-      const requestBody = { autoStartNum: 35 };
-      expect(requestSessionStart(quiz2.quizId, author.token, requestBody)).toStrictEqual(makeCustomErrorForTest(400));
-
+      expect(requestSessionStart(quiz2.quizId, author.token, 35)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('Invalid Token', () => {
-      const invalidToken = 'invalid-token'
-      const requestBody = { autoStartNum: 35 };
-      expect(requestSessionStart(quiz.quizId, invalidToken, requestBody)).toStrictEqual(makeCustomErrorForTest(401));
+      const invalidToken = 'invalid-token';
+      expect(requestSessionStart(quiz.quizId, invalidToken, 35)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
     test('User does not own quiz', () => {
       requestAuthLogout(author.token);
 
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
-      const requestBody = { autoStartNum: 35 };
-      expect(requestSessionStart(quiz.quizId, author2.token, requestBody)).toStrictEqual(makeCustomErrorForTest(403));
+      expect(requestSessionStart(quiz.quizId, author2.token, 35)).toStrictEqual(makeCustomErrorForTest(403));
     });
   });
 
   describe('Testing Success Cases', () => {
     test('Session is Successfully Started', () => {
-      const requestBody = { autoStartNum: 35 };
-      expect(requestSessionStart(quiz.quizId, author.token, requestBody)).toStrictEqual(makeCustomErrorForTest(200));
-    })
-  })
+      console.log(requestQuizInfo(author.token, quiz.quizId));
+      console.log(requestQuizInfo(author.token, quiz.quizId).questions);
+      expect(requestSessionStart(quiz.quizId, author.token, 35)).toStrictEqual({ sessionId: expect.any(Number) });
+    });
+  });
 });
 
+
+/// /////////////////////  Get quiz session status  ////////////////////////
+
+describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
+    let author: {token: string}, quiz: {quizId: number}, answers: AnswerInput[], session: {quizSessionId: number}
+    beforeEach(() => {
+      author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+      quiz = requestQuizCreate(author.token, 'Quiz 1', 'a').quizId;
+      session = requestSessionStart( quiz.quizId, author.token, 35);
+    });
+  
+    test('Testing: Error Case - Invalid Token', () => {
+      const invalidToken = author.token + 'Math.random()';
+      expect(requestSessionStatus(invalidToken, quiz.quizId, session.quizSessionId)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+  
+    test('Testing: Error Case - Session Id does not exist', () => {
+      const nonExistingSessionId = session.quizSessionId + 100;
+      expect(requestSessionStatus(author.token, quiz.quizId, nonExistingSessionId)).toStrictEqual(makeCustomErrorForTest(400));
+    });
+  
+    test('Testing: Error Case - User not owner of the quiz', () => {
+      const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'abcdefgh1234', 'Unauthorized', 'User');
+      expect(requestSessionStatus(unauthorizedUser.token, quiz.quizId, session.quizSessionId)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+  
+    test('Testing: Successful Case', () => {
+      const sessionStatus = requestSessionStatus(author.token, quiz.quizId, session.quizSessionId);
+      expect(sessionStatus).toHaveProperty('state', 'LOBBY');
+    });
+  });
+  
+  

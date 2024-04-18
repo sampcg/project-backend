@@ -41,6 +41,11 @@ import {
   adminQuestionMove
 } from './question';
 
+import {
+  // adminSessionView,
+  adminSessionStart
+} from './session';
+
 import { adminTrashList, adminTrashRestore } from './trash';
 
 // Set up web app
@@ -306,6 +311,13 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   res.json(result);
 });
 
+app.put('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, questionid } = req.params;
+  const { questionBody } = req.body;
+  res.json(adminQuestionUpdate(token, parseInt(quizid), parseInt(questionid), questionBody));
+});
+
 /**                            Delete Question                                */
 // v1
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
@@ -330,6 +342,42 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
     return res.status(result.code).json({ error: result.error });
   }
   res.json(result);
+});
+
+app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, questionid } = req.params;
+  const { newPosition } = req.body;
+  res.json(adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition)));
+});
+/*
+// View a Session
+app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
+  const { quizid } = req.params;
+  const { token } = req.body;
+  const result = adminSessionView(parseInt(quizid), token);
+  if ('error' in result) {
+    console.log("hello world");
+    return res.status(result.code).json({ error: result.error });
+  }
+  res.json(result);
+});
+*/
+
+// Start a Session
+app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid } = req.params;
+  const { autoStartNum } = req.body;
+  console.log(quizid);
+  const result = adminSessionStart(parseInt(quizid), token, parseInt(autoStartNum));
+  res.json(result);
+});
+
+/**                         Get quiz Session Status                           */
+app.post('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+
 });
 
 /**                         Update Quiz Thumbnail                             */
