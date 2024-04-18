@@ -333,7 +333,7 @@ app.delete('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
 });
 
 /**                             Move Question                                 */
-// Move a Question
+// v1
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   const { quizid, questionid } = req.params;
   const { token, newPosition } = req.body;
@@ -343,7 +343,7 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   }
   res.json(result);
 });
-
+// v2
 app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   const token = req.header('token') as string;
   const { quizid, questionid } = req.params;
@@ -351,7 +351,7 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   res.json(adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition)));
 });
 
-// View a Session
+/**                             View Session                                  */
 app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
   const token = req.header('token') as string;
   const { quizid } = req.params;
@@ -359,8 +359,7 @@ app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
   res.json(result);
 });
 
-
-// Start a Session
+/**                              Start a Session                              */
 app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
   const token = req.header('token') as string;
   const { quizid } = req.params;

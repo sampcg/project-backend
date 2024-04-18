@@ -19,8 +19,7 @@ interface adminSessionStartReturn {
   sessionId: number;
 }
 
-
-/////////////////////   View Active and Inactive Sessions   ////////////////////
+/// //////////////////   View Active and Inactive Sessions   ////////////////////
 export const adminSessionView = (token: string, quizId: number): adminSessionViewReturn | ErrorObject => {
   const data: DataStore = getData();
   console.log(token);
@@ -29,8 +28,8 @@ export const adminSessionView = (token: string, quizId: number): adminSessionVie
   if (!originalToken) {
     throw HTTPError(401, 'Invalid Token');
   }
-  if (getUser(originalToken.userId) == undefined) {
-    throw HTTPError(401, 'Invalid Token')
+  if (getUser(originalToken.userId) === undefined) {
+    throw HTTPError(401, 'Invalid Token');
   }
 
   // Validate quizID and ownership
@@ -40,12 +39,12 @@ export const adminSessionView = (token: string, quizId: number): adminSessionVie
     throw HTTPError(403, 'Invalid quizID');
   }
 
-  const quiz = data.quizzes[quizIndex];
+  // const quiz = data.quizzes[quizIndex];
   const activeSessions: string[] = [];
   const inactiveSessions: string[] = [];
 
-   // Check if data.session is defined before iterating over it
-   if (data.session) {
+  // Check if data.session is defined before iterating over it
+  if (data.session) {
     // Iterate over sessions to determine active/inactive
     data.session.forEach(session => {
       if (session.quiz.quizId === quizId && session.state !== States.END) {
@@ -62,7 +61,6 @@ export const adminSessionView = (token: string, quizId: number): adminSessionVie
 
   return { activeSessions, inactiveSessions };
 };
-
 
 /// ///////////////////////////   Start a Session   /////////////////////////////
 export const adminSessionStart = (quizId: number, token: string, autoStartNum: number): adminSessionStartReturn | ErrorObject => {
