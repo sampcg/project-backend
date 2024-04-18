@@ -2,7 +2,9 @@
 import { getData, setData } from './dataStore';
 import {
   decodeToken,
-  validateTokenStructure
+  validateTokenStructure,
+  validateAdminInputsV2,
+  validateTokenStructureV2
 } from './helpers';
 import {
   ErrorObject,
@@ -10,6 +12,7 @@ import {
   Token
 } from './returnInterfaces';
 import validator from 'validator';
+import HTTPError from 'http-errors';
 
 // First Function By Abrar
 function adminAuthRegister(email: string, password: string,
@@ -43,9 +46,6 @@ function adminAuthRegister(email: string, password: string,
   } else if (!/(?=.*\d)(?=.*[a-zA-Z])/.test(password)) {
     return { error: 'Password must contain at least 1 letter and number' };
   }
-
-  // const randomString = require('randomized-string');
-  // const randomToken = randomString.generate(8);
 
   // Bit of Code that pushes the data after the filter
   const newData = {
@@ -177,36 +177,26 @@ function adminUserDetails(token: any) {
 }
 
 //  Fourth Function By Abrar
-export function adminAuthLogout(token: string | number) {
-  //  Getting data from dataStore
+export function adminAuthLogout(token: string) {
+  // Getting data from dataStore
   const data = getData();
-  let idPresent = false;
 
-  const tokenString = typeof token === 'number' ? token.toString() : token;
+  // Decoded Token
+  const decodedToken = JSON.parse(decodeURIComponent(token));
 
-  try {
-    // Decode and parse the token
-    const decodedToken = decodeURIComponent(tokenString);
-    const originalToken = JSON.parse(decodedToken);
+  // Find the index of the token object with the matching sessionId
+  const index = data.token.findIndex(tokenObject => tokenObject.sessionId === decodedToken.sessionId);
 
-    // Check if the given token is valid
-    for (let i = 0; i < data.token.length; i++) {
-      if (data.token[i].sessionId === originalToken.sessionId) {
-        idPresent = true;
-        // Remove the originalToken from the data.token array
-        data.token.splice(i, 1);
-        break;
-      }
-    }
-  } catch (error) {
-    // Handle decoding or parsing errors
-    return { error: 'Invalid token format' };
-  }
-
-  if (idPresent === false) {
+  if (index !== -1) {
+    // Remove the token object from the array
+    data.token.splice(index, 1);
+    console.log(`Token array length after removing token: ${data.token.length}`);
+    setData(data);
+    return {};
+  } else {
+    // Return an error if token is not found
     return { error: 'Token is empty or invalid' };
   }
-  return {};
 }
 
 /**
@@ -251,6 +241,41 @@ export const adminUserDetailsUpdate = (token: string, email : string,
   if (!namecharL) {
     return { error: 'Invalid last name', code: 400 };
   }
+  /** correct output */
+  user.email = email;
+  user.nameFirst = nameFirst;
+  user.nameLast = nameLast;
+  setData(data);
+  return {};
+};
+
+/**
+ * Updates the details of an admin user.
+ *
+ * @param {string} token - The authentication token of the user.
+ * @param {string} email - The new email of the user.
+ * @param {string} nameFirst - The new first name of the user.
+ * @param {string} nameLast - The new last name of the user.
+ *
+ * @return {EmptyObject | ErrorObject} An empty object if the operation is successful, or an error object if there was an issue.
+ */
+export const adminUserDetailsUpdateV2 = (token: string, email: string, nameFirst: string, nameLast: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Token is empty or invalid');
+  }
+  const user = data.users.find(u => originalToken.userId === u.userId);
+  if (!user) {
+    throw HTTPError(401, 'User with the provided token does not exist');
+  }
+  validateTokenStructureV2(token);
+  /** Check for duplicate email */
+  if (data.users.some((user) => user.email === email && !originalToken.sessionId.includes(token))) {
+    throw HTTPError(400, 'Email is currently used by another user');
+  }
+  validateAdminInputsV2(email, nameFirst, nameLast);
   /** correct output */
   user.email = email;
   user.nameFirst = nameFirst;

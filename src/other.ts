@@ -12,7 +12,8 @@ export const clear = (): EmptyObject => {
     users: [],
     quizzes: [],
     trash: [],
-    token: []
+    token: [],
+    session: []
   });
   return {};
 };

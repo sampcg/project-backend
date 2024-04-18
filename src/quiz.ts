@@ -1,11 +1,11 @@
 
 import { getData, setData } from './dataStore';
 import { DataStore } from './dataInterfaces';
-import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUserByEmail } from './helpers';
+import { getUser, getQuiz, getTrash, decodeToken, validateTokenStructure, getUserByEmail, isSessionValid } from './helpers';
 import { ErrorObject, EmptyObject, Quiz, QuizInfo, Question } from './returnInterfaces';
-import HTTPError from 'http-errors';
 
 // Error return type
+import HTTPError from 'http-errors';
 
 /// //////////////////           List all Quizzes           /////////////////////
 
@@ -27,15 +27,19 @@ interface AdminQuizListReturn {
 // Feature
 export const adminQuizList = (token: string): AdminQuizListReturn | ErrorObject => {
   const data = getData();
-
-  // Check to see if token is valid
+  // Check to see if token structure is valid and decode it
   const originalToken = decodeToken(token);
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
   }
-
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SesssionID');
+  }
+  // Check to see if userID is valid
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid UserID');
   }
 
   // Creates array of quizzes to return
@@ -70,37 +74,42 @@ interface AdminQuizCreateReturn {
 // Feature
 export const adminQuizCreate = (token: string, name: string, description: string): AdminQuizCreateReturn | ErrorObject => {
   const data: DataStore = getData();
-
-  // Check to see if token is valid
+  // Check to see if token structure is valid and decode it
   const originalToken = decodeToken(token);
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
   }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+  // Check to see if userID is valid
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid UserID');
   }
 
   // Check if name contains invalid characters
   const validName: boolean = /^[a-zA-Z0-9\s]*$/.test(name);
   if (!validName) {
-    return { error: 'Name contains invalid characters', code: 400 };
+    throw HTTPError(400, 'Name contains invalid characters');
   }
 
   // Check if name is less than 3 characters or greater than 30
   if (name.length < 3 || name.length > 30) {
-    return { error: 'Name must be between 3 and 30 characters', code: 400 };
+    throw HTTPError(400, 'Name must be between 3 and 30 characters');
   }
 
   // Check if name there is already a quiz by that name
   // makes sure case doesn't impact check
   const nameExists: boolean = data.quizzes.some(quiz => quiz.name.toLowerCase() === name.toLowerCase());
   if (nameExists) {
-    return { error: 'invalid input', code: 400 };
+    throw HTTPError(400, 'Name already exists');
   }
 
   // Check the length of the description
   if (description.length > 100) {
-    return { error: 'Description must be 100 characters or less', code: 400 };
+    throw HTTPError(400, 'Description must be 100 characters or less');
   }
 
   // Generate a unique random quiz ID
@@ -116,7 +125,7 @@ export const adminQuizCreate = (token: string, name: string, description: string
   const time: number = Math.round(Date.now() / 1000);
 
   // Create parameters for new quiz
-  const newQuiz = {
+  const newQuiz: Quiz = {
     quizId: newQuizId,
     userId: originalToken.userId,
     name: name,
@@ -125,7 +134,8 @@ export const adminQuizCreate = (token: string, name: string, description: string
     description: description,
     numQuestions: 0,
     questions: questions,
-    duration: 0
+    duration: 0,
+    thumbnailUrl: ''
   };
 
   // Add quiz to data
@@ -133,9 +143,7 @@ export const adminQuizCreate = (token: string, name: string, description: string
   setData(data);
 
   // Return quizId
-  return {
-    quizId: newQuizId
-  };
+  return { quizId: newQuizId };
 };
 
 /// //////////////////            Remove a Quiz             /////////////////////
@@ -150,28 +158,34 @@ export const adminQuizCreate = (token: string, name: string, description: string
 // Feature
 export const adminQuizRemove = (token: string, quizId: number): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
-
-  // Check if token is valid
+  // Check to see if token structure is valid and decode it
   const originalToken = decodeToken(token);
   if (!originalToken) {
-    return { error: 'Invalid token 1 ', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
   }
+
+  // Check to see if userID is valid
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token 2', code: 401 };
+    throw HTTPError(401, 'Invalid UserID');
   }
+
+  isSessionValid(data, originalToken);
 
   // Check if quizId is valid
   const quizExists = data.quizzes.some(quiz => quiz.quizId === quizId);
   if (!quizExists) {
-    return { error: 'Invalid quiz ID', code: 403 };
+    throw HTTPError(403, 'Invalid QuizID');
   }
 
   // Check if owner owns quiz
   const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (findQuiz.userId !== originalToken.userId) {
-    return { error: 'User does not own this quiz', code: 403 };
+    throw HTTPError(403, 'User does not own quiz');
   }
 
+  // This will need to also have an error check for active session
+
+  // Create object trashQuiz that contains all data in quiz + updates time last edited
   const trashQuiz: Quiz = {
     userId: findQuiz.userId,
     quizId: findQuiz.quizId,
@@ -181,17 +195,15 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
     description: findQuiz.description,
     numQuestions: findQuiz.numQuestions,
     questions: findQuiz.questions,
-    duration: findQuiz.duration
+    duration: findQuiz.duration,
+    thumbnailUrl: findQuiz.thumbnailUrl
   };
 
   // Add quiz to trash object
   data.trash.push(trashQuiz);
-  setData(data);
 
   // Remove quiz that has given quizId from quizzes
   data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== findQuiz.quizId);
-
-  // Set data
   setData(data);
 
   // Return empty object
@@ -211,47 +223,43 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
 export const adminQuizNameUpdate = (token: string, quizId: number, name: string): EmptyObject | ErrorObject => {
   const data: DataStore = getData();
   const originalToken = decodeToken(token);
-
   // Check to see if token is valid
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid token');
   }
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid UserID');
   }
 
-  // Find the quiz by quizId
-  // const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
-  const quiz = data.quizzes.find((q) => quizId === q.quizId);
-  if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
-  }
+  isSessionValid(data, originalToken);
 
-  // Check if the user owns the quiz
-  if (quiz.userId !== originalToken.userId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
+  // Check if user owns quiz
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
   }
 
   // Validate the name
   const validName = /^[a-zA-Z0-9\s]*$/.test(name);
   if (!validName) {
-    return { error: 'Name contains invalid characters', code: 400 };
+    throw HTTPError(400, 'Name contains invalid characters.');
   }
 
   if (name.length < 3 || name.length > 30) {
-    return { error: 'Name is either less than 3 characters long or more than 30 characters long.', code: 400 };
+    throw HTTPError(400, 'Name is either less than 3 characters long or more than 30 characters long.');
   }
 
   // Check if the name is already used by the current user for another quiz
   const quizWithSameName = data.quizzes.find(q => q.userId === originalToken.userId && q.quizId !== quizId && q.name === name);
 
   if (quizWithSameName) {
-    return { error: 'Name is already used by the current logged in user for another quiz.', code: 400 };
+    throw HTTPError(400, 'Name is already used by the current logged in user for another quiz.');
   }
 
-  quiz.timeLastEdited = Math.round(Date.now() / 1000);
-  quiz.name = name;
+  findQuiz.timeLastEdited = Math.round(Date.now() / 1000);
+  findQuiz.name = name;
   setData(data);
+
   return {};
 };
 
@@ -271,36 +279,30 @@ export const adminQuizDescriptionUpdate = (token: string, quizId: number, descri
 
   // Check if token is valid
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
   }
 
-  // Check if the token corresponds to a valid user
-  const user = getUser(originalToken.userId);
-  if (!user) {
-    return { error: 'Invalid token', code: 401 };
+  // Check to see if userID is valid
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
   }
 
-  // Check if quizId is valid
-  // const quiz = getQuiz(quizId);
-  const quiz = data.quizzes.find((q) => quizId === q.quizId);
-  if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
-  }
-
-  // Check if user owns the quiz
-  if (quiz.userId !== originalToken.userId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
+  isSessionValid(data, originalToken);
+  // Check if user owns quiz
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
   }
 
   if (description.length > 100) {
-    return { error: 'Description is more than 100 characters in length.', code: 400 };
+    throw HTTPError(400, 'Description is more than 100 characters in length.');
   }
 
   // Update the description of the quiz
-  quiz.description = description;
+  findQuiz.description = description;
 
   // Update the last edited time
-  quiz.timeLastEdited = Math.round(Date.now() / 1000);
+  findQuiz.timeLastEdited = Math.round(Date.now() / 1000);
 
   // Save the updated data
   setData(data);
@@ -319,30 +321,31 @@ export const adminQuizDescriptionUpdate = (token: string, quizId: number, descri
 
 // Feature
 export const adminQuizInfo = (token: string, quizId: number): QuizInfo | ErrorObject => {
+  const data: DataStore = getData();
   const originalToken = decodeToken(token);
 
   // Check to see if token is valid
   if (!originalToken) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid token');
   }
   if (!getUser(originalToken.userId)) {
-    return { error: 'Invalid token', code: 401 };
+    throw HTTPError(401, 'Invalid UserID');
   }
+
+  isSessionValid(data, originalToken);
 
   // Find the quiz by quizId
   const quiz = getQuiz(quizId); // Use getQuiz function to retrieve the quiz object
-  if (!quiz) {
-    return { error: 'Quiz ID does not refer to a valid quiz.', code: 403 };
-  }
 
   // Check if the user owns the quiz
-  if (quiz.userId !== originalToken.userId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.', code: 403 };
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
   }
 
   const questionsInfo = quiz.questions.map(({ position, ...rest }) => rest);
 
-  const adminQuizInfoReturn: QuizInfo = {
+  const adminQuizInfoReturn: QuizInfo | ErrorObject = {
     quizId: quiz.quizId,
     name: quiz.name,
     timeCreated: quiz.timeCreated,
@@ -350,7 +353,8 @@ export const adminQuizInfo = (token: string, quizId: number): QuizInfo | ErrorOb
     description: quiz.description,
     numQuestions: quiz.questions.length,
     questions: questionsInfo,
-    duration: quiz.duration
+    duration: quiz.duration,
+    thumbnailUrl: quiz.thumbnailUrl
   };
 
   return adminQuizInfoReturn;
@@ -455,6 +459,46 @@ export const adminQuizTransferV2 = (quizId: number, token: string, userEmail: st
   quiz.timeLastEdited = Date.now();
 
   setData(data);
+};
 
+/**                           Update Quiz Thumbnail                           */
+export const adminUpdateQuizThumbnail = (token: string, quizId: number, imgUrl: string): EmptyObject | ErrorObject => {
+  const data = getData();
+  // Check to see if token structure is valid and decode it
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+  // Check to see if userID is valid
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
+  }
+
+  // User does not own quiz
+  const quiz = data.quizzes.find((q) => quizId === q.quizId);
+  if (quiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  // imgUrl does not end with 'jpg', 'jpeg' or 'png' (case insensitive)
+  const imgUrlCase = imgUrl.toLowerCase();
+  if (!imgUrlCase.endsWith('jpg') && !imgUrlCase.endsWith('jpeg') && !imgUrlCase.endsWith('png')) {
+    throw HTTPError(400, "Thumbnail must be 'jpg', 'jpeg' or 'png'");
+  }
+
+  // imgUrl does no start with 'http://' or 'https://'
+  if (!imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
+    throw HTTPError(400, "Thumbnail URL must begin with 'http://' or 'https://'");
+  }
+
+  // Update quiz thumbnail and timeLastEdited
+  quiz.thumbnailUrl = imgUrl;
+  quiz.timeLastEdited = Math.round(Date.now() / 1000);
+  setData(data);
   return {};
 };

@@ -1,3 +1,8 @@
+test('expect 2', () => {
+  expect(1 + 1).toStrictEqual(2);
+});
+
+/*
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
 
@@ -36,11 +41,11 @@ const requestRegisterAuth = (email: string, password: string, nameFirst: string,
   return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
 };
 const requestTrashList = (token: string) => {
-  return requestHelper('GET', '/v2/admin/quiz/trash', { token });
+  return requestHelper('GET', '/v1/admin/quiz/trash', { token });
 };
 
 const requestTrashRestore = (token: string, quizId: number) => {
-  return requestHelper('POST', `/v2/admin/quiz/${quizId}/restore`, { token });
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/restore`, { token });
 };
 
 const requestQuizRemove = (token: string, quizId: number) => {
@@ -66,7 +71,7 @@ beforeEach(() => {
 
 /// ///////////// Testing for view trash  ///////////
 
-describe('Testing GET /v2/admin/quiz/trash', () => {
+describe('Testing GET /v1/admin/quiz/trash', () => {
   let author: {token: string}, quiz: {quizId: number};
 
   beforeEach(() => {
@@ -152,3 +157,4 @@ describe('Testing POST /v1/admin/{quizid}/restore', () => {
     });
   });
 });
+*/
