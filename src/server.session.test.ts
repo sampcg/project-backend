@@ -103,7 +103,7 @@ const requestSessionStart = (quizId: number, token: string, autoStartNum: number
 };
 
 const requestSessionUpdate = (quizId: number, sessionId: number, token: string, action: string) => {
-  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { sessionId, action }, { token });
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/session/${sessionId}`, { action }, { token });
 };
 
 const requestClear = () => {
@@ -238,12 +238,18 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
         }];
     const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
     const question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
-    const session = requestSessionStart(quiz.quizId, author.token, 35)
+    session = requestSessionStart(quiz.quizId, author.token, 35);
+    console.log('Session: ', session);
+    console.log('SessionId before: ', session.sessionId);
   });
 
   describe('Testing Error Cases', () => {
     test('Session Id does not refer to a valid session within this quiz', () => {
-      expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION')).toStrictEqual(makeCustomErrorForTest(400));
+      console.log('SessionId test1: ', session.sessionId);
+      let quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
+      const incorrectSession = requestSessionStart(quiz2.quizId, author.token, 36);
+      console.log('Incorrect Id: ', incorrectSession);
+      expect(requestSessionUpdate(quiz.quizId, incorrectSession.sessionId, author.token, 'NEXT_QUESTION')).toStrictEqual(makeCustomErrorForTest(400));
     });
 
     test('Action provided is not a valid Action enum', () => {
@@ -285,5 +291,5 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'END')).toStrictEqual({});
     });
 
-    });
   });
+});

@@ -1,6 +1,7 @@
-import { getData /* setData */ } from './dataStore';
-import { getUser, /* getQuiz */ decodeToken /* getRandomColour */ } from './helpers';
-import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session } from './returnInterfaces';
+import { getData, /* setData */ 
+setData} from './dataStore';
+import { getUser, /* getQuiz */ decodeToken, isValidAction /* getRandomColour */ } from './helpers';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Actions } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
 
@@ -113,11 +114,51 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
   const copiedQuiz = { ...quiz };
   const newSession:Session = { quizSessionId: newSessionId, quiz: copiedQuiz, state: States.LOBBY, autoStartNum: autoStartNum };
   data.session.push(newSession);
+  setData(data);
 
   return { sessionId: newSessionId };
 };
 
 /// //////////////////////  Update a Quiz Session State  ///////////////////////
 export const adminSessionUpdate = (quizId: number, sessionId: number, token: string, action: string): EmptyObject | ErrorObject => {
+  const data: DataStore = getData();
+  const originalToken = decodeToken(token);
+
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Find what I need
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
+  }
+  
+  // Validate quiz ID and ownership
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
+  if (quizIndex === -1) {
+    throw HTTPError(403, 'Invalid quizID');
+  }
+  
+  // Validate session ID
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+  console.log(session);
+  console.log('Input: ', sessionId);
+  console.log('Comparison:', data.quizzes);
+  console.log('Comparison:', data.session);
+  console.log('Output: ', session);
+  if (!session) {
+    throw HTTPError(400, 'Session ID does not refer to a valid session within this quiz');
+  }
+
+  if(!isValidAction(action)) {
+    throw HTTPError(400, 'Action provided is not a valid Action enum');
+  }
+
+  if(States.LOBBY) {
+    if (action !== 'NEXT_QUESTION' || action !== 'END') {
+      throw HTTPError(400, 'Action enum cannot be applied in the current state')
+    }
+  } 
+
   return {};
 }

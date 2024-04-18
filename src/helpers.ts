@@ -1,9 +1,10 @@
 import { getData } from './dataStore';
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { User, Token } from './returnInterfaces';
+import { User, Token, States } from './returnInterfaces';
 import HTTPError from 'http-errors';
 import { DataStore } from './dataInterfaces';
+import { Actions } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -52,6 +53,19 @@ export function decodeToken(encodedToken: string): Token | null {
     return null;
   }
 }
+
+export function isValidAction(action: string): boolean {
+  return Object.values(Actions).includes(action as Actions);
+}
+
+export function isValidCurrent(action: string): boolean {
+  if(States.LOBBY) {
+    if (!Actions.NextQuestion || !Actions.End) {
+      throw HTTPError(400, )
+    }
+  }
+}
+
 
 // ========================================================================= //
 /**

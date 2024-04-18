@@ -1,4 +1,3 @@
-
 import express, { json, Request, Response } from 'express';
 // import { getData, setData } from './dataStore';
 import { echo } from './newecho';
@@ -284,7 +283,7 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
 });
 
 /**                       Update a Quiz Session State                         */
-app.put('/v1/admin/quiz/{quizid}/session/{sessionid}', (req: Request, res: Response) => {
+app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
   const token = req.header('token') as string;
   const { quizid, sessionid } = req.params;
   const { action } = req.body;

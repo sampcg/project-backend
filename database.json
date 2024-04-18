@@ -14,11 +14,11 @@
   ],
   "quizzes": [
     {
-      "quizId": 741367437487605,
+      "quizId": 6972923526462449,
       "userId": 0,
       "name": "Quiz 1",
-      "timeCreated": 1713398433,
-      "timeLastEdited": 1713398432,
+      "timeCreated": 1713424669,
+      "timeLastEdited": 1713424669,
       "description": "Quiz 1 Des",
       "numQuestions": 0,
       "questions": [
@@ -32,13 +32,13 @@
               "answerId": 1,
               "answer": "Answer 1",
               "correct": true,
-              "colour": "red"
+              "colour": "blue"
             },
             {
               "answerId": 2,
               "answer": "Answer 2",
               "correct": false,
-              "colour": "orange"
+              "colour": "purple"
             }
           ],
           "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -53,8 +53,49 @@
   "token": [
     {
       "userId": 0,
-      "sessionId": "uSOqaGVC"
+      "sessionId": "d9fRQubr"
     }
   ],
-  "session": []
+  "session": [
+    {
+      "quizSessionId": 6126998646143673,
+      "quiz": {
+        "quizId": 6972923526462449,
+        "userId": 0,
+        "name": "Quiz 1",
+        "timeCreated": 1713424669,
+        "timeLastEdited": 1713424669,
+        "description": "Quiz 1 Des",
+        "numQuestions": 0,
+        "questions": [
+          {
+            "questionId": 1,
+            "question": "Question 1",
+            "duration": 5,
+            "points": 5,
+            "answers": [
+              {
+                "answerId": 1,
+                "answer": "Answer 1",
+                "correct": true,
+                "colour": "blue"
+              },
+              {
+                "answerId": 2,
+                "answer": "Answer 2",
+                "correct": false,
+                "colour": "purple"
+              }
+            ],
+            "thumbnailUrl": "http://google.com/some/image/path.jpg",
+            "position": 0
+          }
+        ],
+        "duration": 5,
+        "thumbnailUrl": ""
+      },
+      "state": "LOBBY",
+      "autoStartNum": 35
+    }
+  ]
 }
