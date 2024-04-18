@@ -2,6 +2,10 @@ import { getData } from './dataStore';
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
 import { User, Token } from './returnInterfaces';
+import validator from 'validator';
+import HTTPError from 'http-errors';
+import { DataStore } from './dataInterfaces';
+import { Actions } from './returnInterfaces';
 
 const SERVER_URL = `${url}:${port}`;
 
@@ -15,12 +19,20 @@ const SERVER_URL = `${url}:${port}`;
  *
  */
 
-export function getUser(authUserId: number): User {
-  return getData().users.find((user: { userId: number; }) => authUserId === user.userId);
+export function getUser(authUserId: number) {
+  const user = getData().users.find((user: { userId: number; }) => authUserId === user.userId);
+  // if (!user) {
+  //    throw HTTPError(404, 'Invalid UserID');
+  // }
+  return user;
 }
 
 export function getQuiz(quizId: number) {
-  return getData().quizzes.find((quiz) => quizId === quiz.quizId);
+  const quiz = getData().quizzes.find((quiz) => quizId === quiz.quizId);
+  // if (!quiz) {
+  //   throw HTTPError(403, 'Invalid QuizID' )
+  // }
+  return quiz;
 }
 
 export function getTrash(quizId: number) {
@@ -43,6 +55,24 @@ export function decodeToken(encodedToken: string): Token | null {
   }
 }
 
+export function isValidAction(action: string): boolean {
+  return Object.values(Actions).includes(action as Actions);
+}
+
+// ========================================================================= //
+/**
+ * HELPER FUNCTIONS WITH THROW ERRORS
+ */
+
+export function isSessionValid(data: DataStore, originalToken: Token) {
+  const sessionExists = data.token.find(session => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+}
+
+// ========================================================================= //
+
 /**
  *
  * Validates a token and returns an error object if the token is invalid.
@@ -61,6 +91,55 @@ export const validateTokenStructure = (token: string | null): { error: string; c
   }
 
   return null;
+};
+
+/**
+ *
+ * Validates a token and returns an error object if the token is invalid.
+ * @param {string | null} token - the created token
+ * @returns {{ error: string, code: number } | null} - returns an error object if the token is invalid, otherwise null.
+ *
+ */
+
+export const validateTokenStructureV2 = (token: string | null): void | null => {
+  if (token === null || token === '') {
+    throw HTTPError(401, 'Invalid token');
+  }
+
+  if (typeof token !== 'string') {
+    throw HTTPError(401, 'Invalid token structure');
+  }
+
+  return null;
+};
+
+/**
+ * Validates the admin inputs.
+ *
+ * @param {string} email - The email to be validated.
+ * @param {string} nameFirst - The first name to be validated.
+ * @param {string} nameLast - The last name to be validated.
+ * @throws {HTTPError} If the email is not valid, or if the first name or last name are not valid.
+ */
+export const validateAdminInputsV2 = (email: string, nameFirst: string, nameLast: string): void => {
+  /** Check for valid email */
+  if (!validator.isEmail(email)) {
+    throw HTTPError(400, 'Email is not valid');
+  }
+  /** Check for invalid characters in nameFirst and if the first name length is valid */
+  if (/[^a-zA-Z\s'-]/g.test(nameFirst)) {
+    throw HTTPError(400, `${nameFirst} is not a valid first name`);
+  }
+  if (nameFirst.length < 2 || nameFirst.length > 20) {
+    throw HTTPError(400, 'First name must be between 2 and 20 characters long');
+  }
+  /** Check for invalid characters in nameLast and if the last name length is valid */
+  if (/[^a-zA-Z\s'-]/g.test(nameLast)) {
+    throw HTTPError(400, `${nameLast} is not a valid last name`);
+  }
+  if (nameLast.length < 2 || nameLast.length > 20) {
+    throw HTTPError(400, 'Last name must be between 2 and 20 characters long');
+  }
 };
 
 /**
