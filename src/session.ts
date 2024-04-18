@@ -3,7 +3,7 @@ import {
   setData
 } from './dataStore';
 import { getUser, /* getQuiz */ decodeToken, isValidAction /* getRandomColour */ } from './helpers';
-import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session } from './returnInterfaces';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
 
@@ -113,11 +113,23 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
   while (data.session.find(session => session.quizSessionId === newSessionId)) {
     newSessionId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
   }
+  // Initialize players array as empty
+  const players: Player[] = [];
+
+  // Initialize atQuestion to 0
+  const atQuestion = 0;
+
   const copiedQuiz = { ...quiz };
-  const newSession:Session = { quizSessionId: newSessionId, quiz: copiedQuiz, state: States.LOBBY, autoStartNum: autoStartNum };
+  const newSession:Session = {
+    quizSessionId: newSessionId,
+    quiz: copiedQuiz,
+    state: States.LOBBY,
+    autoStartNum: autoStartNum,
+    players: players,
+    atQuestion: atQuestion
+  };
   data.session.push(newSession);
   setData(data);
-
   return { sessionId: newSessionId };
 };
 
@@ -211,4 +223,59 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
   setData(data);
 
   return {};
+};
+
+/// ///////////////////////////   Get a Session Status   /////////////////////////////
+
+export const getSessionStatus = (quizId: number, sessionId: number, token: string): SessionStatus | ErrorObject => {
+  const data: DataStore = getData();
+  const originalToken = decodeToken(token);
+
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Find what I need
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
+  }
+
+  // Validate user ownership of quiz
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
+  if (quizIndex === -1) {
+    throw HTTPError(403, 'User is not the owner of the quiz');
+  }
+
+  // Validate session ID
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+
+  // If session not found
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  // If user is not the owner of this session's quiz
+  if (session.quiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User is not an owner of this quiz');
+  }
+
+  // Construct and return the SessionStatus object
+  const sessionStatus: SessionStatus = {
+    state: session.state,
+    atQuestion: session.atQuestion,
+    players: session.players,
+    metadata: {
+      quizId: session.quiz.quizId,
+      name: session.quiz.name,
+      timeCreated: session.quiz.timeCreated,
+      timeLastEdited: session.quiz.timeLastEdited,
+      description: session.quiz.description,
+      numQuestions: session.quiz.questions.length,
+      questions: session.quiz.questions,
+      duration: session.quiz.duration,
+      thumbnailUrl: session.quiz.thumbnailUrl
+    }
+  };
+
+  return sessionStatus;
 };

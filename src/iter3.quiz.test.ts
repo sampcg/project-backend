@@ -415,7 +415,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
   test('Testing: Successful Case - Update quiz name', () => {
     const updatedName = 'New Name for Quiz';
     const updateResult = requestUpdateQuizName(author.token, quiz.quizId, updatedName);
-    console.log(updateResult);
 
     // Assert that the update operation was successful
     expect(updateResult).toEqual({}); // Assuming the function returns an empty object on success

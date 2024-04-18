@@ -41,6 +41,11 @@ export interface User {
   newPassword: string;
 }
 
+export interface Player {
+  name: string;
+  playerId: number;
+}
+
 export interface Quiz {
   userId: number;
   quizId: number;
@@ -93,5 +98,14 @@ export interface Session {
   quizSessionId: number;
   quiz: Quiz;
   state: States;
+  atQuestion: number;
+  players: Player[];
   autoStartNum: number;
+}
+
+export interface SessionStatus {
+  state: States;
+  atQuestion: number;
+  players: Player[];
+  metadata: QuizInfo;
 }
