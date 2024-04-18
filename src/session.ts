@@ -8,39 +8,38 @@ import HTTPError from 'http-errors';
 interface SessionStartRequestBody {
   autoStartNum: number;
 }
+*/
 
 interface adminSessionViewReturn {
   activeSessions: string[];
   inactiveSessions: string[];
 }
-*/
 
 interface adminSessionStartReturn {
   sessionId: number;
 }
 
-/*
-/////////////////////   View Active and Inactive Sessions   ////////////////////
-export const adminSessionView = (quizId: number, token: string): adminSessionViewReturn | ErrorObject => {
+/// //////////////////   View Active and Inactive Sessions   ////////////////////
+export const adminSessionView = (token: string, quizId: number): adminSessionViewReturn | ErrorObject => {
   const data: DataStore = getData();
   console.log(token);
   // Checking for invalid or empty token
   const originalToken = decodeToken(token);
   if (!originalToken) {
-    return { error: 'Token is empty or invalid (does not refer to valid logged in user session)', code: 401 };
+    throw HTTPError(401, 'Invalid Token');
   }
-  if (getUser(originalToken.userId) == undefined) {
-    return { error: 'Token is empty or invalid (does not refer to valid logged in user session)', code: 401 };
+  if (getUser(originalToken.userId) === undefined) {
+    throw HTTPError(401, 'Invalid Token');
   }
 
   // Validate quizID and ownership
   // findIndex will return -1 if not found or userID doesn't match, quizIndex used to refer to quiz later
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
   if (quizIndex === -1) {
-    return { error: 'Valid token is provided, but user is not an owner of this quiz', code: 403 };
+    throw HTTPError(403, 'Invalid quizID');
   }
 
-  const quiz = data.quizzes[quizIndex];
+  // const quiz = data.quizzes[quizIndex];
   const activeSessions: string[] = [];
   const inactiveSessions: string[] = [];
 
@@ -48,10 +47,10 @@ export const adminSessionView = (quizId: number, token: string): adminSessionVie
   if (data.session) {
     // Iterate over sessions to determine active/inactive
     data.session.forEach(session => {
-      if (session.quiz === quizId && session.State !== 'active') {
-        activeSessions.push(session.sessionId);
-      } else if (session.quiz === quizId && session.State === 'inactive') {
-        inactiveSessions.push(session.sessionId);
+      if (session.quiz.quizId === quizId && session.state !== States.END) {
+        activeSessions.push(session.quizSessionId.toString());
+      } else if (session.quiz.quizId === quizId && session.state === States.END) {
+        inactiveSessions.push(session.quizSessionId.toString());
       }
     });
   }
@@ -62,7 +61,6 @@ export const adminSessionView = (quizId: number, token: string): adminSessionVie
 
   return { activeSessions, inactiveSessions };
 };
-*/
 
 /// ///////////////////////////   Start a Session   /////////////////////////////
 export const adminSessionStart = (quizId: number, token: string, autoStartNum: number): adminSessionStartReturn | ErrorObject => {
