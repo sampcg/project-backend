@@ -40,7 +40,8 @@ import {
   adminQuestionCreate,
   adminQuestionUpdate,
   adminQuestionRemove,
-  adminQuestionMove
+  adminQuestionMove,
+  adminQuestionDuplicate
 } from './question';
 
 import {
@@ -294,6 +295,13 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const { quizid, questionid } = req.params;
   const { newPosition } = req.body;
   res.json(adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition)));
+});
+
+/**                            Duplicate Question                             */
+app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, questionid } = req.params;
+  res.json(adminQuestionDuplicate(token, parseInt(quizid), parseInt(questionid)));
 });
 
 /**                             View Session                                  */

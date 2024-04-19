@@ -1041,8 +1041,8 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplicate',
         numQuestions: 3,
         questions: [
           {
-            questionId: question2.questionId,
-            question: 'Question 2',
+            questionId: question1.questionId,
+            question: 'Question 1',
             duration: 5,
             thumbnailUrl: 'http://google.com/some/image/path.jpg',
             points: 5,
@@ -1083,7 +1083,7 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplicate',
             ]
           },
           {
-            questionId: question2.questionId,
+            questionId: expect.any(Number),
             question: 'Question 1',
             duration: 5,
             thumbnailUrl: 'http://google.com/some/image/path.jpg',
@@ -1109,8 +1109,8 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplicate',
       });
     });
 
-    test.todo('Duplicates 2nd question', () => {
-      requestQuestionDuplicate(author.token, quiz.quizId, question1.questionId);
+    test('Duplicates 2nd question', () => {
+      requestQuestionDuplicate(author.token, quiz.quizId, question2.questionId);
       expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
         quizId: quiz.quizId,
         name: 'Quiz 1',
@@ -1120,8 +1120,8 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplicate',
         numQuestions: 3,
         questions: [
           {
-            questionId: question2.questionId,
-            question: 'Question 2',
+            questionId: question1.questionId,
+            question: 'Question 1',
             duration: 5,
             thumbnailUrl: 'http://google.com/some/image/path.jpg',
             points: 5,
@@ -1162,7 +1162,7 @@ describe('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplicate',
             ]
           },
           {
-            questionId: question2.questionId,
+            questionId: expect.any(Number),
             question: 'Question 2',
             duration: 8,
             thumbnailUrl: 'http://google.com/some/image/path.jpeg',
