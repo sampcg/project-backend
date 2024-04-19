@@ -27,24 +27,24 @@ function adminAuthRegister(email: string, password: string,
 
   for (const users of data.users) {
     if (users.email === email) {
-      return { error: 'Email is already used' };
+      throw HTTPError(400, 'Email is already used');
     }
   }
 
   if (validator.isEmail(email) !== true) {
-    return { error: 'Email Not Valid' };
+    throw HTTPError(400, 'Email not valid');
   } else if (specialChars.test(nameFirst) === true) {
-    return { error: 'Firstname contains invalid characters=' };
+    throw HTTPError(400, 'First name contains invalid characters');
   } else if (nameFirst.length < 2 || nameFirst.length > 20) {
-    return { error: 'Firstname is less than 2 or larger than 20 characters' };
+    throw HTTPError(400, 'First name is less than 2 or larger than 20 characters');
   } else if (specialChars.test(nameLast) === true) {
-    return { error: 'Lastname contains invalid characters=' };
+    throw HTTPError(400, 'Last name contains invalid characters');
   } else if (nameLast.length < 2 || nameLast.length > 20) {
-    return { error: 'Lastname is less than 2 or larger than 20 characters' };
+    throw HTTPError(400, 'Last name is less than 2 or larger than 20 characters');
   } else if (password.length < 8) {
-    return { error: 'Password length is less than 8 characters' };
+    throw HTTPError(400, 'Password length is less than 8 characters');
   } else if (!/(?=.*\d)(?=.*[a-zA-Z])/.test(password)) {
-    return { error: 'Password must contain at least 1 letter and number' };
+    throw HTTPError(400, 'Password must contain at least 1 letter and number');
   }
 
   // Bit of Code that pushes the data after the filter
