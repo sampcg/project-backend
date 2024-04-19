@@ -31,6 +31,7 @@ import {
   adminQuizRemove,
   adminQuizNameUpdate,
   adminQuizTransfer,
+  adminQuizTransferV2,
   adminQuizDescriptionUpdate,
   adminQuizInfo,
   adminUpdateQuizThumbnail,
@@ -270,6 +271,18 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
     return res.status(response.code).json({ error: response.error });
   }
   res.json(response);
+});
+
+// Transfer ownership of a quiz to a different user based on their email
+app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.header('token') as string;
+    const { quizid } = req.params;
+    const { userEmail } = req.body;
+    res.json(adminQuizTransferV2(parseInt(quizid), token, userEmail));
+  } catch (err) {
+    next(err);
+  }
 });
 
 /**                             Create Question                               */
