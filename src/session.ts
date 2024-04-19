@@ -3,7 +3,7 @@ import {
   setData
 } from './dataStore';
 import { getUser, /* getQuiz */ decodeToken, isValidAction, timer /* getRandomColour */ } from './helpers';
-import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus, PlayerAnswer, QuestionInfo, Quiz } from './returnInterfaces';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus, PlayerAnswer } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
 
@@ -177,14 +177,13 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
   let timerFinished2 = false;
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (quiz) {
-    // Find the question with the given ID within the quiz
     const question = quiz.questions.find(question => question.questionId);
     if (question) {
       timer(question.duration, () => {
         timerFinished2 = true;
       });
-    };
-  };
+    }
+  }
 
   if (session.state === States.LOBBY) {
     if (action !== 'NEXT_QUESTION' && action !== 'END') {
