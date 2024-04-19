@@ -204,6 +204,6 @@ export const clear = () => {
 
 export const timer = (length: number) => {
   setTimeout(() => {
-    console.log("Timer is done!");
+    console.log('Timer is done!');
   }, length);
 };
