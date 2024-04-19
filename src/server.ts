@@ -144,7 +144,8 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 // update details of an admin user
 app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { token, email, nameFirst, nameLast } = req.body;
+    const token = req.header('token') as string;
+    const { email, nameFirst, nameLast } = req.body;
     res.json(adminUserDetailsUpdateV2(token, email, nameFirst, nameLast));
   } catch (err) {
     next(err);
@@ -165,8 +166,8 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 // update the password of an admin user
 app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
   try {
-    // const token = req.header('token') as string;
-    const { token, oldPassword, newPassword } = req.body;
+    const token = req.header('token') as string;
+    const { oldPassword, newPassword } = req.body;
     res.json(adminUserPasswordUpdateV2(token, oldPassword, newPassword));
   } catch (err) {
     next(err);
