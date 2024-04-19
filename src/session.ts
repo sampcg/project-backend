@@ -3,7 +3,7 @@ import {
   setData
 } from './dataStore';
 import { getUser, /* getQuiz */ decodeToken, isValidAction /* getRandomColour */ } from './helpers';
-import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus } from './returnInterfaces';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus, PlayerAnswer } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
 
@@ -126,6 +126,7 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
     state: States.LOBBY,
     autoStartNum: autoStartNum,
     players: players,
+    playerAnswers: [] as PlayerAnswer[],
     atQuestion: atQuestion
   };
   data.session.push(newSession);

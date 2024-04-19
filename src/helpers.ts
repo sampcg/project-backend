@@ -1,7 +1,7 @@
 import { getData } from './dataStore';
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { User, Token } from './returnInterfaces';
+import { User, Token, Player } from './returnInterfaces';
 import validator from 'validator';
 import HTTPError from 'http-errors';
 import { DataStore } from './dataInterfaces';
@@ -160,6 +160,23 @@ export function getRandomColour(): string {
 }
 
 /**
+ * Retrieves a player object from the given playerId.
+ *
+ * @param {number} playerId - The ID of the player to retrieve.
+ * @return {Player | null} The player object if found, or null if not found.
+ */
+export function getPlayerFromPlayerId(playerId: number): Player | null {
+  const sessions = getData().session;
+  for (const session of sessions) {
+    const player = session.players.find((player) => player.playerId === playerId);
+    if (player) {
+      return player;
+    }
+  }
+  return null;
+}
+
+/**
  * Creates a request with the specified HTTP method, path, and payload.
  *
  * @param {HttpVerb} method - The HTTP method to use for the request.
@@ -183,4 +200,10 @@ export const createRequest = (method: HttpVerb, path: string, payload: object) =
 
 export const clear = () => {
   return createRequest('DELETE', '/v1/clear', {});
+};
+
+export const timer = (length: number) => {
+  setTimeout(() => {
+    console.log('Timer is done!');
+  }, length);
 };
