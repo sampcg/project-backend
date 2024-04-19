@@ -288,6 +288,57 @@ export const adminUserDetailsUpdateV2 = (token: string, email: string, nameFirst
   return {};
 };
 
+export const adminUserPasswordUpdate = (token: string, oldPassword: string,
+  newPassword: string): EmptyObject | ErrorObject => {
+  /** Token is empty or invalid (does not refer to valid logged in user session) */
+  const data = getData();
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    return { error: 'Token is empty or invalid', code: 401 };
+  }
+  const user = data.users.find((user) => originalToken.userId === user.userId);
+  if (!user) {
+    return { error: 'User with the provided token does not exist', code: 401 };
+  }
+  validateTokenStructure(token);
+  /** Old Password is not the correct old password */
+  if (oldPassword !== user.password) {
+    return { error: 'Old Password is not the correct old password', code: 400 };
+  }
+  /** Old Password and New Password match exactly */
+  if (oldPassword === newPassword) {
+    return { error: 'Old Password and New Password match exactly', code: 400 };
+  }
+   /** New Password has already been used before by this user */
+   if (user.oldPassword === newPassword) {
+    return { error: 'New Password has already been used before by this user', code: 400 };
+  }
+  /** New Password is less than 8 characters */
+  if (newPassword.length < 8) {
+    return { error: 'New Password is less than 8 characters', code: 400 };
+  }
+   /** New Password does not contain at least one number and at least one letter */
+   let hasNumber = false;
+   let hasLower = false;
+   let hasUpper = false;
+   for (const character of newPassword) {
+     if (!isNaN(Number(character))) {
+       hasNumber = true;
+     } else if (character >= 'a' && character <= 'z') {
+       hasLower = true;
+     } else if (character >= 'A' && character <= 'Z') {
+       hasUpper = true;
+     }
+     if (!(hasNumber && (hasLower || hasUpper))) {
+      return { error: 'New Password does not contain at least one number and at least one letter', code: 400 };
+      /** correct output */
+    }
+  user.oldPassword = user.password;
+  user.password = newPassword;
+  setData(data);
+  return {};
+};
+
 /**
  * Updates the password of an admin user
  * @param {number} authUserId - unique identifier for admin user
