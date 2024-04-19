@@ -45,7 +45,7 @@ const requestRegisterAuth = (email: string, password: string, nameFirst: string,
 };
 
 const requestAuthLogin = (email: string, password: string) => {
-  return requestHelper('POST', '/v1/admin/auth/login', {email, password}, {})
+  return requestHelper('POST', '/v1/admin/auth/login', { email, password }, {});
 };
 
 const requestAuthLogout = (token: string) => {
@@ -54,7 +54,7 @@ const requestAuthLogout = (token: string) => {
 
 const requestUserDetails = (token: string) => {
   return requestHelper('GET', '/v2/admin/user/details', {}, { token });
-}
+};
 
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
@@ -535,13 +535,12 @@ describe('Testing POST /v2/admin/auth/logout', () => {
       expect(requestAuthLogout(author.token)).toStrictEqual({});
     });
 
-    test('Past token no longer works', ()  => {
+    test('Past token no longer works', () => {
       requestAuthLogout(author.token);
       expect(requestUserDetails(author.token)).toStrictEqual(makeCustomErrorForTest(401));
     });
   });
 });
-
 
 /** Testing authUserDetails */
 // Michael
@@ -550,7 +549,7 @@ describe('Testing GET /v2/admin/user/details', () => {
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
   });
-  
+
   describe('TESTING: Error cases', () => {
     test('Invalid token', () => {
       expect(requestUserDetails(author.token + 1)).toStrictEqual(makeCustomErrorForTest(401));
@@ -599,8 +598,8 @@ describe('Testing GET /v2/admin/user/details', () => {
         }
       });
     });
-
-    test.todo('Counts numFailedPasswords correctly', () => {
+    /*
+    test('Counts numFailedPasswords correctly', () => {
       requestAuthLogin('aaa@bbb.com', 'wrongpassword1');
       expect(requestUserDetails(author.token)).toStrictEqual({
         user: {
@@ -612,7 +611,7 @@ describe('Testing GET /v2/admin/user/details', () => {
         }
       });
       const author2: {token: string} = requestAuthLogin('aaa@bbb.com', 'abcde12345');
-      expect(requestUserDetails(author.token)).toStrictEqual({
+      expect(requestUserDetails(author2.token)).toStrictEqual({
         user: {
           userId: expect.any(Number),
           name: 'Michael Hourn',
@@ -622,5 +621,6 @@ describe('Testing GET /v2/admin/user/details', () => {
         }
       });
     });
+    */
   });
 });
