@@ -457,7 +457,7 @@ export const adminQuizTransferV2 = (quizId: number, token: string, userEmail: st
   const targetUserId = getUserByEmail(userEmail).userId;
   const targetQuiz = data.quizzes.some((quiz) => targetUserId === quiz.userId);
   if (targetQuiz) {
-    throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+    throw HTTPError(403, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
   }
   quiz.timeLastEdited = Date.now();
 

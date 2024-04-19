@@ -276,18 +276,6 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
 // Transfer ownership of a quiz to a different user based on their email
 app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response, next: NextFunction) => {
   try {
-    // const token = req.header('token') as string;
-    const { quizid } = req.params;
-    const { token, userEmail } = req.body;
-    res.json(adminQuizTransferV2(parseInt(quizid), token, userEmail));
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Transfer ownership of a quiz to a different user based on their email
-app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response, next: NextFunction) => {
-  try {
     const token = req.header('token') as string;
     const { quizid } = req.params;
     const { userEmail } = req.body;

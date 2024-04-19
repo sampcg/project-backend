@@ -1,5 +1,6 @@
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from '../config.json';
+import { IncomingHttpHeaders } from 'http';
 
 const SERVER_URL = `${url}:${port}`;
 const ERROR = { error: expect.any(String) };
@@ -8,18 +9,26 @@ const BADREQUEST = 400;
 const UNAUTHORIZED = 401;
 const FORBIDDEN = 403;
 
-export const createRequest = (method: HttpVerb, path: string, payload: object) => {
+export const createRequest = (method: HttpVerb, path: string, payload: object, headers: IncomingHttpHeaders = {}) => {
   let qs = {};
   let json = {};
   json = payload;
   if (['GET', 'DELETE'].includes(method)) {
     qs = payload;
   }
-  const res = request(method, SERVER_URL + path, { qs, json, timeout: 10000 });
+  const requestOptions = {
+    qs,
+    json,
+    timeout: 10000,
+    headers: {
+      ...(headers || {}),
+      token: headers?.token,
+    },
+  };
+  const res = request(method, SERVER_URL + path, requestOptions);
   const responseBody = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, body: responseBody };
 };
-
 /// ///////////////////////// Wrapper Functions /////////////////////////////////
 
 const clear = () => {
@@ -38,7 +47,7 @@ const adminQuizTransfer = (quizId: number, token: string, userEmail: string) => 
   return createRequest('POST', `/v1/admin/quiz/${quizId}/transfer`, { quizId, token, userEmail });
 };
 const adminQuizTransferV2 = (quizId: number, token: string, userEmail: string) => {
-  return createRequest('POST', `/v1/admin/quiz/${quizId}/transfer`, { quizId, token, userEmail });
+  return createRequest('POST', `/v1/admin/quiz/${quizId}/transfer`, { quizId, userEmail }, { token });
 };
 /// /////////////////////////////////////////////////////////////////////////////
 
@@ -93,7 +102,7 @@ describe('adminQuizTransfer function tests', () => {
 });
 
 // adminQuizTransferV2
-describe.only('adminQuizTransferV2 function tests', () => {
+describe('adminQuizTransferV2 function tests', () => {
   let user: { statusCode: number; body: {token: string}; };
   let user2: { statusCode: number; body: {token: string}; };
   let quiz: { statusCode: number; body: {quizId: number}; };
