@@ -87,3 +87,20 @@ export interface Session {
   state: States;
   autoStartNum: number;
 }
+
+export interface FinalResults {
+  usersRankedByScore: UserRankedByScore[];
+  questionResults: QuestionResult[];
+}
+
+export interface UserRankedByScore {
+  name: string;
+  score: number;
+}
+
+export interface QuestionResult {
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
