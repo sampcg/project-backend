@@ -320,13 +320,20 @@ export const adminUserPasswordUpdate = (token: string, oldPassword: string,
  * @returns {} - empty object
  */
 
-function createGuestPlayer(sessionId: number, name: string): { playerId: number } | ErrorObject {
+function createGuestPlayer(sessionId: number, name: string): { playerId: number, numQuestions: number, atQuestion: number } | ErrorObject {
   const data = getData(); // Get session data from somewhere
+  
+  // Find the session by sessionId
   const session = data.session.find((sess: Session) => sess.quizSessionId === sessionId);
 
-  // Check if session exists and is in LOBBY state
-  if (!session || session.state !== States.LOBBY) {
-    throw HTTPError(400, 'Session not found or not in LOBBY state');
+  // Check if session exists
+  if (!session) {
+    throw HTTPError(400, 'Session ID does not refer to a valid session');
+  }
+
+  // Check if session is in LOBBY state
+  if (session.state !== States.LOBBY) {
+    throw HTTPError(400, 'Session is not in LOBBY state');
   }
 
   // Check if the name is empty, generate a random name if so
@@ -334,9 +341,9 @@ function createGuestPlayer(sessionId: number, name: string): { playerId: number 
     name = generateRandomName();
   }
 
-  // Check if the name is unique
+  // Check if the name is unique within the session
   if (data.guest.some((guest: Guest) => guest.name === name && guest.sessionId === sessionId)) {
-    throw HTTPError(400, 'Name Not Unique within the session');
+    throw HTTPError(400, 'Name is not unique within the session');
   }
 
   // Generate a playerId for the guest
@@ -346,14 +353,17 @@ function createGuestPlayer(sessionId: number, name: string): { playerId: number 
   const guest: Guest = {
     sessionId: sessionId,
     name: name,
-    playerId: playerId
+    playerId: playerId,
+    numQuestions: session.metadata.numQuestions,
+    atQuestion: session.atQuestion,
+    state: session.state
   };
   data.guest.push(guest);
 
   // Update session data
   setData(data);
 
-  return { playerId };
+  return { playerId: guest.playerId, numQuestions: guest.numQuestions, atQuestion: guest.atQuestion };
 }
 
 // Function to generate a random name with the structure "[5 letters][3 numbers]"
@@ -443,6 +453,25 @@ export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
   setData(data);
   return {};
 };
+
+export function getGuestPlayerStatus(playerId: number): { state: States; numQuestions: number; atQuestion: number } | { error: string } {
+  const data = getData();
+  
+  // Find the guest player by playerId
+  const guestPlayer = data.guest.find((guest: Guest) => guest.playerId === playerId);
+
+  // If guest player not found, return error
+  if (!guestPlayer) {
+    throw HTTPError(400, 'Player ID does not exist');
+  }
+
+  // Return the status of the guest player in the session
+  return {
+    state: guestPlayer.state,
+    numQuestions: guestPlayer.numQuestions,
+    atQuestion: guestPlayer.atQuestion
+  };
+}
 
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js

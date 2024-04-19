@@ -123,5 +123,7 @@ export interface SessionStatus {
 export interface Guest {
   sessionId: number,
   name: string,
-  playerId: number
+  playerId: number,
+  numQuestions: number,
+  atQuestion: number
 }
