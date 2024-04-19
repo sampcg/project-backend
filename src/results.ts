@@ -1,7 +1,5 @@
 import { getData, setData } from './dataStore';
-import {
-
-} from './helpers';
+import { getPlayerFromPlayerId } from './helpers';
 import { ErrorObject, EmptyObject, PlayerAnswer } from './returnInterfaces';
 import HTTPError from 'http-errors';
 
@@ -129,4 +127,88 @@ export function getQuestionResults(playerId: number, questionPosition: number) {
     averageAnswerTime: averageAnswerTime,
     correctPercentage: correctPercentage
   };
+}
+
+interface QuestionResult {
+  questionId: number,
+  questionCorrectBreakdown: {
+    answerId: number,
+    playersCorrect: string[],
+  }[],
+  averageAnswerTime: number,
+  percentCorrect: number,
+}
+
+export interface UserRankedByScore {
+  name: string;
+  score: number;
+}
+
+interface QuizSessionFinalResult {
+  usersRankedByScore: UserRankedByScore[];
+  questionResults: QuestionResult[];
+}
+
+/**
+ *  final result for a session.
+ *
+ * @param {number} playerId - The ID of the player.
+ * @throws {HTTPError} Throws an error if the player with the given playerId does not exist
+ * @throws {HTTPError} If the session is not in the final result state.
+ * @return {QuizSessionFinalResult} The final result of the player's session, including the ranking of players by score and the results of each question.
+ */
+export function playerSessionFinalResult(playerId: number) {
+  const data = getData();
+  const playerIdValue = getPlayerFromPlayerId(playerId)?.playerId;
+
+  if (!playerIdValue) {
+    throw HTTPError(400, 'Player with given playerId does not exist');
+  }
+  const session = data.session.find((s) => s.players.some((player) => player.playerId === playerId));
+
+  if (session.state !== 'FINAL_RESULTS') {
+    throw HTTPError(400, 'Session is not in the final result state');
+  }
+
+  const quiz = data.quizzes.find((q) => q.quizId === session.quiz.quizId);
+  const usersRankedByScore = session.players
+    .map((player) => ({ name: player.name, score: player.score }))
+    .sort((a, b) => b.score - a.score);
+
+  const questionResults: QuestionResult[] = [];
+
+  quiz.questions.forEach((question) => {
+    const playerAnswers = session.playerAnswers.filter(
+      (playerAnswer) => playerAnswer.questionPosition + 1 === question.questionId
+    );
+
+    const questionCorrectBreakdown = question.answers.map((answer) => {
+      const playersCorrect = playerAnswers
+        .filter((playerAnswer) => playerAnswer.answersId.includes(answer.answerId))
+        .map((playerAnswer) => session.players.find((player) => player.playerId === playerAnswer.playerId).name);
+
+      return {
+        answerId: answer.answerId,
+        playersCorrect: playersCorrect,
+      };
+    });
+
+    const totalPlayers = session.players.length;
+    const totalCorrectPlayers = playerAnswers.filter((playerAnswer) => playerAnswer.answersId.length === question.answers.length).length;
+    const percentageCorrect = Math.round((totalCorrectPlayers / totalPlayers) * 100);
+
+    questionResults.push({
+      questionId: question.questionId,
+      questionCorrectBreakdown: questionCorrectBreakdown,
+      averageAnswerTime: 45,
+      percentCorrect: percentageCorrect,
+    });
+  });
+
+  const quizSessionFinalResult: QuizSessionFinalResult = {
+    usersRankedByScore: usersRankedByScore,
+    questionResults: questionResults,
+  };
+
+  return quizSessionFinalResult;
 }

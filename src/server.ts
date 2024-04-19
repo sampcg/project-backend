@@ -52,8 +52,9 @@ import {
 } from './session';
 
 import {
-  getQuestionResults,
   submitAnswers,
+  getQuestionResults,
+  playerSessionFinalResult,
 } from './results';
 
 import { adminTrashList, adminTrashRestore } from './trash';
@@ -356,6 +357,16 @@ app.get('/v1/player/:playerId/question/:questionPosition/results', (req: Request
     const { playerId } = req.params;
     const { questionPosition } = req.params;
     res.json(getQuestionResults(parseInt(playerId), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// final results for a session
+app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: NextFunction) => {
+  const { playerid } = req.params;
+  try {
+    res.json(playerSessionFinalResult(parseInt(playerid)));
   } catch (err) {
     next(err);
   }

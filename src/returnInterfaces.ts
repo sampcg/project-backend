@@ -44,6 +44,7 @@ export interface User {
 export interface Player {
   name: string;
   playerId: number;
+  score: number;
 }
 
 export interface Quiz {
