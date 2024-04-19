@@ -1,7 +1,7 @@
 import { getData } from './dataStore';
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { User, Token } from './returnInterfaces';
+import { User, Token, Player } from './returnInterfaces';
 import validator from 'validator';
 import HTTPError from 'http-errors';
 import { DataStore } from './dataInterfaces';
@@ -157,6 +157,23 @@ export function getUserByEmail(email: string): User | null {
 export function getRandomColour(): string {
   const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'orange'];
   return colors[Math.floor(Math.random() * colors.length)];
+}
+
+/**
+ * Retrieves a player object from the given playerId.
+ *
+ * @param {number} playerId - The ID of the player to retrieve.
+ * @return {Player | null} The player object if found, or null if not found.
+ */
+export function getPlayerFromPlayerId(playerId: number): Player | null {
+  const sessions = getData().session;
+  for (const session of sessions) {
+    const player = session.players.find((player) => player.playerId === playerId);
+    if (player) {
+      return player;
+    }
+  }
+  return null;
 }
 
 /**

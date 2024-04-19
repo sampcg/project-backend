@@ -33,7 +33,7 @@ import {
   adminQuizTransfer,
   adminQuizDescriptionUpdate,
   adminQuizInfo,
-  adminUpdateQuizThumbnail
+  adminUpdateQuizThumbnail,
 } from './quiz';
 
 import {
@@ -50,6 +50,12 @@ import {
   adminSessionView,
   getSessionStatus
 } from './session';
+
+import {
+  submitAnswers,
+  getQuestionResults,
+  playerSessionFinalResult,
+} from './results';
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
@@ -138,7 +144,8 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 // update details of an admin user
 app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { token, email, nameFirst, nameLast } = req.body;
+    const token = req.header('token') as string;
+    const { email, nameFirst, nameLast } = req.body;
     res.json(adminUserDetailsUpdateV2(token, email, nameFirst, nameLast));
   } catch (err) {
     next(err);
@@ -159,8 +166,8 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 // update the password of an admin user
 app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
   try {
-    // const token = req.header('token') as string;
-    const { token, oldPassword, newPassword } = req.body;
+    const token = req.header('token') as string;
+    const { oldPassword, newPassword } = req.body;
     res.json(adminUserPasswordUpdateV2(token, oldPassword, newPassword));
   } catch (err) {
     next(err);
@@ -330,6 +337,40 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { imgUrl } = req.body;
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
+});
+
+// player submission of answers
+app.put('/v1/player/:playerId/question/:questionPosition/answer', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { questionPosition } = req.params;
+    const { answerId } = req.body;
+    const currentAnswerIds = JSON.parse(answerId as string);
+    res.json(submitAnswers(currentAnswerIds, parseInt(playerId), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// results for a question
+app.get('/v1/player/:playerId/question/:questionPosition/results', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { questionPosition } = req.params;
+    res.json(getQuestionResults(parseInt(playerId), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// final results for a session
+app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: NextFunction) => {
+  const { playerid } = req.params;
+  try {
+    res.json(playerSessionFinalResult(parseInt(playerid)));
+  } catch (err) {
+    next(err);
+  }
 });
 
 /**                                 Clear                                     */
