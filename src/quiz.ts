@@ -183,7 +183,10 @@ export const adminQuizRemove = (token: string, quizId: number): EmptyObject | Er
     throw HTTPError(403, 'User does not own quiz');
   }
 
-  // This will need to also have an error check for active session
+  // Check if any sessions are not in END state
+  if (data.session.some(session => session.quiz.quizId === findQuiz.quizId && session.state !== 'END')) {
+    throw HTTPError(400, 'Cannot delete question from active quiz');
+  }
 
   // Create object trashQuiz that contains all data in quiz + updates time last edited
   const trashQuiz: Quiz = {

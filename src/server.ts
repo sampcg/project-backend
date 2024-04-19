@@ -22,6 +22,7 @@ import {
   adminUserDetailsUpdate,
   adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
+  adminUserPasswordUpdateV2,
 } from './auth';
 
 import {
@@ -33,20 +34,31 @@ import {
   adminQuizTransferV2,
   adminQuizDescriptionUpdate,
   adminQuizInfo,
-  adminUpdateQuizThumbnail
+  adminUpdateQuizThumbnail,
 } from './quiz';
 
 import {
   adminQuestionCreate,
   adminQuestionUpdate,
   adminQuestionRemove,
-  adminQuestionMove
+  adminQuestionMove,
+  adminQuestionDuplicate
 } from './question';
 
 import {
+  // adminSessionView,
+  adminSessionStart,
+  adminSessionUpdate,
   adminSessionView,
-  adminSessionStart
+  getSessionStatus
 } from './session';
+
+import {
+  submitAnswers,
+  getQuestionResults,
+  playerSessionFinalResult,
+  getFinalResults,
+} from './results';
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
@@ -94,21 +106,15 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 
 /**                                Auth Login                                 */
 // Second Function By Abrar
+// Updated by Michael
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
-
-  const result = adminAuthLogin(email, password);
-
-  // Checking if the result contains an error
-  if ('error' in result) {
-    return res.status(400).json(result);
-  }
-
-  res.json(result);
+  res.json(adminAuthLogin(email, password));
 });
 
 /**                               User Details                                */
 // Third Function By Abrar
+// Updated by Michael
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token: string = req.query.token as string; // Assuming token is passed in the request body
 
@@ -119,6 +125,11 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   }
 
   res.json(result);
+});
+
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminUserDetails(token));
 });
 
 /**                              Update Details                               */
@@ -135,7 +146,8 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 // update details of an admin user
 app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { token, email, nameFirst, nameLast } = req.body;
+    const token = req.header('token') as string;
+    const { email, nameFirst, nameLast } = req.body;
     res.json(adminUserDetailsUpdateV2(token, email, nameFirst, nameLast));
   } catch (err) {
     next(err);
@@ -153,6 +165,17 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   res.json(response);
 });
 
+// update the password of an admin user
+app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.header('token') as string;
+    const { oldPassword, newPassword } = req.body;
+    res.json(adminUserPasswordUpdateV2(token, oldPassword, newPassword));
+  } catch (err) {
+    next(err);
+  }
+});
+
 /**                                Auth Logout                                */
 // Fourth Function By Abrar
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
@@ -166,6 +189,12 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 
   res.json(result);
 });
+
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminAuthLogout(token));
+});
+
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
@@ -299,6 +328,13 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   res.json(adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition)));
 });
 
+/**                            Duplicate Question                             */
+app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, questionid } = req.params;
+  res.json(adminQuestionDuplicate(token, parseInt(quizid), parseInt(questionid)));
+});
+
 /**                             View Session                                  */
 app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
   const token = req.header('token') as string;
@@ -317,12 +353,70 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
   res.json(result);
 });
 
+/**                         Get quiz Session Status                           */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, sessionid } = req.params;
+  res.json(getSessionStatus(parseInt(quizid), parseInt(sessionid), token));
+});
+
+/**                       Update a Quiz Session State                         */
+app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, sessionid } = req.params;
+  const { action } = req.body;
+  console.log(quizid);
+  const result = adminSessionUpdate(parseInt(quizid), parseInt(sessionid), token, action);
+  res.json(result);
+});
+
 /**                         Update Quiz Thumbnail                             */
 app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const token = req.header('token');
   const { quizid } = req.params;
   const { imgUrl } = req.body;
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
+});
+
+/**                             Player Submission of answer                                  */
+app.put('/v1/player/:playerId/question/:questionPosition/answer', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerid } = req.params;
+    const { questionPosition } = req.params;
+    const { answerId } = req.body;
+    const currentAnswerIds = JSON.parse(answerId as string);
+    res.json(submitAnswers(currentAnswerIds, parseInt(playerid), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**                             Results for a question                                  */
+app.get('/v1/player/:playerid/question/:questionPosition/results', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerid } = req.params;
+    const { questionPosition } = req.params;
+    res.json(getQuestionResults(parseInt(playerid), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**                             Final results for a session                                  */
+app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: NextFunction) => {
+  const { playerid } = req.params;
+  try {
+    res.json(playerSessionFinalResult(parseInt(playerid)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**                             Final results for all players in a session                               */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const { quizid, sessionid } = req.params;
+  res.json(getFinalResults(parseInt(quizid), parseInt(sessionid), token));
 });
 
 /**                                 Clear                                     */

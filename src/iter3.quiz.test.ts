@@ -4,6 +4,19 @@ import { IncomingHttpHeaders } from 'http';
 
 const SERVER_URL = `${url}:${port}`;
 
+interface AnswerInput {
+  answer: string;
+  correct: boolean;
+}
+
+interface QuestionBody {
+  question: string;
+  duration: number;
+  points: number;
+  answers: AnswerInput[];
+  thumbnailUrl: string;
+}
+
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
 
 interface Payload {
@@ -71,6 +84,14 @@ const requestQuizInfo = (token: string, quizId: number) => {
 
 const requestUpdateQuizThumbnail = (token: string, quizId: number, imgUrl: string) => {
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}/thumbnail`, { imgUrl }, { token });
+};
+
+const requestQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody) => {
+  return requestHelper('POST', `/v2/admin/quiz/${quizId}/question`, { questionBody }, { token });
+};
+
+const requestSessionStart = (quizId: number, token: string, autoStartNum: number) => {
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
 };
 
 const requestClear = () => {
@@ -304,6 +325,23 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
       expect(requestQuizRemove(author2.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(403));
     });
+
+    test('Session not in END state', () => {
+      const answers =
+            [{
+              answer: 'Answer 1',
+              correct: true
+            },
+            {
+              answer: 'Answer 2',
+              correct: false
+            }];
+      const thumbnailUrl = 'http://google.com/some/image/path.jpg';
+      const questionBody: QuestionBody = { question: 'Question', duration: 1, points: 1, answers: answers, thumbnailUrl: thumbnailUrl };
+      requestQuestionCreate(author.token, quiz.quizId, questionBody);
+      requestSessionStart(quiz.quizId, author.token, 3);
+      expect(requestQuizRemove(author.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(400));
+    });
   });
 
   describe('Testing: Successful Cases', () => {
@@ -415,7 +453,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
   test('Testing: Successful Case - Update quiz name', () => {
     const updatedName = 'New Name for Quiz';
     const updateResult = requestUpdateQuizName(author.token, quiz.quizId, updatedName);
-    console.log(updateResult);
 
     // Assert that the update operation was successful
     expect(updateResult).toEqual({}); // Assuming the function returns an empty object on success

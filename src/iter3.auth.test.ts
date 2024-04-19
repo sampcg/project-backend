@@ -1,5 +1,6 @@
-import request from 'sync-request-curl';
+import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
+import { IncomingHttpHeaders } from 'http';
 // import { ErrorObject } from './returnInterfaces';
 // import { User } from './returnInterfaces';
 // import { Quiz } from './returnInterfaces';
@@ -7,11 +8,66 @@ import { port, url } from './config.json';
 
 const SERVER_URL = `${url}:${port}`;
 
+const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
+
+interface Payload {
+  [key: string]: any;
+}
+const requestHelper = (method: HttpVerb, path: string, payload: Payload, headers: IncomingHttpHeaders = {}) => {
+  let qs = {};
+  let json = {};
+  if (['GET', 'DELETE'].includes(method.toUpperCase())) {
+    qs = payload;
+  } else {
+    json = payload;
+  }
+  const url = SERVER_URL + path;
+  const res = request(method, url, { qs, json, headers, timeout: 20000 });
+
+  let bodyObject: any;
+  try {
+    bodyObject = JSON.parse(res.body.toString());
+  } catch (error: any) {
+    bodyObject = {
+      error: `Server responded with ${res.statusCode}, but body is not JSON. Given: ${res.body.toString()}. Reason: ${error.message}.`
+    };
+  }
+  if ('error' in bodyObject) {
+    return { status: res.statusCode, ...bodyObject };
+  }
+  return bodyObject;
+};
+
+/// ///////////////////////// Wrapper Functions /////////////////////////////////
+
+const requestRegisterAuth = (email: string, password: string, nameFirst: string, nameLast: string) => {
+  return requestHelper('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
+};
+
+const requestAuthLogin = (email: string, password: string) => {
+  return requestHelper('POST', '/v1/admin/auth/login', { email, password }, {});
+};
+
+const requestAuthLogout = (token: string) => {
+  return requestHelper('POST', '/v1/admin/auth/logout', { token });
+};
+
+const requestUserDetails = (token: string) => {
+  return requestHelper('GET', '/v2/admin/user/details', {}, { token });
+};
+
+const requestClear = () => {
+  return requestHelper('DELETE', '/v1/clear', {});
+};
+
+/// ////////////////////////////////////////////////////////////////////////////
+
 beforeEach(() => {
-  request('DELETE', `${SERVER_URL}/v1/clear`);
+  requestClear();
 });
 
 //  BEGINNING OF TESTING ADMIN AUTH REGISTER  //
+// Abrar
 describe('Testing POST /v1/admin/auth/register', () => {
   // This is the correct output for AdminAuthRegister
   test('Correct status code/return value, and same email error', () => {
@@ -401,7 +457,7 @@ describe('Testing POST /v1/admin/auth/register', () => {
 // END OF AUTH REGISTER TESTING
 
 // BEGINNING OF AUTH LOGIN TESTING
-
+// Abrar
 describe('Testing POST /v1/admin/auth/login', () => {
   test('Checking for Emails that dont exist', () => {
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
@@ -460,140 +516,111 @@ describe('Testing POST /v1/admin/auth/login', () => {
 });
 // END OF AUTH LOGIN TESTING
 
-// BEGINNING OF AUTH USER DETAILS
-
-describe('Testing GET /v1/admin/user/details', () => {
-  test('Checking if AuthUserId is valid', () => {
-    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-      json: {
-        email: 'aaa@bbb.com',
-        password: 'abcde12345',
-        nameFirst: 'Michael',
-        nameLast: 'Hourn'
-      }
-    });
-
-    expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-    const { token } = JSON.parse(AuthRegisterResponse.body.toString());
-
-    // const isEmpty = Object.keys(AuthRegisterJSON).length === 0;
-    // console.log(isEmpty)
-    // First Test of Passing
-
-    const AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${token}`);
-
-    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    const AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect(AuthUserDetailsJSON).toEqual({ user: expect.any(Object) });
-
-    // Now checking by passing incorrect authId
-    const incorrectToken3 = '223434!';
-    const encodedToken3 = encodeURIComponent(JSON.stringify(incorrectToken3));
-    const AuthUserDetailsResponse3 = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodedToken3}`);
-    expect(AuthUserDetailsResponse3.statusCode).toStrictEqual(401);
-    const AuthUserDetailsJSON3 = JSON.parse(AuthUserDetailsResponse3.body.toString());
-    expect(AuthUserDetailsJSON3).toStrictEqual({ error: expect.any(String) });
-
-    // Second request with authUserId as a query parameter
-    const incorrectToken = 'Hello, World!';
-    const encodedToken = encodeURIComponent(JSON.stringify(incorrectToken));
-    const AuthUserDetailsResponse2 = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodedToken}`);
-    expect(AuthUserDetailsResponse2.statusCode).toStrictEqual(401);
-    const AuthUserDetailsJSON2 = JSON.parse(AuthUserDetailsResponse2.body.toString());
-    expect(AuthUserDetailsJSON2).toStrictEqual({ error: expect.any(String) });
+/** Testing authLogout */
+// Michael
+describe('Testing POST /v2/admin/auth/logout', () => {
+  let author: {token: string};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
   });
 
-  test('Checking if AuthUserDetails giving correct number of successfull logins', () => {
-    const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-      json: {
-        email: 'blah@email.com',
-        password: 'abcde12345',
-        nameFirst: 'john',
-        nameLast: 'smith'
-      }
+  describe('TESTING: Error cases', () => {
+    test('Invalid token', () => {
+      expect(requestAuthLogout(author.token + 1)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+  });
+
+  describe('TESTING: Success cases', () => {
+    test('Correct return', () => {
+      expect(requestAuthLogout(author.token)).toStrictEqual({});
     });
 
-    expect(AuthRegisterResponse.statusCode).toStrictEqual(200);
-    const AuthRegisterJSON = JSON.parse(AuthRegisterResponse.body.toString());
+    test('Past token no longer works', () => {
+      requestAuthLogout(author.token);
+      expect(requestUserDetails(author.token)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+  });
+});
 
-    request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-      { json: { email: 'blah@email.com', password: 'abcde12345' } });
+/** Testing authUserDetails */
+// Michael
+describe('Testing GET /v2/admin/user/details', () => {
+  let author: {token: string};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+  });
 
-    let AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
-    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    let AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect(AuthUserDetailsJSON).toStrictEqual({
-      user: {
-        userId: 0,
-        email: 'blah@email.com',
-        name: 'john smith',
-        numSuccessfulLogins: 2,
-        numFailedPasswordsSinceLastLogin: 0
-      }
+  describe('TESTING: Error cases', () => {
+    test('Invalid token', () => {
+      expect(requestUserDetails(author.token + 1)).toStrictEqual(makeCustomErrorForTest(401));
     });
 
-    request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-      { json: { email: 'blah@email.com', password: 'abcde12345' } });
+    test('Invalid sessionId', () => {
+      requestAuthLogout(author.token);
+      expect(requestUserDetails(author.token)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+  });
 
-    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
-    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect(AuthUserDetailsJSON).toStrictEqual({
-      user: {
-        userId: 0,
-        email: 'blah@email.com',
-        name: 'john smith',
-        numSuccessfulLogins: 3,
-        numFailedPasswordsSinceLastLogin: 0
-      }
+  describe('TESTING: Success cases', () => {
+    test('Correct details', () => {
+      expect(requestUserDetails(author.token)).toStrictEqual({
+        user: {
+          userId: expect.any(Number),
+          name: 'Michael Hourn',
+          email: 'aaa@bbb.com',
+          numSuccessfulLogins: 1,
+          numFailedPasswordsSinceLastLogin: 0
+        }
+      });
     });
 
-    // request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    //   { json: { email: 'blah@email.com', password: 'WrongPassword1' } });
-
-    // AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
-    // expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    // AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    // expect(AuthUserDetailsJSON).toStrictEqual({
-    //   user: {
-    //     userId: 0,
-    //     email: 'blah@email.com',
-    //     name: 'john smith',
-    //     numSuccessfulLogins: 3,
-    //     numFailedPasswordsSinceLastLogin: 1
-    //   }
-    // });
-
-    // request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-    //   { json: { email: 'blah@email.com', password: 'WrongPassword2' } });
-
-    // AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
-    // expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    // AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    // expect(AuthUserDetailsJSON).toStrictEqual({
-    //   user: {
-    //     userId: 0,
-    //     email: 'blah@email.com',
-    //     name: 'john smith',
-    //     numSuccessfulLogins: 3,
-    //     numFailedPasswordsSinceLastLogin: 2
-    //   }
-    // });
-
-    request('POST', `${SERVER_URL}/v1/admin/auth/login`,
-      { json: { email: 'blah@email.com', password: 'abcde12345' } });
-
-    AuthUserDetailsResponse = request('GET', `${SERVER_URL}/v1/admin/user/details?token=${encodeURIComponent(AuthRegisterJSON.token)}`);
-    expect(AuthUserDetailsResponse.statusCode).toStrictEqual(200);
-    AuthUserDetailsJSON = JSON.parse(AuthUserDetailsResponse.body.toString());
-    expect(AuthUserDetailsJSON).toStrictEqual({
-      user: {
-        userId: 0,
-        email: 'blah@email.com',
-        name: 'john smith',
-        numSuccessfulLogins: 4,
-        numFailedPasswordsSinceLastLogin: 0
-      }
+    test('Counts numSuccessfulLogins correctly', () => {
+      requestAuthLogout(author.token);
+      const author2: {token: string} = requestAuthLogin('aaa@bbb.com', 'abcde12345');
+      expect(requestUserDetails(author2.token)).toStrictEqual({
+        user: {
+          userId: expect.any(Number),
+          name: 'Michael Hourn',
+          email: 'aaa@bbb.com',
+          numSuccessfulLogins: 2,
+          numFailedPasswordsSinceLastLogin: 0
+        }
+      });
+      requestAuthLogout(author.token);
+      const author3: {token: string} = requestAuthLogin('aaa@bbb.com', 'abcde12345');
+      expect(requestUserDetails(author3.token)).toStrictEqual({
+        user: {
+          userId: expect.any(Number),
+          name: 'Michael Hourn',
+          email: 'aaa@bbb.com',
+          numSuccessfulLogins: 3,
+          numFailedPasswordsSinceLastLogin: 0
+        }
+      });
     });
+    /*
+    test('Counts numFailedPasswords correctly', () => {
+      requestAuthLogin('aaa@bbb.com', 'wrongpassword1');
+      expect(requestUserDetails(author.token)).toStrictEqual({
+        user: {
+          userId: expect.any(Number),
+          name: 'Michael Hourn',
+          email: 'aaa@bbb.com',
+          numSuccessfulLogins: 1,
+          numFailedPasswordsSinceLastLogin: 1
+        }
+      });
+      const author2: {token: string} = requestAuthLogin('aaa@bbb.com', 'abcde12345');
+      expect(requestUserDetails(author2.token)).toStrictEqual({
+        user: {
+          userId: expect.any(Number),
+          name: 'Michael Hourn',
+          email: 'aaa@bbb.com',
+          numSuccessfulLogins: 2,
+          numFailedPasswordsSinceLastLogin: 0
+        }
+      });
+    });
+    */
   });
 });
