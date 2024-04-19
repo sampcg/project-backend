@@ -16,6 +16,7 @@ interface QuestionBody {
   answers: AnswerInput[];
   thumbnailUrl: string;
 }
+
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
 
 interface Payload {
@@ -83,6 +84,10 @@ const requestQuestionDelete = (token: string, quizId: number, questionId: number
 
 const requestQuestionDuplicate = (token: string, quizId: number, questionId: number) => {
   return requestHelper('POST', `/v2/admin/quiz/${quizId}/question/${questionId}/duplicate`, {}, { token });
+};
+
+const requestSessionStart = (quizId: number, token: string, autoStartNum: number) => {
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
 };
 
 const requestClear = () => {
@@ -592,6 +597,11 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       requestAuthLogout(author.token);
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
       expect(requestQuestionDelete(author2.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+
+    test('Session not in END state', () => {
+      requestSessionStart(quiz.quizId, author.token, 3);
+      expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(400));
     });
   });
 
