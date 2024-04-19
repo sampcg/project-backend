@@ -173,14 +173,14 @@ app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFuncti
 
 /**                              Update Password                              */
 // update the password of an admin user
-// app.put('/v1/admin/user/password', (req: Request, res: Response) => {
-//   const { token, oldPassword, newPassword } = req.body;
-//   const response = adminUserPasswordUpdate(token, oldPassword, newPassword);
-//   if ('error' in response) {
-//     return res.status(response.code).json({ error: response.error });
-//   }
-//   res.json(response);
-// });
+app.put('/v1/admin/user/password', (req: Request, res: Response) => {
+  const { token, oldPassword, newPassword } = req.body;
+  const response = adminUserPasswordUpdate(token, oldPassword, newPassword);
+  if ('error' in response) {
+    return res.status(response.code).json({ error: response.error });
+  }
+  res.json(response);
+});
 
 // update the password of an admin user
 app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
