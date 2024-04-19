@@ -23,7 +23,8 @@ import {
   adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
   adminUserPasswordUpdateV2,
-  createGuestPlayer
+  createGuestPlayer,
+  getGuestPlayerStatus
 } from './auth';
 
 import {
