@@ -104,21 +104,15 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 
 /**                                Auth Login                                 */
 // Second Function By Abrar
+// Updated by Michael
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
-
-  const result = adminAuthLogin(email, password);
-
-  // Checking if the result contains an error
-  if ('error' in result) {
-    return res.status(400).json(result);
-  }
-
-  res.json(result);
+  res.json(adminAuthLogin(email, password));
 });
 
 /**                               User Details                                */
 // Third Function By Abrar
+// Updated by Michael
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token: string = req.query.token as string; // Assuming token is passed in the request body
 
@@ -129,6 +123,11 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   }
 
   res.json(result);
+});
+
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminUserDetails(token));
 });
 
 /**                              Update Details                               */
@@ -188,6 +187,12 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 
   res.json(result);
 });
+
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminAuthLogout(token));
+});
+
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
