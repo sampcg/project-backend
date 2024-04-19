@@ -380,15 +380,20 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
   const data = getData();
   const originalToken = decodeToken(token);
   validateTokenStructure(token);
+  console.log(token);
+  console.log(originalToken);
   if (!originalToken) {
     return { error: 'Token is empty or invalid', code: 401 };
   }
+  console.log(getUser(originalToken.userId));
   if (!getUser(originalToken.userId)) {
     return { error: 'User with the provided token does not exist', code: 401 };
   }
   const user = data.users.find((user) => originalToken.userId === user.userId);
   const quiz = data.quizzes.find((q) => quizId === q.quizId);
+  console.log(user);
   // Check for valid quiz
+  console.log(quiz);
   if (!quiz) {
     return { error: 'Quiz ID does not refer to a valid quiz!', code: 400 };
   }
@@ -443,7 +448,7 @@ export const adminQuizTransferV2 = (quizId: number, token: string, userEmail: st
   }
   // quiz does not refers to the user
   if (quiz.userId !== originalToken.userId) {
-    throw HTTPError(400, 'You do not own this quiz!');
+    throw HTTPError(403, 'You do not own this quiz!');
   }
   // Check if userEmail is a real user
   if (!getUserByEmail(userEmail)) {
@@ -457,7 +462,7 @@ export const adminQuizTransferV2 = (quizId: number, token: string, userEmail: st
   const targetUserId = getUserByEmail(userEmail).userId;
   const targetQuiz = data.quizzes.some((quiz) => targetUserId === quiz.userId);
   if (targetQuiz) {
-    throw HTTPError(403, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+    throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
   }
   quiz.timeLastEdited = Date.now();
 

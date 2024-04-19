@@ -39,15 +39,15 @@ const adminAuthRegister = (email: string, password: string, nameFirst: string, n
   return createRequest('POST', '/v1/admin/auth/register', { email, password, nameFirst, nameLast });
 };
 
-const adminQuizCreate = (token: string, name: string, description: string) => {
-  return createRequest('POST', '/v1/admin/quiz', { token, name, description });
+const adminQuizCreateV2 = (token: string, name: string, description: string) => {
+  return createRequest('POST', '/v2/admin/quiz', { name, description }, { token });
 };
 
 const adminQuizTransfer = (quizId: number, token: string, userEmail: string) => {
   return createRequest('POST', `/v1/admin/quiz/${quizId}/transfer`, { quizId, token, userEmail });
 };
 const adminQuizTransferV2 = (quizId: number, token: string, userEmail: string) => {
-  return createRequest('POST', `/v1/admin/quiz/${quizId}/transfer`, { quizId, userEmail }, { token });
+  return createRequest('POST', `/v2/admin/quiz/${quizId}/transfer`, { quizId, userEmail }, { token });
 };
 /// /////////////////////////////////////////////////////////////////////////////
 
@@ -63,8 +63,8 @@ describe('adminQuizTransfer function tests', () => {
   beforeEach(() => {
     user = adminAuthRegister('hayden.smith@unsw.edu.au', '123456ABC', 'Hayden', 'Smith');
     user2 = adminAuthRegister('validemail@gmail.com', '123456ABC', 'Jake', 'Renzella');
-    quiz = adminQuizCreate(user.body.token, 'my quiz name', 'my quiz description');
-    quiz2 = adminQuizCreate(user2.body.token, 'my quiz name', 'my origin quiz description');
+    quiz = adminQuizCreateV2(user.body.token, 'my quiz name', 'my quiz description');
+    quiz2 = adminQuizCreateV2(user2.body.token, 'my quiz name', 'my origin quiz description');
   });
   test('Test transferring a quiz successfully', () => {
     const transfer = adminQuizTransfer(quiz.body.quizId, user.body.token, 'validemail@gmail.com');
@@ -110,8 +110,8 @@ describe('adminQuizTransferV2 function tests', () => {
   beforeEach(() => {
     user = adminAuthRegister('hayden.smith@unsw.edu.au', '123456ABC', 'Hayden', 'Smith');
     user2 = adminAuthRegister('validemail@gmail.com', '123456ABC', 'Jake', 'Renzella');
-    quiz = adminQuizCreate(user.body.token, 'my quiz name', 'my quiz description');
-    quiz2 = adminQuizCreate(user2.body.token, 'my quiz name', 'my origin quiz description');
+    quiz = adminQuizCreateV2(user.body.token, 'my quiz name', 'my quiz description');
+    quiz2 = adminQuizCreateV2(user2.body.token, 'my quiz name', 'my origin quiz description');
   });
   test('Test transferring a quiz successfully', () => {
     const transfer = adminQuizTransferV2(quiz.body.quizId, user.body.token, 'validemail@gmail.com');
