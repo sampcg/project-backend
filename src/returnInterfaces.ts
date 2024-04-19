@@ -44,6 +44,7 @@ export interface User {
 export interface Player {
   name: string;
   playerId: number;
+  score: number;
 }
 
 export interface Quiz {
@@ -94,12 +95,21 @@ export enum Actions {
   End = 'END'
 }
 
+export interface PlayerAnswer {
+  playerId: number;
+  answersId: number[];
+  questionPosition: number;
+  timeAnswered: number;
+  isCorrect: boolean;
+}
+
 export interface Session {
   quizSessionId: number;
   quiz: Quiz;
   state: States;
   atQuestion: number;
   players: Player[];
+  playerAnswers: PlayerAnswer[];
   autoStartNum: number;
 }
 

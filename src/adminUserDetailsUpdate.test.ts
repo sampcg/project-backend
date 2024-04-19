@@ -1,5 +1,6 @@
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
+import { IncomingHttpHeaders } from 'http';
 
 const SERVER_URL = `${url}:${port}`;
 const ERROR = { error: expect.any(String) };
@@ -8,18 +9,26 @@ const SUCCESS = 200;
 const BADREQUEST = 400;
 const UNAUTHORIZED = 401;
 
-export const createRequest = (method: HttpVerb, path: string, payload: object) => {
+export const createRequest = (method: HttpVerb, path: string, payload: object, headers: IncomingHttpHeaders = {}) => {
   let qs = {};
   let json = {};
   json = payload;
   if (['GET', 'DELETE'].includes(method)) {
     qs = payload;
   }
-  const res = request(method, SERVER_URL + path, { qs, json, timeout: 10000 });
+  const requestOptions = {
+    qs,
+    json,
+    timeout: 10000,
+    headers: {
+      ...(headers || {}),
+      token: headers?.token,
+    },
+  };
+  const res = request(method, SERVER_URL + path, requestOptions);
   const responseBody = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, body: responseBody };
 };
-
 /// ///////////////////////// Wrapper Functions /////////////////////////////////
 
 const clear = () => {
@@ -39,7 +48,7 @@ const adminUserDetailsUpdate = (token: string, email: string, nameFirst: string,
 };
 
 const adminUserDetailsUpdateV2 = (token: string, email: string, nameFirst: string, nameLast: string) => {
-  return createRequest('PUT', '/v2/admin/user/details', { token, email, nameFirst, nameLast });
+  return createRequest('PUT', '/v2/admin/user/details', { email, nameFirst, nameLast }, { token });
 };
 
 /// /////////////////////////////////////////////////////////////////////////////

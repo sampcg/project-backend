@@ -34,7 +34,7 @@ import {
   adminQuizTransfer,
   adminQuizDescriptionUpdate,
   adminQuizInfo,
-  adminUpdateQuizThumbnail
+  adminUpdateQuizThumbnail,
 } from './quiz';
 
 import {
@@ -51,6 +51,12 @@ import {
   adminSessionView,
   getSessionStatus
 } from './session';
+
+import {
+  submitAnswers,
+  getQuestionResults,
+  playerSessionFinalResult,
+} from './results';
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
@@ -117,21 +123,15 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 
 /**                                Auth Login                                 */
 // Second Function By Abrar
+// Updated by Michael
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
-
-  const result = adminAuthLogin(email, password);
-
-  // Checking if the result contains an error
-  if ('error' in result) {
-    return res.status(400).json(result);
-  }
-
-  res.json(result);
+  res.json(adminAuthLogin(email, password));
 });
 
 /**                               User Details                                */
 // Third Function By Abrar
+// Updated by Michael
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token: string = req.query.token as string; // Assuming token is passed in the request body
 
@@ -142,6 +142,11 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   }
 
   res.json(result);
+});
+
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminUserDetails(token));
 });
 
 /**                              Update Details                               */
@@ -158,7 +163,8 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 // update details of an admin user
 app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { token, email, nameFirst, nameLast } = req.body;
+    const token = req.header('token') as string;
+    const { email, nameFirst, nameLast } = req.body;
     res.json(adminUserDetailsUpdateV2(token, email, nameFirst, nameLast));
   } catch (err) {
     next(err);
@@ -179,8 +185,8 @@ app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFuncti
 // update the password of an admin user
 app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
   try {
-    // const token = req.header('token') as string;
-    const { token, oldPassword, newPassword } = req.body;
+    const token = req.header('token') as string;
+    const { oldPassword, newPassword } = req.body;
     res.json(adminUserPasswordUpdateV2(token, oldPassword, newPassword));
   } catch (err) {
     next(err);
@@ -200,6 +206,12 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 
   res.json(result);
 });
+
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminAuthLogout(token));
+});
+
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
@@ -350,6 +362,40 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { imgUrl } = req.body;
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
+});
+
+// player submission of answers
+app.put('/v1/player/:playerId/question/:questionPosition/answer', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { questionPosition } = req.params;
+    const { answerId } = req.body;
+    const currentAnswerIds = JSON.parse(answerId as string);
+    res.json(submitAnswers(currentAnswerIds, parseInt(playerId), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// results for a question
+app.get('/v1/player/:playerId/question/:questionPosition/results', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { questionPosition } = req.params;
+    res.json(getQuestionResults(parseInt(playerId), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// final results for a session
+app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: NextFunction) => {
+  const { playerid } = req.params;
+  try {
+    res.json(playerSessionFinalResult(parseInt(playerid)));
+  } catch (err) {
+    next(err);
+  }
 });
 
 /**                                 Clear                                     */
