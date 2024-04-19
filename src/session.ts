@@ -2,7 +2,7 @@ import {
   getData, /* setData */
   setData
 } from './dataStore';
-import { getUser, /* getQuiz */ decodeToken, isValidAction /* getRandomColour */ } from './helpers';
+import { getUser, /* getQuiz */ decodeToken, isValidAction, timer /* getRandomColour */ } from './helpers';
 import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus, PlayerAnswer } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
@@ -169,6 +169,11 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
     throw HTTPError(400, 'Action provided is not a valid Action enum');
   }
 
+  let timerFinished = false;
+  timer(3000, () => {
+    timerFinished = true;
+  });
+
   if (session.state === States.LOBBY) {
     if (action !== 'NEXT_QUESTION' && action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state');
@@ -183,6 +188,8 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
     if (action !== 'SKIP_COUNTDOWN' && action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state');
     } else if (action === 'SKIP_COUNTDOWN') {
+      session.state = States.QUESTION_OPEN;
+    } else if (timerFinished) {
       session.state = States.QUESTION_OPEN;
     } else if (action === 'END') {
       session.state = States.END;
