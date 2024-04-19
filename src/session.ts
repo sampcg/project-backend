@@ -3,7 +3,7 @@ import {
   setData
 } from './dataStore';
 import { getUser, /* getQuiz */ decodeToken, isValidAction, timer /* getRandomColour */ } from './helpers';
-import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus, PlayerAnswer } from './returnInterfaces';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus, PlayerAnswer, QuestionInfo, Quiz } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
 
@@ -169,10 +169,22 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
     throw HTTPError(400, 'Action provided is not a valid Action enum');
   }
 
-  let timerFinished = false;
+  let timerFinished1 = false;
   timer(3000, () => {
-    timerFinished = true;
+    timerFinished1 = true;
   });
+
+  let timerFinished2 = false;
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz) {
+    // Find the question with the given ID within the quiz
+    const question = quiz.questions.find(question => question.questionId);
+    if (question) {
+      timer(question.duration, () => {
+        timerFinished2 = true;
+      });
+    };
+  };
 
   if (session.state === States.LOBBY) {
     if (action !== 'NEXT_QUESTION' && action !== 'END') {
@@ -189,7 +201,7 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       throw HTTPError(400, 'Action enum cannot be applied in the current state');
     } else if (action === 'SKIP_COUNTDOWN') {
       session.state = States.QUESTION_OPEN;
-    } else if (timerFinished) {
+    } else if (timerFinished1) {
       session.state = States.QUESTION_OPEN;
     } else if (action === 'END') {
       session.state = States.END;
@@ -199,6 +211,8 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       throw HTTPError(400, 'Action enum cannot be applied in the current state');
     } else if (action === 'GO_TO_ANSWER') {
       session.state = States.ANSWER_SHOW;
+    } else if (timerFinished2) {
+      session.state = States.QUESTION_CLOSE;
     } else if (action === 'END') {
       session.state = States.END;
     }
