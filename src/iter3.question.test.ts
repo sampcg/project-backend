@@ -81,6 +81,10 @@ const requestQuestionDelete = (token: string, quizId: number, questionId: number
   return requestHelper('DELETE', `/v2/admin/quiz/${quizId}/question/${questionId}`, {}, { token });
 };
 
+const requestSessionStart = (quizId: number, token: string, autoStartNum: number) => {
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
+};
+
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
 };
@@ -588,6 +592,11 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       requestAuthLogout(author.token);
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
       expect(requestQuestionDelete(author2.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+
+    test('Session not in END state', () => {
+      requestSessionStart(quiz.quizId, author.token, 3);
+      expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(400));
     });
   });
 
