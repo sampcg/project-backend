@@ -201,3 +201,9 @@ export const createRequest = (method: HttpVerb, path: string, payload: object) =
 export const clear = () => {
   return createRequest('DELETE', '/v1/clear', {});
 };
+
+export const timer = (length: number) => {
+  setTimeout(() => {
+    console.log("Timer is done!");
+  }, length);
+};
