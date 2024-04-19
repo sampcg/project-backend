@@ -16,6 +16,7 @@ interface QuestionBody {
   answers: AnswerInput[];
   thumbnailUrl: string;
 }
+
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
 
 interface Payload {

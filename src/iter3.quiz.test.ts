@@ -4,6 +4,19 @@ import { IncomingHttpHeaders } from 'http';
 
 const SERVER_URL = `${url}:${port}`;
 
+interface AnswerInput {
+  answer: string;
+  correct: boolean;
+}
+
+interface QuestionBody {
+  question: string;
+  duration: number;
+  points: number;
+  answers: AnswerInput[];
+  thumbnailUrl: string;
+}
+
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
 
 interface Payload {
@@ -71,6 +84,10 @@ const requestQuizInfo = (token: string, quizId: number) => {
 
 const requestUpdateQuizThumbnail = (token: string, quizId: number, imgUrl: string) => {
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}/thumbnail`, { imgUrl }, { token });
+};
+
+const requestQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody) => {
+  return requestHelper('POST', `/v2/admin/quiz/${quizId}/question`, { questionBody }, { token });
 };
 
 const requestSessionStart = (quizId: number, token: string, autoStartNum: number) => {
@@ -310,9 +327,21 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}', () => {
     });
 
     test('Session not in END state', () => {
+      const answers =
+            [{
+              answer: 'Answer 1',
+              correct: true
+            },
+            {
+              answer: 'Answer 2',
+              correct: false
+            }];
+      const thumbnailUrl = 'http://google.com/some/image/path.jpg';
+      const questionBody: QuestionBody = { question: 'Question', duration: 1, points: 1, answers: answers, thumbnailUrl: thumbnailUrl };
+      requestQuestionCreate(author.token, quiz.quizId, questionBody);
       requestSessionStart(quiz.quizId, author.token, 3);
       expect(requestQuizRemove(author.token, quiz.quizId)).toStrictEqual(makeCustomErrorForTest(400));
-    })
+    });
   });
 
   describe('Testing: Successful Cases', () => {

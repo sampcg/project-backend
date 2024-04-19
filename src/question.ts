@@ -302,6 +302,11 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
     throw HTTPError(400, 'Invalid QuestionID');
   }
 
+  // Check if any sessions are not in END state
+  if (data.session.some(session => session.quiz.quizId === quizId && session.state !== 'END')) {
+    throw HTTPError(400, 'Cannot delete question from active quiz');
+  }
+
   // Update timeLastEdited, no. of questions and duration of the quiz
   quiz.timeLastEdited = Math.round(Date.now());
   quiz.numQuestions--;
