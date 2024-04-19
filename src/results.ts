@@ -2,7 +2,8 @@ import { getData, setData } from './dataStore';
 import { getPlayerFromPlayerId } from './helpers';
 import { ErrorObject, EmptyObject, PlayerAnswer } from './returnInterfaces';
 import HTTPError from 'http-errors';
-
+import * as csv from 'csv-parser';
+import * as fs from 'fs';
 /**
  * player submission of answers
  * @param {number[]} answerIds
@@ -209,6 +210,108 @@ export function playerSessionFinalResult(playerId: number) {
     usersRankedByScore: usersRankedByScore,
     questionResults: questionResults,
   };
+
+  return quizSessionFinalResult;
+}
+
+const CSV_DIRECTORY = './csv';
+
+export function getFinalResults(quizId: number, sessionId: number, token: string): QuizSessionFinalResult | ErrorObject {
+  const data = getData();
+  const originalToken = decodeToken(token);
+
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SesssionID');
+  }
+  // Check if owner owns quiz
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+  if (session.state !== 'FINAL_RESULTS') {
+    throw HTTPError(400, 'Session is not in the final result state');
+  }
+
+  const quiz = data.quizzes.find((q) => q.quizId === session.quiz.quizId);
+  const usersRankedByScore = session.players
+    .map((player) => ({ name: player.name, score: player.score }))
+    .sort((a, b) => b.score - a.score);
+
+  const questionResults: QuestionResult[] = [];
+
+  quiz.questions.forEach((question) => {
+    const playerAnswers = session.playerAnswers.filter(
+      (playerAnswer) => playerAnswer.questionPosition + 1 === question.questionId
+    );
+
+    const questionCorrectBreakdown = question.answers.map((answer) => {
+      const playersCorrect = playerAnswers
+        .filter((playerAnswer) => playerAnswer.answersId.includes(answer.answerId))
+        .map((playerAnswer) => session.players.find((player) => player.playerId === playerAnswer.playerId).name);
+
+      return {
+        answerId: answer.answerId,
+        playersCorrect: playersCorrect,
+      };
+    });
+
+    const totalPlayers = session.players.length;
+    const totalCorrectPlayers = playerAnswers.filter((playerAnswer) => playerAnswer.answersId.length === question.answers.length).length;
+    const percentageCorrect = Math.round((totalCorrectPlayers / totalPlayers) * 100);
+
+    questionResults.push({
+      questionId: question.questionId,
+      questionCorrectBreakdown: questionCorrectBreakdown,
+      averageAnswerTime: 45,
+      percentCorrect: percentageCorrect,
+    });
+  });
+
+  const quizSessionFinalResult: QuizSessionFinalResult = {
+    usersRankedByScore: usersRankedByScore,
+    questionResults: questionResults,
+  };
+
+  // Generate CSV data
+  const csvData: string[] = [];
+  const header = 'Player,' + session.players.map(player => `question${player.questionPosition + 1}score,question${player.questionPosition + 1}rank`).join(',');
+  csvData.push(header);
+
+  // Sort players by name
+  const sortedPlayers = session.players.sort((a, b) => a.name.localeCompare(b.name));
+
+  sortedPlayers.forEach(player => {
+    let playerData = player.name;
+    session.playerAnswers.filter(answer => answer.playerId === player.playerId).forEach(answer => {
+      const score = answer.isCorrect ? 1 : 0; // Assuming 1 point for correct answer, 0 otherwise
+      const rank = score === 1 ? sortedPlayers.filter(p => p.score > player.score).length + 1 : 0; // Rank based on score
+      playerData += `,${score},${rank}`;
+    });
+    csvData.push(playerData);
+  });
+
+  // Create CSV directory if it doesn't exist
+  if (!fs.existsSync(CSV_DIRECTORY)) {
+    fs.mkdirSync(CSV_DIRECTORY);
+  }
+
+  // Write CSV data to a file
+  const csvFilePath = `${CSV_DIRECTORY}/final_results_${quizId}_${sessionId}.csv`;
+  fs.writeFileSync(csvFilePath, csvData.join('\n'));
+
+  // Attach the CSV file path to the final result object
+  quizSessionFinalResult.csvFilePath = csvFilePath;
 
   return quizSessionFinalResult;
 }

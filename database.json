@@ -14,12 +14,12 @@
   ],
   "quizzes": [
     {
-      "quizId": 2141522138355761,
+      "quizId": 6520687977749035,
       "userId": 0,
       "name": "Quiz 1",
-      "timeCreated": 1713435228,
-      "timeLastEdited": 1713435228,
-      "description": "Quiz 1 Des",
+      "timeCreated": 1713520729,
+      "timeLastEdited": 1713520729,
+      "description": "a",
       "numQuestions": 0,
       "questions": [
         {
@@ -32,13 +32,13 @@
               "answerId": 1,
               "answer": "Answer 1",
               "correct": true,
-              "colour": "orange"
+              "colour": "blue"
             },
             {
               "answerId": 2,
               "answer": "Answer 2",
               "correct": false,
-              "colour": "orange"
+              "colour": "blue"
             }
           ],
           "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -53,19 +53,19 @@
   "token": [
     {
       "userId": 0,
-      "sessionId": "9EK6s5aP"
+      "sessionId": "HBSV6ALL"
     }
   ],
   "session": [
     {
-      "quizSessionId": 2019829755304107,
+      "quizSessionId": 1245433333000217,
       "quiz": {
-        "quizId": 2141522138355761,
+        "quizId": 6520687977749035,
         "userId": 0,
         "name": "Quiz 1",
-        "timeCreated": 1713435228,
-        "timeLastEdited": 1713435228,
-        "description": "Quiz 1 Des",
+        "timeCreated": 1713520729,
+        "timeLastEdited": 1713520729,
+        "description": "a",
         "numQuestions": 0,
         "questions": [
           {
@@ -78,13 +78,13 @@
                 "answerId": 1,
                 "answer": "Answer 1",
                 "correct": true,
-                "colour": "orange"
+                "colour": "blue"
               },
               {
                 "answerId": 2,
                 "answer": "Answer 2",
                 "correct": false,
-                "colour": "orange"
+                "colour": "blue"
               }
             ],
             "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -94,8 +94,11 @@
         "duration": 5,
         "thumbnailUrl": ""
       },
-      "state": "ANSWER_CLOSE",
-      "autoStartNum": 35
+      "state": "FINAL_RESULTS",
+      "autoStartNum": 35,
+      "players": [],
+      "playerAnswers": [],
+      "atQuestion": 0
     }
   ]
 }
