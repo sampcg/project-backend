@@ -113,19 +113,9 @@ export interface Session {
   autoStartNum: number;
 }
 
-export interface FinalResults {
-  usersRankedByScore: UserRankedByScore[];
-  questionResults: QuestionResult[];
-}
-
-export interface UserRankedByScore {
-  name: string;
-  score: number;
-}
-
-export interface QuestionResult {
-  questionId: number;
-  playersCorrectList: string[];
-  averageAnswerTime: number;
-  percentCorrect: number;
+export interface SessionStatus {
+  state: States;
+  atQuestion: number;
+  players: Player[];
+  metadata: QuizInfo;
 }

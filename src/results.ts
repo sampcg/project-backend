@@ -1,5 +1,5 @@
 import { getData, setData } from './dataStore';
-import { getPlayerFromPlayerId } from './helpers';
+import { getPlayerFromPlayerId, decodeToken } from './helpers';
 import { ErrorObject, EmptyObject, PlayerAnswer } from './returnInterfaces';
 import HTTPError from 'http-errors';
 
@@ -129,7 +129,7 @@ export function getQuestionResults(playerId: number, questionPosition: number) {
   };
 }
 
-interface QuestionResult {
+export interface QuestionResult {
   questionId: number,
   questionCorrectBreakdown: {
     answerId: number,
@@ -166,6 +166,99 @@ export function playerSessionFinalResult(playerId: number) {
   }
   const session = data.session.find((s) => s.players.some((player) => player.playerId === playerId));
 
+  if (session.state !== 'FINAL_RESULTS') {
+    throw HTTPError(400, 'Session is not in the final result state');
+  }
+
+  const quiz = data.quizzes.find((q) => q.quizId === session.quiz.quizId);
+  const usersRankedByScore = session.players
+    .map((player) => ({ name: player.name, score: player.score }))
+    .sort((a, b) => b.score - a.score);
+
+  const questionResults: QuestionResult[] = [];
+
+  quiz.questions.forEach((question) => {
+    const playerAnswers = session.playerAnswers.filter(
+      (playerAnswer) => playerAnswer.questionPosition + 1 === question.questionId
+    );
+
+    const questionCorrectBreakdown = question.answers.map((answer) => {
+      const playersCorrect = playerAnswers
+        .filter((playerAnswer) => playerAnswer.answersId.includes(answer.answerId))
+        .map((playerAnswer) => session.players.find((player) => player.playerId === playerAnswer.playerId).name);
+
+      return {
+        answerId: answer.answerId,
+        playersCorrect: playersCorrect,
+      };
+    });
+
+    const totalPlayers = session.players.length;
+    const totalCorrectPlayers = playerAnswers.filter((playerAnswer) => playerAnswer.answersId.length === question.answers.length).length;
+    const percentageCorrect = Math.round((totalCorrectPlayers / totalPlayers) * 100);
+
+    questionResults.push({
+      questionId: question.questionId,
+      questionCorrectBreakdown: questionCorrectBreakdown,
+      averageAnswerTime: 45,
+      percentCorrect: percentageCorrect,
+    });
+  });
+
+  const quizSessionFinalResult: QuizSessionFinalResult = {
+    usersRankedByScore: usersRankedByScore,
+    questionResults: questionResults,
+  };
+
+  return quizSessionFinalResult;
+}
+
+/// //////////////////           Get Final results for completed quiz session        /////////////////////
+/**
+ * Retrieves the final results for a completed quiz session.
+ * @param {number} quizid - The ID of the quiz.
+ * @param {number} sessionid - The ID of the quiz session.
+ * @param {string} token - The authentication token.
+ * @returns {FinalResults | ErrorObject} - The final results for all players and question results for the completed quiz session, or an error object if the operation fails.
+ * @typedef {Object} FinalResults
+ * @property {UserRankedByScore[]} usersRankedByScore - List of users ranked by score.
+ * @property {QuestionResult[]} questionResults - List of question results.
+ * @typedef {Object} ErrorObject
+ * @property {string} error - Error message.
+ * @property {number} code - HTTP status code.
+ * @typedef {Object} UserRankedByScore
+ * @property {string} name - The name of the user.
+ * @property {number} score - The score achieved by the user.
+ * @typedef {Object} QuestionResult
+ * @property {number} questionId - The ID of the question.
+ * @property {string[]} playersCorrectList - List of players who answered the question correctly.
+ * @property {number} averageAnswerTime - The average time taken to answer the question.
+ * @property {number} percentCorrect - The percentage of players who answered the question correctly.
+ */
+
+export function getFinalResults(quizId: number, sessionId: number, token: string): QuizSessionFinalResult | ErrorObject {
+  const data = getData();
+  const originalToken = decodeToken(token);
+
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SesssionID');
+  }
+  // Check if owner owns quiz
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
   if (session.state !== 'FINAL_RESULTS') {
     throw HTTPError(400, 'Session is not in the final result state');
   }
