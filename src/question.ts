@@ -302,6 +302,11 @@ export const adminQuestionRemove = (token: string, quizId: number, questionId: n
     throw HTTPError(400, 'Invalid QuestionID');
   }
 
+  // Check if any sessions are not in END state
+  if (data.session.some(session => session.quiz.quizId === quizId && session.state !== 'END')) {
+    throw HTTPError(400, 'Cannot delete question from active quiz');
+  }
+
   // Update timeLastEdited, no. of questions and duration of the quiz
   quiz.timeLastEdited = Math.round(Date.now());
   quiz.numQuestions--;
@@ -356,6 +361,59 @@ export const adminQuestionMove = (token: string, quizId: number, questionId: num
   const movedQuestion = quiz.questions.splice(questionIndex, 1)[0];
   movedQuestion.position = newPosition;
   quiz.questions.splice(newPosition, 0, movedQuestion);
-
+  setData(data);
   return {};
+};
+
+/**                            Duplicate Question                             */
+interface AdminQuestionDuplicateReturn {
+  newQuestionId: number;
+}
+
+export const adminQuestionDuplicate = (token: string, quizId: number, questionId: number): AdminQuestionDuplicateReturn | ErrorObject => {
+  const data: DataStore = getData();
+  // Check if token is valid
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  if (!data.token.find(session => session.sessionId === originalToken.sessionId)) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+
+  // Validate quiz ID and ownership
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId && quiz.userId === originalToken.userId);
+  if (!quiz) {
+    throw HTTPError(403, 'Invalid QuizID');
+  }
+
+  // Validate question ID
+  const question = quiz.questions.find(question => question.questionId === questionId);
+  if (!question) {
+    throw HTTPError(400, 'Invalid QuestionID');
+  }
+
+  const totalQuizDuration: number = quiz.duration + question.duration;
+  if (totalQuizDuration > 180) {
+    throw HTTPError(400, 'Duration of quiz cannot exceed 3 minutes');
+  }
+
+  const newQuestion: Question = {
+    questionId: quiz.questions.length + 1,
+    question: question.question,
+    duration: question.duration,
+    points: question.points,
+    answers: question.answers,
+    thumbnailUrl: question.thumbnailUrl,
+    position: quiz.questions.length
+  };
+
+  // Push question to quiz
+  quiz.questions.push(newQuestion);
+
+  // Update total duration of quiz
+  quiz.duration = totalQuizDuration;
+  setData(data);
+
+  return { newQuestionId: newQuestion.questionId };
 };

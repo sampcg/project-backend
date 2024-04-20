@@ -23,6 +23,7 @@ import {
   adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
   adminUserPasswordUpdateV2,
+  // getGuestPlayerStatus
 } from './auth';
 
 import {
@@ -31,16 +32,18 @@ import {
   adminQuizRemove,
   adminQuizNameUpdate,
   adminQuizTransfer,
+  adminQuizTransferV2,
   adminQuizDescriptionUpdate,
   adminQuizInfo,
-  adminUpdateQuizThumbnail
+  adminUpdateQuizThumbnail,
 } from './quiz';
 
 import {
   adminQuestionCreate,
   adminQuestionUpdate,
   adminQuestionRemove,
-  adminQuestionMove
+  adminQuestionMove,
+  adminQuestionDuplicate
 } from './question';
 
 import {
@@ -51,9 +54,19 @@ import {
   getSessionStatus
 } from './session';
 
+import { createGuestPlayer } from './player';
+
+import {
+  submitAnswers,
+  getQuestionResults,
+  playerSessionFinalResult,
+  getFinalResults,
+  getFinalResultsCSV
+} from './results';
+
 import { adminTrashList, adminTrashRestore } from './trash';
 
-import { sendChatMessage } from './chat';
+import { sendChatMessage, showChatList } from './chat';
 
 // Set up web app
 const app = express();
@@ -85,6 +98,41 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // const save = () => {
 //   fs.writeFileSync('./database.json', JSON.stringify(getData()));
 // };
+// /**                               Guest Register                               */
+// app.post('/v1/player/join', (req: Request, res: Response) => {
+//   const { sessionId, name } = req.body;
+
+//   try {
+//     // Call the function to create a guest player
+//     const playerInfo = createGuestPlayer(sessionId, name);
+//     res.status(200).json(playerInfo);
+//   } catch (error) {
+//     // Handle errors
+//     if (error instanceof CustomError) {
+//       // If it's a custom error with an associated status code, return it
+//       res.status(error.code).json({ error: error.message });
+//     } else {
+//       // If it's any other type of error, return a 400 Bad Request error
+//       res.status(400).json({ error: error.message });
+//     }
+//   }
+// });
+
+/**                               Guest Status                               */
+// app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+//   const playerId = parseInt(req.params.playerid);
+
+//   try {
+//     const playerStatus = getGuestPlayerStatus(playerId);
+//     res.status(200).json(playerStatus);
+//   } catch (error) {
+//     res.status(400).json({ error: 'Player ID does not exist' });
+//   }
+// });
+
+// app.listen(port, () => {
+//   console.log(`Server is listening on port ${port}`);
+// });
 
 /**                               Auth Register                               */
 // First Function By Abrar
@@ -99,21 +147,15 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 
 /**                                Auth Login                                 */
 // Second Function By Abrar
+// Updated by Michael
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
-
-  const result = adminAuthLogin(email, password);
-
-  // Checking if the result contains an error
-  if ('error' in result) {
-    return res.status(400).json(result);
-  }
-
-  res.json(result);
+  res.json(adminAuthLogin(email, password));
 });
 
 /**                               User Details                                */
 // Third Function By Abrar
+// Updated by Michael
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token: string = req.query.token as string; // Assuming token is passed in the request body
 
@@ -124,6 +166,11 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   }
 
   res.json(result);
+});
+
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminUserDetails(token));
 });
 
 /**                              Update Details                               */
@@ -140,7 +187,8 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 // update details of an admin user
 app.put('/v2/admin/user/details', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { token, email, nameFirst, nameLast } = req.body;
+    const token = req.header('token') as string;
+    const { email, nameFirst, nameLast } = req.body;
     res.json(adminUserDetailsUpdateV2(token, email, nameFirst, nameLast));
   } catch (err) {
     next(err);
@@ -161,8 +209,8 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 // update the password of an admin user
 app.put('/v2/admin/user/password', (req: Request, res: Response, next: NextFunction) => {
   try {
-    // const token = req.header('token') as string;
-    const { token, oldPassword, newPassword } = req.body;
+    const token = req.header('token') as string;
+    const { oldPassword, newPassword } = req.body;
     res.json(adminUserPasswordUpdateV2(token, oldPassword, newPassword));
   } catch (err) {
     next(err);
@@ -182,6 +230,12 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 
   res.json(result);
 });
+
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  res.json(adminAuthLogout(token));
+});
+
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
@@ -261,6 +315,18 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   res.json(response);
 });
 
+// Transfer ownership of a quiz to a different user based on their email
+app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.header('token') as string;
+    const { quizid } = req.params;
+    const { userEmail } = req.body;
+    res.json(adminQuizTransferV2(parseInt(quizid), token, userEmail));
+  } catch (err) {
+    next(err);
+  }
+});
+
 /**                             Create Question                               */
 app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const token = req.header('token') as string;
@@ -290,6 +356,13 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const { quizid, questionid } = req.params;
   const { newPosition } = req.body;
   res.json(adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition)));
+});
+
+/**                            Duplicate Question                             */
+app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, questionid } = req.params;
+  res.json(adminQuestionDuplicate(token, parseInt(quizid), parseInt(questionid)));
 });
 
 /**                             View Session                                  */
@@ -333,6 +406,73 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const { quizid } = req.params;
   const { imgUrl } = req.body;
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
+});
+
+/**                             Player Submission of answer                                  */
+app.put('/v1/player/:playerId/question/:questionPosition/answer', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerid } = req.params;
+    const { questionPosition } = req.params;
+    const { answerId } = req.body;
+    const currentAnswerIds = JSON.parse(answerId as string);
+    res.json(submitAnswers(currentAnswerIds, parseInt(playerid), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**                             Results for a question                                  */
+app.get('/v1/player/:playerid/question/:questionPosition/results', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { playerid } = req.params;
+    const { questionPosition } = req.params;
+    res.json(getQuestionResults(parseInt(playerid), parseInt(questionPosition)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**                             Final results for a session                                  */
+app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: NextFunction) => {
+  const { playerid } = req.params;
+  try {
+    res.json(playerSessionFinalResult(parseInt(playerid)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**                               Guest Register                               */
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  const { sessionId, name } = req.body;
+
+  try {
+    // Call the function to create a guest player
+    const playerInfo = createGuestPlayer(sessionId, name);
+    res.status(200).json(playerInfo);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**                             Final results for all players in a session                               */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const { quizid, sessionid } = req.params;
+  res.json(getFinalResults(parseInt(quizid), parseInt(sessionid), token));
+});
+
+/**                             Final results for all players in a session in CSV                              */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const { quizid, sessionid } = req.params;
+  res.json(getFinalResultsCSV(parseInt(quizid), parseInt(sessionid), token));
+});
+
+/**                              Show Chat List                               */
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const { playerid } = req.params;
+  res.json(showChatList(parseInt(playerid)));
 });
 
 /**                            Send Chat Message                              */

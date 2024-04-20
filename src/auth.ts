@@ -2,10 +2,12 @@
 import { getData, setData } from './dataStore';
 import {
   decodeToken,
+  getUser,
   validateTokenStructure,
   validateAdminInputsV2,
   validateTokenStructureV2
 } from './helpers';
+
 import {
   ErrorObject,
   EmptyObject,
@@ -27,24 +29,24 @@ function adminAuthRegister(email: string, password: string,
 
   for (const users of data.users) {
     if (users.email === email) {
-      return { error: 'Email is already used' };
+      throw HTTPError(400, 'Email is already used');
     }
   }
 
   if (validator.isEmail(email) !== true) {
-    return { error: 'Email Not Valid' };
+    throw HTTPError(400, 'Email not valid');
   } else if (specialChars.test(nameFirst) === true) {
-    return { error: 'Firstname contains invalid characters=' };
+    throw HTTPError(400, 'First name contains invalid characters');
   } else if (nameFirst.length < 2 || nameFirst.length > 20) {
-    return { error: 'Firstname is less than 2 or larger than 20 characters' };
+    throw HTTPError(400, 'First name is less than 2 or larger than 20 characters');
   } else if (specialChars.test(nameLast) === true) {
-    return { error: 'Lastname contains invalid characters=' };
+    throw HTTPError(400, 'Last name contains invalid characters');
   } else if (nameLast.length < 2 || nameLast.length > 20) {
-    return { error: 'Lastname is less than 2 or larger than 20 characters' };
+    throw HTTPError(400, 'Last name is less than 2 or larger than 20 characters');
   } else if (password.length < 8) {
-    return { error: 'Password length is less than 8 characters' };
+    throw HTTPError(400, 'Password length is less than 8 characters');
   } else if (!/(?=.*\d)(?=.*[a-zA-Z])/.test(password)) {
-    return { error: 'Password must contain at least 1 letter and number' };
+    throw HTTPError(400, 'Password must contain at least 1 letter and number');
   }
 
   // Bit of Code that pushes the data after the filter
@@ -82,47 +84,25 @@ function adminAuthRegister(email: string, password: string,
 }
 
 // Second Function By Abrar
+// Updated by Michael
 function adminAuthLogin(email: string, password: string) {
   const data = getData();
-  let newUserId = null;
-
-  let emailPresent = false;
-  for (const users of data.users) {
-    if (users.email === email) {
-      emailPresent = true;
-      break;
-    }
+  const user = data.users.find(user => user.email === email);
+  if (!user) {
+    throw HTTPError(400, 'Email address does not exist');
+  }
+  if (user.password !== password) {
+    user.numFailedPasswordsSinceLastLogin++;
+    throw HTTPError(400, 'Incorrect password');
   }
 
-  let passwordCorrect = false;
-
-  for (const users of data.users) {
-    if (users.email === email && users.password === password) {
-      passwordCorrect = true;
-      newUserId = users.userId;
-      users.numSuccessfulLogins++;
-      users.numFailedPasswordsSinceLastLogin = 0;
-      break;
-    }
-  }
-
-  if (emailPresent === false) {
-    return { error: 'Email address does not exist' };
-  } else if (passwordCorrect === false) {
-    for (const user of data.users) {
-      if (email === user.email) {
-        user.numFailedPasswordsSinceLastLogin++;
-        break;
-      }
-    }
-    return { error: 'Password is not correct for the given email' };
-  }
+  user.numSuccessfulLogins++;
 
   const randomString = require('randomized-string');
   const randomSession = randomString.generate(8);
 
   const newToken = {
-    userId: newUserId,
+    userId: user.userId,
     sessionId: randomSession
   };
 
@@ -134,46 +114,35 @@ function adminAuthLogin(email: string, password: string) {
 }
 
 // Third Function By Abrar
-function adminUserDetails(token: any) {
+// Updated by Michael
+function adminUserDetails(token: string) {
   const data = getData();
-  let userDetails = null;
-  let idPresent = false;
 
-  // Must decode the Token first, then parse()
-  // const originalToken: object = decodeURIComponent(authUserId);
-  let originalToken;
-  try {
-    const decodedAuthUserId = decodeURIComponent(token);
-    originalToken = JSON.parse(decodedAuthUserId);
-  } catch (error) {
-    console.error('Error parsing token:', error);
-    return { error: 'Invalid token format' };
+  // Check to see if token structure is valid and decode it
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+  // Check to see if userID is valid
+  const user = data.users.find(user => user.userId === originalToken.userId);
+  if (!user) {
+    throw HTTPError(401, 'Invalid UserID');
   }
 
-  const actualUserId: number = originalToken.userId;
-  for (const users of data.users) {
-    if (users.userId === actualUserId) {
-      idPresent = true;
-      break;
+  return {
+    user: {
+      userId: user.userId,
+      name: user.nameFirst + ' ' + user.nameLast,
+      email: user.email,
+      numSuccessfulLogins: user.numSuccessfulLogins,
+      numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin
     }
-  }
-  for (const users of data.users) {
-    if (users.userId === actualUserId) {
-      userDetails = {
-        userId: users.userId,
-        name: users.nameFirst + ' ' + users.nameLast,
-        email: users.email,
-        numSuccessfulLogins: users.numSuccessfulLogins,
-        numFailedPasswordsSinceLastLogin: users.numFailedPasswordsSinceLastLogin
-      };
-      break;
-    }
-  }
-  if (idPresent === false) {
-    return { error: 'AuthUserId is not a valid user' };
-  } else {
-    return { user: userDetails };
-  }
+  };
 }
 
 //  Fourth Function By Abrar
@@ -181,22 +150,26 @@ export function adminAuthLogout(token: string) {
   // Getting data from dataStore
   const data = getData();
 
-  // Decoded Token
-  const decodedToken = JSON.parse(decodeURIComponent(token));
-
-  // Find the index of the token object with the matching sessionId
-  const index = data.token.findIndex(tokenObject => tokenObject.sessionId === decodedToken.sessionId);
-
-  if (index !== -1) {
-    // Remove the token object from the array
-    data.token.splice(index, 1);
-    console.log(`Token array length after removing token: ${data.token.length}`);
-    setData(data);
-    return {};
-  } else {
-    // Return an error if token is not found
-    return { error: 'Token is empty or invalid' };
+  // Check to see if token structure is valid and decode it
+  const originalToken = decodeToken(token);
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
   }
+  // Check to see if sessionId is valid
+  const sessionIndex = data.token.findIndex((session) => originalToken.sessionId === session.sessionId);
+  if (sessionIndex === -1) {
+    throw HTTPError(401, 'Invalid SessionID');
+  }
+  // Check to see if userID is valid
+  if (!getUser(originalToken.userId)) {
+    throw HTTPError(401, 'Invalid UserID');
+  }
+
+  // Remove from token array
+  data.token.splice(sessionIndex, 1);
+  console.log(`Token array length after removing token: ${data.token.length}`);
+  setData(data);
+  return {};
 }
 
 /**
@@ -284,14 +257,6 @@ export const adminUserDetailsUpdateV2 = (token: string, email: string, nameFirst
   return {};
 };
 
-/**
- * Updates the password of an admin user
- * @param {number} authUserId - unique identifier for admin user
- * @param {string} oldPassword - old password of user
- * @param {string} newPassword - new password of user
- * @returns {} - empty object
- */
-
 export const adminUserPasswordUpdate = (token: string, oldPassword: string,
   newPassword: string): EmptyObject | ErrorObject => {
   /** Token is empty or invalid (does not refer to valid logged in user session) */
@@ -333,12 +298,11 @@ export const adminUserPasswordUpdate = (token: string, oldPassword: string,
     } else if (character >= 'A' && character <= 'Z') {
       hasUpper = true;
     }
+    if (!(hasNumber && (hasLower || hasUpper))) {
+      return { error: 'New Password does not contain at least one number and at least one letter', code: 400 };
+      /** correct output */
+    }
   }
-
-  if (!(hasNumber && (hasLower || hasUpper))) {
-    return { error: 'New Password does not contain at least one number and at least one letter', code: 400 };
-  }
-  /** correct output */
   user.oldPassword = user.password;
   user.password = newPassword;
   setData(data);
@@ -405,6 +369,25 @@ export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
   setData(data);
   return {};
 };
+
+// export function getGuestPlayerStatus(playerId: number): { state: States; numQuestions: number; atQuestion: number } | { error: string } {
+//   // const data = getData();
+
+//   // // Find the guest player by playerId
+//   // const guestPlayer = data.guest.find((guest: Guest) => guest.playerId === playerId);
+
+//   // // If guest player not found, return error
+//   // if (!guestPlayer) {
+//   //   throw HTTPError(400, 'Player ID does not exist');
+//   // }
+
+//   // // Return the status of the guest player in the session
+//   // return {
+//   //   state: guestPlayer.state,
+//   //   // numQuestions: guestPlayer.numQuestions,
+//   //   // atQuestion: guestPlayer.atQuestion
+//   // };
+// }
 
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js

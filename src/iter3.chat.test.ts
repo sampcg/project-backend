@@ -86,6 +86,124 @@ beforeEach(() => {
   requestClear();
 });
 
+/**                             Testing Chat List                             */
+describe('Testing GET /v1/player/{playerid}/chat', () => {
+  let author: {token: string}, quiz: {quizId: number}, player: {playerId: number}, session: {sessionId: number};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+    const answers: AnswerInput[] =
+            [{
+              answer: 'Answer 1',
+              correct: true
+            },
+            {
+              answer: 'Answer 2',
+              correct: false
+            }];
+    const thumbnailUrl = 'http://google.com/some/image/path.jpg';
+    const questionBody: QuestionBody = { question: 'Question', duration: 1, points: 1, answers: answers, thumbnailUrl: thumbnailUrl };
+    requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    session = requestSessionStart(author.token, quiz.quizId, 3);
+    player = requestPlayerJoin(session.sessionId, 'Michael Hourn');
+  });
+
+  describe('TESTING: Error Cases', () => {
+    test('playerID does not exist', () => {
+      expect(requestChatList(player.playerId + 1)).toStrictEqual(makeCustomErrorForTest(400));
+    });
+  });
+
+  describe('TESTING: Success Cases', () => {
+    test('No messages', () => {
+      expect(requestChatList(player.playerId)).toStrictEqual({ messages: [] });
+    });
+
+    test('One message', () => {
+      requestSendChat(player.playerId, { messageBody: 'hello everyone' });
+      expect(requestChatList(player.playerId)).toStrictEqual({
+        messages: [
+          {
+            messageBody: 'hello everyone',
+            playerId: player.playerId,
+            playerName: 'Michael Hourn',
+            timeSent: expect.any(Number)
+          }
+        ]
+      });
+    });
+
+    test('Multiple messages (correct order)', () => {
+      requestSendChat(player.playerId, { messageBody: 'hello everyone' });
+      requestSendChat(player.playerId, { messageBody: 'I am lonely :(' });
+      expect(requestChatList(player.playerId)).toStrictEqual({
+        messages: [
+          {
+            messageBody: 'hello everyone',
+            playerId: player.playerId,
+            playerName: 'Michael Hourn',
+            timeSent: expect.any(Number)
+          },
+          {
+            messageBody: 'I am lonely :(',
+            playerId: player.playerId,
+            playerName: 'Michael Hourn',
+            timeSent: expect.any(Number)
+          }
+        ]
+      });
+    });
+
+    test('Multiple players', () => {
+      const player2: {playerId: number} = requestPlayerJoin(session.sessionId, 'John Doe');
+      requestSendChat(player.playerId, { messageBody: 'hello everyone' });
+      requestSendChat(player2.playerId, { messageBody: 'Hello!' });
+      requestSendChat(player.playerId, { messageBody: 'I have friends!' });
+      expect(requestChatList(player.playerId)).toStrictEqual({
+        messages: [
+          {
+            messageBody: 'hello everyone',
+            playerId: player.playerId,
+            playerName: 'Michael Hourn',
+            timeSent: expect.any(Number)
+          },
+          {
+            messageBody: 'Hello!',
+            playerId: player2.playerId,
+            playerName: 'John Doe',
+            timeSent: expect.any(Number)
+          },
+          {
+            messageBody: 'I have friends!',
+            playerId: player.playerId,
+            playerName: 'Michael Hourn',
+            timeSent: expect.any(Number)
+          }
+        ]
+      });
+      // Check that Chat List is the same for all players in a session
+      expect(requestChatList(player.playerId)).toStrictEqual(requestChatList(player2.playerId));
+    });
+
+    test('In a second session', () => {
+      requestSendChat(player.playerId, { messageBody: 'hello everyone' });
+      const session2: {sessionId: number} = requestSessionStart(author.token, quiz.quizId, 3);
+      const player2: {playerId: number} = requestPlayerJoin(session2.sessionId, 'John Doe');
+      requestSendChat(player2.playerId, { messageBody: 'bruh' });
+      expect(requestChatList(player2.playerId)).toStrictEqual({
+        messages: [
+          {
+            messageBody: 'bruh',
+            playerId: player2.playerId,
+            playerName: 'John Doe',
+            timeSent: expect.any(Number)
+          }
+        ]
+      });
+    });
+  });
+});
+
 /**                             Testing Send Chat                             */
 describe('Testing POST /v1/player/{playerid}/chat', () => {
   let author: {token: string}, quiz: {quizId: number}, player: {playerId: number}, session: {sessionId: number};
@@ -117,7 +235,7 @@ describe('Testing POST /v1/player/{playerid}/chat', () => {
       expect(requestSendChat(player.playerId, { messageBody: '' })).toStrictEqual(makeCustomErrorForTest(400));
     });
 
-    test.todo('messageBody more than 100 characters', () => {
+    test('messageBody more than 100 characters', () => {
       const longMessage = '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789';
       expect(requestSendChat(player.playerId, { messageBody: longMessage })).toStrictEqual(makeCustomErrorForTest(400));
     });

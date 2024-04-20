@@ -2,11 +2,10 @@ import {
   getData, /* setData */
   setData
 } from './dataStore';
-import { getUser, /* getQuiz */ decodeToken, isValidAction /* getRandomColour */ } from './helpers';
-import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus } from './returnInterfaces';
+import { getUser, /* getQuiz */ decodeToken, isValidAction, timer /* getRandomColour */ } from './helpers';
+import { EmptyObject, ErrorObject, /* Quiz, Question, Answer */ States, Session, Player, SessionStatus, PlayerAnswer, QuestionInfo } from './returnInterfaces';
 import { DataStore } from './dataInterfaces';
 import HTTPError from 'http-errors';
-
 /*
 interface SessionStartRequestBody {
   autoStartNum: number;
@@ -126,6 +125,7 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
     state: States.LOBBY,
     autoStartNum: autoStartNum,
     players: players,
+    playerAnswers: [] as PlayerAnswer[],
     atQuestion: atQuestion,
     messages: []
   };
@@ -169,6 +169,22 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
     throw HTTPError(400, 'Action provided is not a valid Action enum');
   }
 
+  let timerFinished1 = false;
+  timer(3000, () => {
+    timerFinished1 = true;
+  });
+
+  let timerFinished2 = false;
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz) {
+    const question = quiz.questions.find(question => question.questionId);
+    if (question) {
+      timer(question.duration, () => {
+        timerFinished2 = true;
+      });
+    }
+  }
+
   if (session.state === States.LOBBY) {
     if (action !== 'NEXT_QUESTION' && action !== 'END') {
       throw HTTPError(400, 'Action enum cannot be applied in the current state');
@@ -184,6 +200,8 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       throw HTTPError(400, 'Action enum cannot be applied in the current state');
     } else if (action === 'SKIP_COUNTDOWN') {
       session.state = States.QUESTION_OPEN;
+    } else if (timerFinished1) {
+      session.state = States.QUESTION_OPEN;
     } else if (action === 'END') {
       session.state = States.END;
     }
@@ -192,6 +210,8 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       throw HTTPError(400, 'Action enum cannot be applied in the current state');
     } else if (action === 'GO_TO_ANSWER') {
       session.state = States.ANSWER_SHOW;
+    } else if (timerFinished2) {
+      session.state = States.QUESTION_CLOSE;
     } else if (action === 'END') {
       session.state = States.END;
     }
@@ -261,10 +281,28 @@ export const getSessionStatus = (quizId: number, sessionId: number, token: strin
   }
 
   // Construct and return the SessionStatus object
+  const players: string[] = session.players.map(name => name.name);
+  const questions: QuestionInfo[] = session.quiz.questions.map(({
+    questionId,
+    question,
+    duration,
+    points,
+    answers,
+    thumbnailUrl
+  }) => ({
+    questionId: questionId,
+    question: question,
+    duration: duration,
+    points: points,
+    answers: answers,
+    thumbnailUrl: thumbnailUrl
+  }));
+
+  // Construct and return the SessionStatus object
   const sessionStatus: SessionStatus = {
     state: session.state,
     atQuestion: session.atQuestion,
-    players: session.players,
+    players: players,
     metadata: {
       quizId: session.quiz.quizId,
       name: session.quiz.name,
@@ -272,7 +310,7 @@ export const getSessionStatus = (quizId: number, sessionId: number, token: strin
       timeLastEdited: session.quiz.timeLastEdited,
       description: session.quiz.description,
       numQuestions: session.quiz.questions.length,
-      questions: session.quiz.questions,
+      questions: questions,
       duration: session.quiz.duration,
       thumbnailUrl: session.quiz.thumbnailUrl
     }

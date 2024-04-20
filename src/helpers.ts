@@ -1,7 +1,7 @@
 import { getData } from './dataStore';
 import request, { HttpVerb } from 'sync-request-curl';
 import { port, url } from './config.json';
-import { User, Token } from './returnInterfaces';
+import { User, Token, Player } from './returnInterfaces';
 import validator from 'validator';
 import HTTPError from 'http-errors';
 import { DataStore } from './dataInterfaces';
@@ -160,6 +160,23 @@ export function getRandomColour(): string {
 }
 
 /**
+ * Retrieves a player object from the given playerId.
+ *
+ * @param {number} playerId - The ID of the player to retrieve.
+ * @return {Player | null} The player object if found, or null if not found.
+ */
+export function getPlayerFromPlayerId(playerId: number): Player | null {
+  const sessions = getData().session;
+  for (const session of sessions) {
+    const player = session.players.find((player) => player.playerId === playerId);
+    if (player) {
+      return player;
+    }
+  }
+  return null;
+}
+
+/**
  * Creates a request with the specified HTTP method, path, and payload.
  *
  * @param {HttpVerb} method - The HTTP method to use for the request.
@@ -184,3 +201,36 @@ export const createRequest = (method: HttpVerb, path: string, payload: object) =
 export const clear = () => {
   return createRequest('DELETE', '/v1/clear', {});
 };
+
+export const timer = (length: number, callback: () => void) => {
+  setTimeout(() => {
+    callback();
+  }, length);
+};
+
+// Function to generate a random name with the structure "[5 letters][3 numbers]"
+export function generateRandomName(): string {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  let name = '';
+
+  // Generate 5 random letters
+  for (let i = 0; i < 5; i++) {
+    name += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+
+  // Generate 3 random numbers ensuring no repetition
+  const numbersArray = numbers.split('');
+  for (let i = 0; i < 3; i++) {
+    const index = Math.floor(Math.random() * numbersArray.length);
+    name += numbersArray[index];
+    numbersArray.splice(index, 1);
+  }
+
+  return name;
+}
+
+// Function to generate a random playerId
+export function generatePlayerId(): number {
+  return Math.floor(Math.random() * 10000) + 1;
+}
