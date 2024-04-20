@@ -66,7 +66,7 @@ import {
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
-import { showChatList } from './chat';
+import { sendChatMessage, showChatList } from './chat';
 
 // Set up web app
 const app = express();
@@ -269,6 +269,7 @@ app.post('/v2/admin/quiz/:quizId/restore', (req: Request, res: Response) => {
   const quizId = req.params.quizId;
   res.json(adminTrashRestore(token, parseInt(quizId)));
 });
+
 /**                             Update Quiz Name                              */
 app.put('/v2/admin/quiz/:quizId/name', (req: Request, res: Response) => {
   const { name } = req.body;
@@ -472,6 +473,13 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, 
 app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
   const { playerid } = req.params;
   res.json(showChatList(parseInt(playerid)));
+});
+
+/**                            Send Chat Message                              */
+app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const { playerid } = req.params;
+  const { message } = req.body;
+  res.json(sendChatMessage(parseInt(playerid), message));
 });
 
 /**                                 Clear                                     */
