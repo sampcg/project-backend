@@ -173,8 +173,7 @@ describe('Testing Post /v1/admin/quiz/{quizid}/session/start', () => {
           correct: false
         }];
     const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
-    const question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
-    console.log(question1);
+    requestQuestionCreate(author.token, quiz.quizId, questionBody);
   });
 
   describe('Testing Error Cases', () => {
@@ -191,10 +190,7 @@ describe('Testing Post /v1/admin/quiz/{quizid}/session/start', () => {
     */
 
     test('A quiz does not have any questions in it', () => {
-      console.log(quiz.quizId);
       const quiz2 = requestQuizCreate(author.token, 'Quiz 2', 'Quiz 2 Des');
-      console.log(quiz2);
-      console.log(quiz2.quizId);
       expect(requestSessionStart(quiz2.quizId, author.token, 35)).toStrictEqual(makeCustomErrorForTest(400));
     });
 
