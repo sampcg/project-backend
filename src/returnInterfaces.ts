@@ -125,5 +125,6 @@ export interface Guest {
   name: string,
   playerId: number,
   numQuestions: number,
-  atQuestion: number
+  atQuestion: number,
+  state: States;
 }

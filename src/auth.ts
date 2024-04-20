@@ -354,7 +354,7 @@ function createGuestPlayer(sessionId: number, name: string): { playerId: number,
     sessionId: sessionId,
     name: name,
     playerId: playerId,
-    atQuestion: session.atQuestion,
+    // atQuestion: session.atQuestion,
     state: session.state
   };
   data.guest.push(guest);
