@@ -71,9 +71,9 @@ const requestSessionUpdate = (quizId: number, sessionId: number, token: string, 
   return requestHelper('PUT', `/v1/admin/quiz/${quizId}/session/${sessionId}`, { action }, { token });
 };
 
-// const requestSessionStatus = (quizId: number, sessionid: number, token: string) => {
-//   return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionid}`, {}, { token });
-// };
+const requestSessionStatus = (quizId: number, sessionid: number, token: string) => {
+  return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionid}`, {}, { token });
+};
 
 const requestPlayerJoin = (sessionId: number, name: string) => {
   return requestHelper('POST', '/v1/player/join', { sessionId, name }, {});
@@ -95,8 +95,8 @@ beforeEach(() => {
 
 /**                            Testing Player Join                            */
 describe('Testing POST /v1/player/join', () => {
-  // let author: {token: string}, quiz: {quizId: number}, question: {questionId: number}, session: {sessionId: number};
-  let author: {token: string}, quiz: {quizId: number}, session: {sessionId: number};
+  let author: {token: string}, quiz: {quizId: number}, question: {questionId: number}, session: {sessionId: number};
+  // let author: {token: string}, quiz: {quizId: number}, session: {sessionId: number};
   beforeEach(() => {
     author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
     quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
@@ -111,8 +111,7 @@ describe('Testing POST /v1/player/join', () => {
       ],
       thumbnailUrl: 'http://google.com/some/image/path.jpg'
     };
-    // const question = requestQuestionCreate(author.token, quiz.quizId, questionBody);
-    requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    question = requestQuestionCreate(author.token, quiz.quizId, questionBody);
     session = requestSessionStart(quiz.quizId, author.token, 3);
   });
 
@@ -136,12 +135,12 @@ describe('Testing POST /v1/player/join', () => {
     test('Correct return type', () => {
       expect(requestPlayerJoin(session.sessionId, 'Michael Hourn')).toStrictEqual({ playerId: expect.any(Number) });
     });
-    /*
+
     test('Shows in quiz session status', () => {
       requestPlayerJoin(session.sessionId, 'Michael Hourn');
       expect(requestSessionStatus(quiz.quizId, session.sessionId, author.token)).toStrictEqual({
         state: 'LOBBY',
-        atQuestion: 1,
+        atQuestion: 0,
         players: [
           'Michael Hourn'
         ],
@@ -174,10 +173,11 @@ describe('Testing POST /v1/player/join', () => {
                 }
               ]
             }
-          ]
+          ],
+          duration: 5,
+          thumbnailUrl: expect.any(String),
         }
       });
     });
-    */
   });
 });

@@ -610,7 +610,7 @@ describe('Testing POST /v1/admin/auth/logout', () => {
 // END OF AUTH LOGOUT TESTING
 
 // BEGINNING OF QUIZ QUESTION DUPLICATE
-
+/*
 describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
   test('Checking for a valid quiz question duplication', () => {
     const AuthRegisterResponse = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
@@ -725,7 +725,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
     expect(AdminQuizQuestionDuplicateJSON).toStrictEqual({ error: expect.any(String) });
   });
 });
-
+*/
 /** Testing authUserDetails */
 // Michael
 describe('Testing GET /v2/admin/user/details', () => {

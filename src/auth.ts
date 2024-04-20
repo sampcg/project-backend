@@ -12,7 +12,7 @@ import {
   ErrorObject,
   EmptyObject,
   Token,
-  Guest,
+  Player,
   States,
   Session
 } from './returnInterfaces';
@@ -320,7 +320,7 @@ export const adminUserPasswordUpdate = (token: string, oldPassword: string,
  * @returns {} - empty object
  */
 
-function createGuestPlayer(sessionId: number, name: string): { playerId: number, numQuestions: number, atQuestion: number } | ErrorObject {
+function createGuestPlayer(sessionId: number, name: string): { playerId: number} | ErrorObject {
   const data = getData(); // Get session data from somewhere
 
   // Find the session by sessionId
@@ -342,7 +342,7 @@ function createGuestPlayer(sessionId: number, name: string): { playerId: number,
   }
 
   // Check if the name is unique within the session
-  if (data.guest.some((guest: Guest) => guest.name === name && guest.sessionId === sessionId)) {
+  if (session.players.find((guest: Player) => guest.name === name)) {
     throw HTTPError(400, 'Name is not unique within the session');
   }
 
@@ -350,15 +350,12 @@ function createGuestPlayer(sessionId: number, name: string): { playerId: number,
   const playerId = generatePlayerId();
 
   // Add the guest to the session
-  const guest: Guest = {
-    sessionId: sessionId,
+  const guest: Player = {
     name: name,
     playerId: playerId,
-    // atQuestion: session.atQuestion,
-    // numQuestion: session.numQuestion,
-    state: session.state
+    score: 0
   };
-  data.guest.push(guest);
+  session.players.push(guest);
 
   // Update session data
   setData(data);
@@ -454,24 +451,24 @@ export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
   return {};
 };
 
-export function getGuestPlayerStatus(playerId: number): { state: States; numQuestions: number; atQuestion: number } | { error: string } {
-  const data = getData();
+// export function getGuestPlayerStatus(playerId: number): { state: States; numQuestions: number; atQuestion: number } | { error: string } {
+//   // const data = getData();
 
-  // Find the guest player by playerId
-  const guestPlayer = data.guest.find((guest: Guest) => guest.playerId === playerId);
+//   // // Find the guest player by playerId
+//   // const guestPlayer = data.guest.find((guest: Guest) => guest.playerId === playerId);
 
-  // If guest player not found, return error
-  if (!guestPlayer) {
-    throw HTTPError(400, 'Player ID does not exist');
-  }
+//   // // If guest player not found, return error
+//   // if (!guestPlayer) {
+//   //   throw HTTPError(400, 'Player ID does not exist');
+//   // }
 
-  // Return the status of the guest player in the session
-  return {
-    state: guestPlayer.state,
-    // numQuestions: guestPlayer.numQuestions,
-    // atQuestion: guestPlayer.atQuestion
-  };
-}
+//   // // Return the status of the guest player in the session
+//   // return {
+//   //   state: guestPlayer.state,
+//   //   // numQuestions: guestPlayer.numQuestions,
+//   //   // atQuestion: guestPlayer.atQuestion
+//   // };
+// }
 
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js
