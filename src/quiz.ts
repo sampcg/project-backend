@@ -425,7 +425,7 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
 // /// //////////////////     Duplication of a Quiz     /////////////////////
 
 export function adminQuizQuestionDuplicate (quizId: number, questionId: number, token: any) {
-  const data = getData();
+  // const data = getData();
 
   // for (const quiz of data.quizzes) {
   //   if (quiz.quizId === quizId) {
