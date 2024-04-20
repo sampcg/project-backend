@@ -370,24 +370,31 @@ export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
   return {};
 };
 
-// export function getGuestPlayerStatus(playerId: number): { state: States; numQuestions: number; atQuestion: number } | { error: string } {
-//   // const data = getData();
+interface GuestPlayerStatusReturn { state: string, numQuestions: number, atQuestion: number }
+export function getGuestPlayerStatus(playerId: number): GuestPlayerStatusReturn | ErrorObject {
+  const data = getData();
+  // Find correct session
+  let sessionId: number;
+  for (const session of data.session) {
+    for (const player of session.players) {
+      if (player.playerId === playerId) {
+        sessionId = session.quizSessionId;
+        break;
+      }
+    }
+  }
+  const session = data.session.find(session => session.quizSessionId === sessionId);
+  if (!session) {
+    throw HTTPError(400, 'Invalid playerID');
+  }
 
-//   // // Find the guest player by playerId
-//   // const guestPlayer = data.guest.find((guest: Guest) => guest.playerId === playerId);
-
-//   // // If guest player not found, return error
-//   // if (!guestPlayer) {
-//   //   throw HTTPError(400, 'Player ID does not exist');
-//   // }
-
-//   // // Return the status of the guest player in the session
-//   // return {
-//   //   state: guestPlayer.state,
-//   //   // numQuestions: guestPlayer.numQuestions,
-//   //   // atQuestion: guestPlayer.atQuestion
-//   // };
-// }
+  // Return the status of the guest player in the session
+  return {
+    state: session.state,
+    numQuestions: session.quiz.numQuestions,
+    atQuestion: session.atQuestion
+  };
+}
 
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js

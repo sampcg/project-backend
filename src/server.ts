@@ -23,7 +23,7 @@ import {
   adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
   adminUserPasswordUpdateV2,
-  // getGuestPlayerStatus
+  getGuestPlayerStatus
 } from './auth';
 
 import {
@@ -119,16 +119,16 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // });
 
 /**                               Guest Status                               */
-// app.get('/v1/player/:playerid', (req: Request, res: Response) => {
-//   const playerId = parseInt(req.params.playerid);
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
 
-//   try {
-//     const playerStatus = getGuestPlayerStatus(playerId);
-//     res.status(200).json(playerStatus);
-//   } catch (error) {
-//     res.status(400).json({ error: 'Player ID does not exist' });
-//   }
-// });
+  try {
+    const playerStatus = getGuestPlayerStatus(playerId);
+    res.status(200).json(playerStatus);
+  } catch (error) {
+    res.status(400).json({ error: 'Player ID does not exist' });
+  }
+});
 
 // app.listen(port, () => {
 //   console.log(`Server is listening on port ${port}`);
