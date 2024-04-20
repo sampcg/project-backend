@@ -79,9 +79,9 @@ const requestPlayerJoin = (sessionId: number, name: string) => {
   return requestHelper('POST', '/v1/player/join', { sessionId, name }, {});
 };
 
-// const requestPlayerStatus = (playerId: number) => {
-//   return requestHelper('GET', `/v1/player/${playerId}`, {}, {});
-// };
+const requestPlayerStatus = (playerId: number) => {
+  return requestHelper('GET', `/v1/player/${playerId}`, {}, {});
+};
 
 const requestClear = () => {
   return requestHelper('DELETE', '/v1/clear', {});
@@ -179,5 +179,45 @@ describe('Testing POST /v1/player/join', () => {
         }
       });
     });
+  });
+});
+
+/**                            Status Player Join                            */
+describe('Testing GET /v1/player/:playerid', () => {
+  let author: {token: string}, quiz: {quizId: number}, session: {sessionId: number};
+  // let author: {token: string}, quiz: {quizId: number}, session: {sessionId: number};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+
+    const questionBody: QuestionBody = {
+      question: 'Question 1',
+      duration: 5,
+      points: 5,
+      answers: [
+        { answer: 'Answer 1', correct: true },
+        { answer: 'Answer 2', correct: false }
+      ],
+      thumbnailUrl: 'http://google.com/some/image/path.jpg'
+    };
+    requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    session = requestSessionStart(quiz.quizId, author.token, 3);
+  });
+
+  test('Correct return type', () => {
+    const playerID = requestPlayerJoin(session.sessionId, 'Michael Hourn');
+    expect(requestPlayerStatus(playerID.playerId)).toStrictEqual({
+      state: 'LOBBY',
+      numQuestions: expect.any(Number),
+      atQuestion: 0
+    });
+
+    // console.log(expect(requestPlayerStatus(session.sessionId)).toStrictEqual(expect.any(Object)));
+  });
+
+  test('Incorrect return type', () => {
+    const playerID = requestPlayerJoin(session.sessionId, 'Michael Hourn');
+
+    expect(requestPlayerStatus(playerID.playerId + 1)).toStrictEqual(makeCustomErrorForTest(400));
   });
 });

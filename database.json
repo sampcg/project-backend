@@ -14,11 +14,11 @@
   ],
   "quizzes": [
     {
-      "quizId": 6968620788445803,
+      "quizId": 8381170292351461,
       "userId": 0,
       "name": "Quiz 1",
-      "timeCreated": 1713608220,
-      "timeLastEdited": 1713608220,
+      "timeCreated": 1713613525,
+      "timeLastEdited": 1713613524,
       "description": "Quiz 1 Des",
       "numQuestions": 0,
       "questions": [
@@ -32,13 +32,13 @@
               "answerId": 1,
               "answer": "Answer 1",
               "correct": true,
-              "colour": "red"
+              "colour": "yellow"
             },
             {
               "answerId": 2,
               "answer": "Answer 2",
               "correct": false,
-              "colour": "red"
+              "colour": "purple"
             }
           ],
           "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -53,18 +53,18 @@
   "token": [
     {
       "userId": 0,
-      "sessionId": "valCLqTl"
+      "sessionId": "ZLzSPqCS"
     }
   ],
   "session": [
     {
-      "quizSessionId": 7562474061212407,
+      "quizSessionId": 6998590118324915,
       "quiz": {
-        "quizId": 6968620788445803,
+        "quizId": 8381170292351461,
         "userId": 0,
         "name": "Quiz 1",
-        "timeCreated": 1713608220,
-        "timeLastEdited": 1713608220,
+        "timeCreated": 1713613525,
+        "timeLastEdited": 1713613524,
         "description": "Quiz 1 Des",
         "numQuestions": 0,
         "questions": [
@@ -78,13 +78,13 @@
                 "answerId": 1,
                 "answer": "Answer 1",
                 "correct": true,
-                "colour": "red"
+                "colour": "yellow"
               },
               {
                 "answerId": 2,
                 "answer": "Answer 2",
                 "correct": false,
-                "colour": "red"
+                "colour": "purple"
               }
             ],
             "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -94,17 +94,12 @@
         "duration": 5,
         "thumbnailUrl": ""
       },
-      "state": "LOBBY",
-      "autoStartNum": 3,
-      "players": [
-        {
-          "name": "Michael Hourn",
-          "playerId": 5176,
-          "score": 0
-        }
-      ],
+      "state": "ANSWER_CLOSE",
+      "autoStartNum": 35,
+      "players": [],
       "playerAnswers": [],
-      "atQuestion": 0
+      "atQuestion": 0,
+      "messages": []
     }
   ]
 }
