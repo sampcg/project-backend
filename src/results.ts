@@ -2,6 +2,8 @@ import { getData, setData } from './dataStore';
 import { getPlayerFromPlayerId, decodeToken } from './helpers';
 import { ErrorObject, EmptyObject, PlayerAnswer } from './returnInterfaces';
 import HTTPError from 'http-errors';
+import { createObjectCsvStringifier } from 'csv-writer';
+import * as fs from 'fs';
 
 /**
  * player submission of answers
@@ -302,6 +304,104 @@ export function getFinalResults(quizId: number, sessionId: number, token: string
     usersRankedByScore: usersRankedByScore,
     questionResults: questionResults,
   };
-
   return quizSessionFinalResult;
+}
+
+/// //////////////////           Get Final results for completed quiz session in CSV Format       /////////////////////
+
+export function getFinalResultsCSV(quizId: number, sessionId: number, token: string): string | ErrorObject {
+  const data = getData();
+  const originalToken = decodeToken(token);
+
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SesssionID');
+  }
+
+  // Check if owner owns quiz
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+  if (session.state !== 'FINAL_RESULTS') {
+    throw HTTPError(400, 'Session is not in the final result state');
+  }
+
+  // Calculate scores and ranks
+  const scores: Record<string, number> = {};
+  const ranks: Record<string, number> = {};
+  session.players.forEach(player => {
+    scores[player.name] = 0;
+    ranks[player.name] = 0;
+  });
+
+  session.playerAnswers.forEach(answer => {
+    const question = session.quiz.questions.find(q => q.questionId === answer.questionPosition);
+    if (!question) return;
+
+    const correctAnswers = question.answers.filter(a => a.correct).map(a => a.answerId);
+    const isCorrect = arrayEquals(answer.answersId, correctAnswers);
+    const scalingFactor = 1 / answer.questionPosition;
+    const score = isCorrect ? question.points * scalingFactor : 0;
+
+    scores[answer.playerId] += score;
+  });
+
+  const sortedPlayers = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+
+  let currentRank = 1;
+  let previousScore = scores[sortedPlayers[0]];
+  sortedPlayers.forEach(player => {
+    if (scores[player] < previousScore) {
+      currentRank++;
+      previousScore = scores[player];
+    }
+    ranks[player] = currentRank;
+  });
+
+  // Generate CSV
+  const csvStringifier = createObjectCsvStringifier({
+    header: ['Player', ...session.quiz.questions.map((_, index) => `question${index + 1}score`), ...session.quiz.questions.map((_, index) => `question${index + 1}rank`)],
+  });
+
+  const csvData: any[] = [];
+  sortedPlayers.forEach(player => {
+    const playerData: any = { Player: player };
+    session.quiz.questions.forEach((question, index) => {
+      const playerScore = scores[player];
+      const playerRank = ranks[player];
+      playerData[`question${index + 1}score`] = playerScore;
+      playerData[`question${index + 1}rank`] = playerRank;
+    });
+    csvData.push(playerData);
+  });
+
+  // Convert data to CSV string
+  const csvString = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(csvData);
+
+  // Write CSV string to file
+  const filePath = './final_results.csv';
+  fs.writeFileSync(filePath, csvString);
+
+  // Return file path
+  return filePath;
+}
+
+function arrayEquals(arr1: any[], arr2: any[]): boolean {
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) return false;
+  }
+  return true;
 }

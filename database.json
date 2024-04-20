@@ -58,14 +58,14 @@
   ],
   "session": [
     {
-      "quizSessionId": 5722342959770367,
+      "quizSessionId": 1245433333000217,
       "quiz": {
-        "quizId": 6997864081850499,
+        "quizId": 6520687977749035,
         "userId": 0,
         "name": "Quiz 1",
-        "timeCreated": 1713522454,
-        "timeLastEdited": 1713522454,
-        "description": "Quiz 1 Des",
+        "timeCreated": 1713520729,
+        "timeLastEdited": 1713520729,
+        "description": "a",
         "numQuestions": 0,
         "questions": [
           {
@@ -78,13 +78,13 @@
                 "answerId": 1,
                 "answer": "Answer 1",
                 "correct": true,
-                "colour": "purple"
+                "colour": "blue"
               },
               {
                 "answerId": 2,
                 "answer": "Answer 2",
                 "correct": false,
-                "colour": "red"
+                "colour": "blue"
               }
             ],
             "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -94,7 +94,7 @@
         "duration": 5,
         "thumbnailUrl": ""
       },
-      "state": "ANSWER_CLOSE",
+      "state": "FINAL_RESULTS",
       "autoStartNum": 35,
       "players": [],
       "playerAnswers": [],

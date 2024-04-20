@@ -58,6 +58,7 @@ import {
   getQuestionResults,
   playerSessionFinalResult,
   getFinalResults,
+  getFinalResultsCSV
 } from './results';
 
 import { adminTrashList, adminTrashRestore } from './trash';
@@ -405,6 +406,13 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   const token = req.header('token');
   const { quizid, sessionid } = req.params;
   res.json(getFinalResults(parseInt(quizid), parseInt(sessionid), token));
+});
+
+/**                             Final results for all players in a session in CSV                              */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const { quizid, sessionid } = req.params;
+  res.json(getFinalResultsCSV(parseInt(quizid), parseInt(sessionid), token));
 });
 
 /**                                 Clear                                     */

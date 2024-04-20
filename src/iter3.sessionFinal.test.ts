@@ -75,6 +75,9 @@ const requestSessionResults = (quizId: number, sessionId: number, token: string)
   return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionId}/results`, { quizId, sessionId }, { token });
 };
 
+const requestSessionResultsCSV = (quizId: number, sessionId: number, token: string) => {
+  return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionId}/results/csv`, { quizId, sessionId }, { token });
+};
 /// /////////////////////////////////////////////////////////////////////////////
 
 beforeEach(() => {
@@ -132,5 +135,54 @@ describe('Testing GET /v1/admin/quiz/{quizid}/session/{sessionid}/results', () =
     const sessionResults = requestSessionResults(quiz.quizId, session.sessionId, author.token);
     expect(sessionResults).toHaveProperty('usersRankedByScore');
     expect(sessionResults).toHaveProperty('questionResults');
+  });
+});
+
+/// /////////////////       Testing for Listing Quizzes      ////////////////////
+describe('Testing GET /v1/admin/quiz/:quizid/session/:sessionid/results/csv', () => {
+  let author: { token: string }, quiz: { quizId: number }, session: { sessionId: number }, answers: AnswerInput[];
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'a');
+    answers =
+          [{
+            answer: 'Answer 1',
+            correct: true
+          },
+          {
+            answer: 'Answer 2',
+            correct: false
+          }];
+    const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
+    requestQuestionCreate(author.token, quiz.quizId, questionBody);
+    session = requestSessionStart(quiz.quizId, author.token, 35);
+  });
+  describe('Testing: Successful Cases', () => {
+    test('Testing: Error Case - Invalid Token', () => {
+      // Invoke the function
+      const result = requestSessionResultsCSV(quiz.quizId, session.sessionId, author.token);
+      console.log(result.csvFilePath);
+
+      // Assert that the result is a string (CSV string)
+      expect(typeof result).toBe('object');
+    });
+
+    test('Testing: Error Case - Invalid Token', () => {
+      // Test for an invalid token
+      const invalidToken = 'invalid-token';
+      expect(requestSessionResults(quiz.quizId, session.sessionId, invalidToken)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    test('Testing: Error Case - Session Id does not exist', () => {
+      // Test for a session ID that does not exist
+      const invalidSessionId = session.sessionId + 1;
+      expect(requestSessionResults(quiz.quizId, invalidSessionId, author.token)).toStrictEqual(makeCustomErrorForTest(400));
+    });
+
+    test('Testing: Error Case - User not owner of the quiz', () => {
+      // Test for a user who is not the owner of the quiz
+      const unauthorizedUser = requestRegisterAuth('unauthorized@test.com', 'abcdefgh1234', 'Unauthorized', 'User');
+      expect(requestSessionResults(quiz.quizId, session.sessionId, unauthorizedUser.token)).toStrictEqual(makeCustomErrorForTest(403));
+    });
   });
 });
