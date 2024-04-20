@@ -40,7 +40,8 @@ import {
   adminQuestionCreate,
   adminQuestionUpdate,
   adminQuestionRemove,
-  adminQuestionMove
+  adminQuestionMove,
+  adminQuestionDuplicate
 } from './question';
 
 import {
@@ -55,6 +56,8 @@ import {
   submitAnswers,
   getQuestionResults,
   playerSessionFinalResult,
+  getFinalResults,
+  getFinalResultsCSV
 } from './results';
 
 import { adminTrashList, adminTrashRestore } from './trash';
@@ -301,6 +304,13 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   res.json(adminQuestionMove(token, parseInt(quizid), parseInt(questionid), parseInt(newPosition)));
 });
 
+/**                            Duplicate Question                             */
+app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+  const token = req.header('token') as string;
+  const { quizid, questionid } = req.params;
+  res.json(adminQuestionDuplicate(token, parseInt(quizid), parseInt(questionid)));
+});
+
 /**                             View Session                                  */
 app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
   const token = req.header('token') as string;
@@ -344,31 +354,31 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   res.json(adminUpdateQuizThumbnail(token, parseInt(quizid), imgUrl));
 });
 
-// player submission of answers
+/**                             Player Submission of answer                                  */
 app.put('/v1/player/:playerId/question/:questionPosition/answer', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { playerId } = req.params;
+    const { playerid } = req.params;
     const { questionPosition } = req.params;
     const { answerId } = req.body;
     const currentAnswerIds = JSON.parse(answerId as string);
-    res.json(submitAnswers(currentAnswerIds, parseInt(playerId), parseInt(questionPosition)));
+    res.json(submitAnswers(currentAnswerIds, parseInt(playerid), parseInt(questionPosition)));
   } catch (err) {
     next(err);
   }
 });
 
-// results for a question
-app.get('/v1/player/:playerId/question/:questionPosition/results', (req: Request, res: Response, next: NextFunction) => {
+/**                             Results for a question                                  */
+app.get('/v1/player/:playerid/question/:questionPosition/results', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { playerId } = req.params;
+    const { playerid } = req.params;
     const { questionPosition } = req.params;
-    res.json(getQuestionResults(parseInt(playerId), parseInt(questionPosition)));
+    res.json(getQuestionResults(parseInt(playerid), parseInt(questionPosition)));
   } catch (err) {
     next(err);
   }
 });
 
-// final results for a session
+/**                             Final results for a session                                  */
 app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: NextFunction) => {
   const { playerid } = req.params;
   try {
@@ -376,6 +386,20 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: Next
   } catch (err) {
     next(err);
   }
+});
+
+/**                             Final results for all players in a session                               */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const { quizid, sessionid } = req.params;
+  res.json(getFinalResults(parseInt(quizid), parseInt(sessionid), token));
+});
+
+/**                             Final results for all players in a session in CSV                              */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, res: Response) => {
+  const token = req.header('token');
+  const { quizid, sessionid } = req.params;
+  res.json(getFinalResultsCSV(parseInt(quizid), parseInt(sessionid), token));
 });
 
 /**                                 Clear                                     */
