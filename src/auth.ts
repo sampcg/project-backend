@@ -355,6 +355,7 @@ function createGuestPlayer(sessionId: number, name: string): { playerId: number,
     name: name,
     playerId: playerId,
     // atQuestion: session.atQuestion,
+    // numQuestion: session.numQuestion,
     state: session.state
   };
   data.guest.push(guest);
@@ -467,8 +468,8 @@ export function getGuestPlayerStatus(playerId: number): { state: States; numQues
   // Return the status of the guest player in the session
   return {
     state: guestPlayer.state,
-    numQuestions: guestPlayer.numQuestions,
-    atQuestion: guestPlayer.atQuestion
+    // numQuestions: guestPlayer.numQuestions,
+    // atQuestion: guestPlayer.atQuestion
   };
 }
 
