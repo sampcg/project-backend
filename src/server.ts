@@ -23,6 +23,8 @@ import {
   adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
   adminUserPasswordUpdateV2,
+  createGuestPlayer,
+  // getGuestPlayerStatus
 } from './auth';
 
 import {
@@ -93,6 +95,41 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // const save = () => {
 //   fs.writeFileSync('./database.json', JSON.stringify(getData()));
 // };
+// /**                               Guest Register                               */
+// app.post('/v1/player/join', (req: Request, res: Response) => {
+//   const { sessionId, name } = req.body;
+
+//   try {
+//     // Call the function to create a guest player
+//     const playerInfo = createGuestPlayer(sessionId, name);
+//     res.status(200).json(playerInfo);
+//   } catch (error) {
+//     // Handle errors
+//     if (error instanceof CustomError) {
+//       // If it's a custom error with an associated status code, return it
+//       res.status(error.code).json({ error: error.message });
+//     } else {
+//       // If it's any other type of error, return a 400 Bad Request error
+//       res.status(400).json({ error: error.message });
+//     }
+//   }
+// });
+
+/**                               Guest Status                               */
+// app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+//   const playerId = parseInt(req.params.playerid);
+
+//   try {
+//     const playerStatus = getGuestPlayerStatus(playerId);
+//     res.status(200).json(playerStatus);
+//   } catch (error) {
+//     res.status(400).json({ error: 'Player ID does not exist' });
+//   }
+// });
+
+// app.listen(port, () => {
+//   console.log(`Server is listening on port ${port}`);
+// });
 
 /**                               Auth Register                               */
 // First Function By Abrar
@@ -398,6 +435,19 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: Next
     res.json(playerSessionFinalResult(parseInt(playerid)));
   } catch (err) {
     next(err);
+  }
+});
+
+/**                               Guest Register                               */
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  const { sessionId, name } = req.body;
+
+  try {
+    // Call the function to create a guest player
+    const playerInfo = createGuestPlayer(sessionId, name);
+    res.status(200).json(playerInfo);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 

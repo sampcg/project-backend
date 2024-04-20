@@ -422,6 +422,30 @@ export const adminQuizTransfer = (quizId: number, token: string, userEmail: stri
   return {};
 };
 
+// /// //////////////////     Duplication of a Quiz     /////////////////////
+
+export function adminQuizQuestionDuplicate (quizId: number, questionId: number, token: any) {
+  // const data = getData();
+
+  // for (const quiz of data.quizzes) {
+  //   if (quiz.quizId === quizId) {
+  //     quizValid = true;
+  //     for (const question of quiz.questions) {
+  //       if (question.questionId === questionId) {
+  //         questionOwnedByQuiz = true;
+  //         break;
+  //       }
+  //     }
+  //     break;
+  //   }
+  // }
+
+  // if (quizValid === false) {
+  //   return {error: 'Token is empty or invalid', code: 403}
+  // } else if (questionOwnedbyquiz === false) {
+  //   return {error: 'Question Id does not refer to a valid question within this quiz', code: 400}
+  // }
+}
 /**
 * <Transfers a quiz to another user>
 *

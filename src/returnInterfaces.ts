@@ -116,6 +116,12 @@ export interface Session {
 export interface SessionStatus {
   state: States;
   atQuestion: number;
-  players: Player[];
+  players: string[];
   metadata: QuizInfo;
 }
+
+// export interface Guest {
+//   sessionId: number,
+//   name: string,
+//   playerId: number,
+// }
