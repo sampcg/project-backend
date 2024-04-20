@@ -322,9 +322,9 @@ export const adminUserPasswordUpdate = (token: string, oldPassword: string,
 
 function createGuestPlayer(sessionId: number, name: string): { playerId: number, numQuestions: number, atQuestion: number } | ErrorObject {
   const data = getData(); // Get session data from somewhere
-  
+
   // Find the session by sessionId
-  const session = data.session.find((sess: Session) => sess.quizSessionId === sessionId);
+  const session = data.session.find((session: Session) => session.quizSessionId === sessionId);
 
   // Check if session exists
   if (!session) {
@@ -354,7 +354,6 @@ function createGuestPlayer(sessionId: number, name: string): { playerId: number,
     sessionId: sessionId,
     name: name,
     playerId: playerId,
-    numQuestions: session.metadata.numQuestions,
     atQuestion: session.atQuestion,
     state: session.state
   };
@@ -363,7 +362,7 @@ function createGuestPlayer(sessionId: number, name: string): { playerId: number,
   // Update session data
   setData(data);
 
-  return { playerId: guest.playerId, numQuestions: guest.numQuestions, atQuestion: guest.atQuestion };
+  return { playerId: guest.playerId };
 }
 
 // Function to generate a random name with the structure "[5 letters][3 numbers]"
@@ -456,7 +455,7 @@ export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
 
 export function getGuestPlayerStatus(playerId: number): { state: States; numQuestions: number; atQuestion: number } | { error: string } {
   const data = getData();
-  
+
   // Find the guest player by playerId
   const guestPlayer = data.guest.find((guest: Guest) => guest.playerId === playerId);
 

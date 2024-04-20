@@ -91,25 +91,25 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // const save = () => {
 //   fs.writeFileSync('./database.json', JSON.stringify(getData()));
 // };
-/**                               Guest Register                               */
-app.post('/v1/player/join', (req: Request, res: Response) => {
-  const { sessionId, name } = req.body;
+// /**                               Guest Register                               */
+// app.post('/v1/player/join', (req: Request, res: Response) => {
+//   const { sessionId, name } = req.body;
 
-  try {
-    // Call the function to create a guest player
-    const playerInfo = createGuestPlayer(sessionId, name);
-    res.status(200).json(playerInfo);
-  } catch (error) {
-    // Handle errors
-    if (error.code) {
-      // If it's an HTTP error, return the error object
-      res.status(error.code).json({ error: error.message });
-    } else {
-      // If it's any other error, return a generic 500 error
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  }
-});
+//   try {
+//     // Call the function to create a guest player
+//     const playerInfo = createGuestPlayer(sessionId, name);
+//     res.status(200).json(playerInfo);
+//   } catch (error) {
+//     // Handle errors
+//     if (error instanceof CustomError) {
+//       // If it's a custom error with an associated status code, return it
+//       res.status(error.code).json({ error: error.message });
+//     } else {
+//       // If it's any other type of error, return a 400 Bad Request error
+//       res.status(400).json({ error: error.message });
+//     }
+//   }
+// });
 
 /**                               Guest Status                               */
 app.get('/v1/player/:playerid', (req: Request, res: Response) => {
@@ -123,9 +123,9 @@ app.get('/v1/player/:playerid', (req: Request, res: Response) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Server is listening on port ${port}`);
+// });
 
 /**                               Auth Register                               */
 // First Function By Abrar
@@ -412,6 +412,19 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response, next: Next
     res.json(playerSessionFinalResult(parseInt(playerid)));
   } catch (err) {
     next(err);
+  }
+});
+
+/**                               Guest Register                               */
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  const { sessionId, name } = req.body;
+
+  try {
+    // Call the function to create a guest player
+    const playerInfo = createGuestPlayer(sessionId, name);
+    res.status(200).json(playerInfo);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 

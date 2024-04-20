@@ -90,7 +90,7 @@ const requestClear = () => {
 };
 
 const requestQuestionSessionId = (quizId: number, token: string, body: object) => {
-    return requestHelper('POST', `/v1/admin/quiz/${quizid}/session/start`, {quizId, token, body});
+    return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, {quizId, token, body});
 };
 
 const requestGuestCreate = (sessionId: number, name: string) => {
@@ -102,11 +102,11 @@ const requestGuestStatus = (playerId: number) => {
 };
 
 const requestGetSessionState = (quizId: number, sessionId: number, token: string) => {
-  return requestHelper('GET', `/v1/admin/quiz/${quizid}/session/${sessionId}`, {quizId, sessionId, token});
+  return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionId}`, {quizId, sessionId, token});
 };
 
 const requestUpdateSessionState = (quizId: number, sessionId: number, token: string, body: object) => {
-  return requestHelper('PUT', `/v1/admin/quiz/${quizid}/session/${sessionId}`, {quizId, sessionId, token,
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/session/${sessionId}`, {quizId, sessionId, token,
     body});
 };
 
@@ -114,6 +114,20 @@ const requestGuestQuestionStatus = (playerId: number, questionPosition: number) 
   return requestHelper('GET', '/v1/player/${playerId}/question/${questionposition}', {playerId, questionPosition});
 };
 
+const requestSessionStart = (quizId: number, token: string, autoStartNum: number) => {
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
+};
+const requestSessionUpdate = (quizId: number, sessionId: number, token: string, action: string) => {
+  return requestHelper('PUT', `/v1/admin/quiz/${quizId}/session/${sessionId}`, { action }, { token });
+};
+
+const requestSessionResults = (quizId: number, sessionId: number, token: string) => {
+  return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionId}/results`, { quizId, sessionId }, { token });
+};
+
+const requestSessionResultsCSV = (quizId: number, sessionId: number, token: string) => {
+  return requestHelper('GET', `/v1/admin/quiz/${quizId}/session/${sessionId}/results/csv`, { quizId, sessionId }, { token });
+}
 /// /////////////////////////////////////////////////////////////////////////////
 
 beforeEach(() => {
@@ -124,51 +138,74 @@ beforeEach(() => {
 describe('Testing POST /v1/player/join', () => {
 
     let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, answers: AnswerInput[];
-    beforeEach(() => {
-    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
-    quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
-    answers =
-        [{
-          answer: 'Answer 1',
-          correct: true
-        },
-        {
-          answer: 'Answer 2',
-          correct: false
-        }];
-    const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
-    question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody);
-    });
-
+    let sessionId: number;
     describe('Creating a Guest Player', () => {
 
-        // Going to request a New Session from SessionStart Function
-        test('Name of user entered is not unique (compared to other users who have already joined), expect 400', () => {
-          const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
-          const validName = 'Hayden'
-          expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));
+      beforeEach(() => {
+        // Set up the test environment
+        author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+        quiz = requestQuizCreate(author.token, 'Quiz 1', 'a');
+        answers =
+          [{
+            answer: 'Answer 1',
+            correct: true
+          },
+          {
+            answer: 'Answer 2',
+            correct: false
+          }];
+        const questionBody: QuestionBody = { question: 'Question 1', duration: 5, points: 5, answers: answers, thumbnailUrl: 'http://google.com/some/image/path.jpg' };
+        requestQuestionCreate(author.token, quiz.quizId, questionBody);
+        sessionId = requestSessionStart(quiz.quizId, author.token, 35);
+      });
 
-          // Same Name is Implemented in the function and same Sessiond Id
-          expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(400)));
+        test('Name of user entered is not unique (compared to other users who have already joined), expect 400', () => {
+          const validName = 'Hayden';
+        const GuestCreateResponse = request('POST', `${SERVER_URL}/v1/player/join`, {
+          json: {sessionId, validName}
+        });
+        console.log('GuestCreateResponse.statusCode:', GuestCreateResponse.statusCode);
+        console.log('GuestCreateResponse.body:', GuestCreateResponse.body.toString());
+        expect(GuestCreateResponse.statusCode).toStrictEqual(200);
+        const GuestCreateJSON = JSON.parse(GuestCreateResponse.body.toString());
+        console.log('GuestCreateJSON:', GuestCreateJSON);
+        expect(GuestCreateJSON).toStrictEqual({ playerId: expect.any(Number) });
+
+        const DuplicateGuestCreateResponse = request('POST', `${SERVER_URL}/v1/player/join`, {
+          json: {sessionId, validName}
+        });
+        console.log('DuplicateGuestCreateResponse.statusCode:', DuplicateGuestCreateResponse.statusCode);
+        console.log('DuplicateGuestCreateResponse.body:', DuplicateGuestCreateResponse.body.toString());
+        expect(DuplicateGuestCreateResponse.statusCode).toStrictEqual(400);
         });
 
         test('Session Id does not refer to a valid session, expect 400', () => {
-          const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
-          const invalidSessionid = sessionId + 1;
-          const validName = 'Hayden'
-          expect(requestGuestCreate(invalidSessionid, validName).toStrictEqual(makeCustomErrorForTest(400)));
+          const validName = 'Hayden';
+          const invalidSessionId = sessionId + 1;
+        const GuestCreateResponse = request('POST', `${SERVER_URL}/v1/player/join`, {
+          json: {invalidSessionId, validName}
+        });
+        console.log('GuestCreateResponse.statusCode:', GuestCreateResponse.statusCode);
+        console.log('GuestCreateResponse.body:', GuestCreateResponse.body.toString());
+        expect(GuestCreateResponse.statusCode).toStrictEqual(400);
+        const GuestCreateJSON = JSON.parse(GuestCreateResponse.body.toString());
+
         });
 
         test('Session is not in LOBBY state, expect 400', () => {
-          const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
-          const invalidSessionid = sessionId + 1;
-          const validName = 'Hayden'
-          requestUpdateSessionState(quiz.quizId, sessionId, author.token, {action: "NEXT_QUESTION"})
-          expect(requestGuestCreate(invalidSessionid, validName).toStrictEqual(makeCustomErrorForTest(400)));
+
+          const validName = 'Hayden';
+        const GuestCreateResponse = request('POST', `${SERVER_URL}/v1/player/join`, {
+          json: {sessionId, validName}
+        });
+        console.log('GuestCreateResponse.statusCode:', GuestCreateResponse.statusCode);
+        console.log('GuestCreateResponse.body:', GuestCreateResponse.body.toString());
+        expect(GuestCreateResponse.statusCode).toStrictEqual(400);
+        const GuestCreateJSON = JSON.parse(GuestCreateResponse.body.toString());
+
         });
 
         test('Creating A Valid Guest Player, Should return a Unique PlayerId, expect 200', () => {
-          const sessionId = requestQuestionSessionId(quiz.quizId, author.token, questionBody);
           // Should Generate a Unique Id
           const validName = ''
           expect(requestGuestCreate(sessionId, validName).toStrictEqual(makeCustomErrorForTest(200)));
