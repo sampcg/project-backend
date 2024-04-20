@@ -124,7 +124,7 @@ export interface Guest {
   sessionId: number,
   name: string,
   playerId: number,
-  numQuestions: number,
-  atQuestion: number,
+  // numQuestions: number,
+  // atQuestion: number,
   state: States;
 }
