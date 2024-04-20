@@ -87,36 +87,6 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
 // ====================================================================
-// const load = () => {
-//   if (fs.existsSync('./database.json')) {
-//     const file = fs.readFileSync('./database.json', { encoding: 'utf8' });
-//     setData(JSON.parse(file));
-//   }
-// };
-// load();
-
-// const save = () => {
-//   fs.writeFileSync('./database.json', JSON.stringify(getData()));
-// };
-// /**                               Guest Register                               */
-// app.post('/v1/player/join', (req: Request, res: Response) => {
-//   const { sessionId, name } = req.body;
-
-//   try {
-//     // Call the function to create a guest player
-//     const playerInfo = createGuestPlayer(sessionId, name);
-//     res.status(200).json(playerInfo);
-//   } catch (error) {
-//     // Handle errors
-//     if (error instanceof CustomError) {
-//       // If it's a custom error with an associated status code, return it
-//       res.status(error.code).json({ error: error.message });
-//     } else {
-//       // If it's any other type of error, return a 400 Bad Request error
-//       res.status(400).json({ error: error.message });
-//     }
-//   }
-// });
 
 /**                               Guest Status                               */
 // app.get('/v1/player/:playerid', (req: Request, res: Response) => {
@@ -128,10 +98,6 @@ const HOST: string = process.env.IP || '127.0.0.1';
 //   } catch (error) {
 //     res.status(400).json({ error: 'Player ID does not exist' });
 //   }
-// });
-
-// app.listen(port, () => {
-//   console.log(`Server is listening on port ${port}`);
 // });
 
 /**                               Auth Register                               */
@@ -378,7 +344,6 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
   const token = req.header('token') as string;
   const { quizid } = req.params;
   const { autoStartNum } = req.body;
-  console.log(quizid);
   const result = adminSessionStart(parseInt(quizid), token, parseInt(autoStartNum));
   res.json(result);
 });
@@ -395,7 +360,6 @@ app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   const token = req.header('token') as string;
   const { quizid, sessionid } = req.params;
   const { action } = req.body;
-  console.log(quizid);
   const result = adminSessionUpdate(parseInt(quizid), parseInt(sessionid), token, action);
   res.json(result);
 });
