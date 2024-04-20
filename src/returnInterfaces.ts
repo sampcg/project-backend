@@ -95,6 +95,13 @@ export enum Actions {
   End = 'END'
 }
 
+export interface Message {
+  messageBody: string;
+  playerId: number;
+  playerName: string;
+  timeSent: number;
+}
+
 export interface PlayerAnswer {
   playerId: number;
   answersId: number[];
@@ -111,6 +118,7 @@ export interface Session {
   players: Player[];
   playerAnswers: PlayerAnswer[];
   autoStartNum: number;
+  messages: Message[];
 }
 
 export interface SessionStatus {
@@ -119,9 +127,3 @@ export interface SessionStatus {
   players: string[];
   metadata: QuizInfo;
 }
-
-// export interface Guest {
-//   sessionId: number,
-//   name: string,
-//   playerId: number,
-// }

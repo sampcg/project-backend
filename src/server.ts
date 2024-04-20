@@ -23,7 +23,6 @@ import {
   adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
   adminUserPasswordUpdateV2,
-  createGuestPlayer,
   // getGuestPlayerStatus
 } from './auth';
 
@@ -55,6 +54,8 @@ import {
   getSessionStatus
 } from './session';
 
+import { createGuestPlayer } from './player';
+
 import {
   submitAnswers,
   getQuestionResults,
@@ -64,6 +65,8 @@ import {
 } from './results';
 
 import { adminTrashList, adminTrashRestore } from './trash';
+
+import { showChatList } from './chat';
 
 // Set up web app
 const app = express();
@@ -463,6 +466,12 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, 
   const token = req.header('token');
   const { quizid, sessionid } = req.params;
   res.json(getFinalResultsCSV(parseInt(quizid), parseInt(sessionid), token));
+});
+
+/**                              Show Chat List                               */
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const { playerid } = req.params;
+  res.json(showChatList(parseInt(playerid)));
 });
 
 /**                                 Clear                                     */

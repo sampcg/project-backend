@@ -207,3 +207,30 @@ export const timer = (length: number, callback: () => void) => {
     callback();
   }, length);
 };
+
+// Function to generate a random name with the structure "[5 letters][3 numbers]"
+export function generateRandomName(): string {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  let name = '';
+
+  // Generate 5 random letters
+  for (let i = 0; i < 5; i++) {
+    name += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+
+  // Generate 3 random numbers ensuring no repetition
+  const numbersArray = numbers.split('');
+  for (let i = 0; i < 3; i++) {
+    const index = Math.floor(Math.random() * numbersArray.length);
+    name += numbersArray[index];
+    numbersArray.splice(index, 1);
+  }
+
+  return name;
+}
+
+// Function to generate a random playerId
+export function generatePlayerId(): number {
+  return Math.floor(Math.random() * 10000) + 1;
+}

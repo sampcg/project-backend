@@ -126,7 +126,8 @@ export const adminSessionStart = (quizId: number, token: string, autoStartNum: n
     autoStartNum: autoStartNum,
     players: players,
     playerAnswers: [] as PlayerAnswer[],
-    atQuestion: atQuestion
+    atQuestion: atQuestion,
+    messages: []
   };
   data.session.push(newSession);
   setData(data);

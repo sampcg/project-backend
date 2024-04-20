@@ -11,10 +11,7 @@ import {
 import {
   ErrorObject,
   EmptyObject,
-  Token,
-  Player,
-  States,
-  Session
+  Token
 } from './returnInterfaces';
 import validator from 'validator';
 import HTTPError from 'http-errors';
@@ -320,84 +317,6 @@ export const adminUserPasswordUpdate = (token: string, oldPassword: string,
  * @returns {} - empty object
  */
 
-function createGuestPlayer(sessionId: number, name: string): { playerId: number} | ErrorObject {
-  const data = getData(); // Get session data from somewhere
-
-  // Find the session by sessionId
-  const session = data.session.find((session: Session) => session.quizSessionId === sessionId);
-
-  // Check if session exists
-  if (!session) {
-    throw HTTPError(400, 'Session ID does not refer to a valid session');
-  }
-
-  // Check if session is in LOBBY state
-  if (session.state !== States.LOBBY) {
-    throw HTTPError(400, 'Session is not in LOBBY state');
-  }
-
-  // Check if the name is empty, generate a random name if so
-  if (name.trim() === '') {
-    name = generateRandomName();
-  }
-
-  // Check if the name is unique within the session
-  if (session.players.find((guest: Player) => guest.name === name)) {
-    throw HTTPError(400, 'Name is not unique within the session');
-  }
-
-  // Generate a playerId for the guest
-  const playerId = generatePlayerId();
-
-  // Add the guest to the session
-  const guest: Player = {
-    name: name,
-    playerId: playerId,
-    score: 0
-  };
-  session.players.push(guest);
-
-  // Update session data
-  setData(data);
-
-  return { playerId: guest.playerId };
-}
-
-// Function to generate a random name with the structure "[5 letters][3 numbers]"
-function generateRandomName(): string {
-  const letters = 'abcdefghijklmnopqrstuvwxyz';
-  const numbers = '0123456789';
-  let name = '';
-
-  // Generate 5 random letters
-  for (let i = 0; i < 5; i++) {
-    name += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-
-  // Generate 3 random numbers ensuring no repetition
-  const numbersArray = numbers.split('');
-  for (let i = 0; i < 3; i++) {
-    const index = Math.floor(Math.random() * numbersArray.length);
-    name += numbersArray[index];
-    numbersArray.splice(index, 1);
-  }
-
-  return name;
-}
-
-// Function to generate a random playerId (just for illustration, you may have your own logic)
-function generatePlayerId(): number {
-  return Math.floor(Math.random() * 10000) + 1;
-}
-
-/**
- * Updates the password of an admin user
- * @param {number} authUserId - unique identifier for admin user
- * @param {string} oldPassword - old password of user
- * @param {string} newPassword - new password of user
- * @returns {} - empty object
- */
-
 export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
   newPassword: string): EmptyObject | ErrorObject => {
   /** Token is empty or invalid (does not refer to valid logged in user session) */
@@ -475,4 +394,3 @@ export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
 export { adminAuthRegister };
 export { adminAuthLogin };
 export { adminUserDetails };
-export { createGuestPlayer };
