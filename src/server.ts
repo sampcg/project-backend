@@ -22,8 +22,7 @@ import {
   adminUserDetailsUpdate,
   adminUserDetailsUpdateV2,
   adminUserPasswordUpdate,
-  adminUserPasswordUpdateV2,
-  getGuestPlayerStatus
+  adminUserPasswordUpdateV2
 } from './auth';
 
 import {
@@ -54,7 +53,7 @@ import {
   getSessionStatus
 } from './session';
 
-import { createGuestPlayer } from './player';
+import { createGuestPlayer, getGuestPlayerStatus } from './player';
 
 import {
   submitAnswers,

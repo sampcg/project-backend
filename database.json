@@ -14,38 +14,38 @@
   ],
   "quizzes": [
     {
-      "quizId": 171127690296179,
+      "quizId": 8381170292351461,
       "userId": 0,
       "name": "Quiz 1",
-      "timeCreated": 1713613043,
-      "timeLastEdited": 1713613042,
+      "timeCreated": 1713613525,
+      "timeLastEdited": 1713613524,
       "description": "Quiz 1 Des",
       "numQuestions": 0,
       "questions": [
         {
           "questionId": 1,
-          "question": "Question",
-          "duration": 1,
-          "points": 1,
+          "question": "Question 1",
+          "duration": 5,
+          "points": 5,
           "answers": [
             {
               "answerId": 1,
               "answer": "Answer 1",
               "correct": true,
-              "colour": "red"
+              "colour": "yellow"
             },
             {
               "answerId": 2,
               "answer": "Answer 2",
               "correct": false,
-              "colour": "blue"
+              "colour": "purple"
             }
           ],
           "thumbnailUrl": "http://google.com/some/image/path.jpg",
           "position": 0
         }
       ],
-      "duration": 1,
+      "duration": 5,
       "thumbnailUrl": ""
     }
   ],
@@ -53,56 +53,50 @@
   "token": [
     {
       "userId": 0,
-      "sessionId": "esIJ1HTp"
+      "sessionId": "ZLzSPqCS"
     }
   ],
   "session": [
     {
-      "quizSessionId": 7998324903625233,
+      "quizSessionId": 6998590118324915,
       "quiz": {
-        "quizId": 171127690296179,
+        "quizId": 8381170292351461,
         "userId": 0,
         "name": "Quiz 1",
-        "timeCreated": 1713613043,
-        "timeLastEdited": 1713613042,
+        "timeCreated": 1713613525,
+        "timeLastEdited": 1713613524,
         "description": "Quiz 1 Des",
         "numQuestions": 0,
         "questions": [
           {
             "questionId": 1,
-            "question": "Question",
-            "duration": 1,
-            "points": 1,
+            "question": "Question 1",
+            "duration": 5,
+            "points": 5,
             "answers": [
               {
                 "answerId": 1,
                 "answer": "Answer 1",
                 "correct": true,
-                "colour": "red"
+                "colour": "yellow"
               },
               {
                 "answerId": 2,
                 "answer": "Answer 2",
                 "correct": false,
-                "colour": "blue"
+                "colour": "purple"
               }
             ],
             "thumbnailUrl": "http://google.com/some/image/path.jpg",
             "position": 0
           }
         ],
-        "duration": 1,
+        "duration": 5,
         "thumbnailUrl": ""
       },
-      "state": "LOBBY",
-      "autoStartNum": 3,
-      "players": [
-        {
-          "name": "Michael Hourn",
-          "playerId": 583,
-          "score": 0
-        }
-      ],
+      "state": "ANSWER_CLOSE",
+      "autoStartNum": 35,
+      "players": [],
       "playerAnswers": [],
       "atQuestion": 0,
       "messages": []

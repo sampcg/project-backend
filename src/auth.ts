@@ -370,32 +370,6 @@ export const adminUserPasswordUpdateV2 = (token: string, oldPassword: string,
   return {};
 };
 
-interface GuestPlayerStatusReturn { state: string, numQuestions: number, atQuestion: number }
-export function getGuestPlayerStatus(playerId: number): GuestPlayerStatusReturn | ErrorObject {
-  const data = getData();
-  // Find correct session
-  let sessionId: number;
-  for (const session of data.session) {
-    for (const player of session.players) {
-      if (player.playerId === playerId) {
-        sessionId = session.quizSessionId;
-        break;
-      }
-    }
-  }
-  const session = data.session.find(session => session.quizSessionId === sessionId);
-  if (!session) {
-    throw HTTPError(400, 'Invalid playerID');
-  }
-
-  // Return the status of the guest player in the session
-  return {
-    state: session.state,
-    numQuestions: session.quiz.numQuestions,
-    atQuestion: session.atQuestion
-  };
-}
-
 // This is exporting the data to auth.test.js
 // Also to the dataStore.js
 export { adminAuthRegister };
