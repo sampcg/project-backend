@@ -459,7 +459,6 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/name', () => {
 
     // Retrieve the updated quiz details
     const updatedQuizInfo = requestQuizInfo(author.token, quiz.quizId);
-    console.log('This is the test', updatedQuizInfo.name);
     expect(updatedQuizInfo.name).toBe(updatedName);
   });
 });

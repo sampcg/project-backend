@@ -24,7 +24,6 @@ interface adminSessionStartReturn {
 /// //////////////////   View Active and Inactive Sessions   ////////////////////
 export const adminSessionView = (token: string, quizId: number): adminSessionViewReturn | ErrorObject => {
   const data: DataStore = getData();
-  console.log(token);
   // Checking for invalid or empty token
   const originalToken = decodeToken(token);
   if (!originalToken) {
@@ -156,11 +155,6 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
 
   // Validate session ID
   const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
-  console.log(session);
-  console.log('Input: ', sessionId);
-  console.log('Comparison:', data.quizzes);
-  console.log('Comparison:', data.session);
-  console.log('Output: ', session);
   if (!session) {
     throw HTTPError(400, 'Session ID does not refer to a valid session within this quiz');
   }
@@ -190,10 +184,8 @@ export const adminSessionUpdate = (quizId: number, sessionId: number, token: str
       throw HTTPError(400, 'Action enum cannot be applied in the current state');
     } else if (action === 'NEXT_QUESTION') {
       session.state = States.QUESTION_COUNTDOWN;
-      console.log('Comparison1:', data.session);
     } else if (action === 'END') {
       session.state = States.END;
-      console.log('Comparison2:', data.session);
     }
   } else if (session.state === States.QUESTION_COUNTDOWN) {
     if (action !== 'SKIP_COUNTDOWN' && action !== 'END') {
