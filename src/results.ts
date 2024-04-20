@@ -1,7 +1,9 @@
 import { getData, setData } from './dataStore';
-import { getPlayerFromPlayerId } from './helpers';
+import { getPlayerFromPlayerId, decodeToken } from './helpers';
 import { ErrorObject, EmptyObject, PlayerAnswer } from './returnInterfaces';
 import HTTPError from 'http-errors';
+import { createObjectCsvStringifier } from 'csv-writer';
+import * as fs from 'fs';
 
 /**
  * player submission of answers
@@ -129,7 +131,7 @@ export function getQuestionResults(playerId: number, questionPosition: number) {
   };
 }
 
-interface QuestionResult {
+export interface QuestionResult {
   questionId: number,
   questionCorrectBreakdown: {
     answerId: number,
@@ -211,4 +213,195 @@ export function playerSessionFinalResult(playerId: number) {
   };
 
   return quizSessionFinalResult;
+}
+
+/// //////////////////           Get Final results for completed quiz session        /////////////////////
+/**
+ * Retrieves the final results for a completed quiz session.
+ * @param {number} quizid - The ID of the quiz.
+ * @param {number} sessionid - The ID of the quiz session.
+ * @param {string} token - The authentication token.
+ * @returns {FinalResults | ErrorObject} - The final results for all players and question results for the completed quiz session, or an error object if the operation fails.
+ * @typedef {Object} FinalResults
+ * @property {UserRankedByScore[]} usersRankedByScore - List of users ranked by score.
+ * @property {QuestionResult[]} questionResults - List of question results.
+ * @typedef {Object} ErrorObject
+ * @property {string} error - Error message.
+ * @property {number} code - HTTP status code.
+ * @typedef {Object} UserRankedByScore
+ * @property {string} name - The name of the user.
+ * @property {number} score - The score achieved by the user.
+ * @typedef {Object} QuestionResult
+ * @property {number} questionId - The ID of the question.
+ * @property {string[]} playersCorrectList - List of players who answered the question correctly.
+ * @property {number} averageAnswerTime - The average time taken to answer the question.
+ * @property {number} percentCorrect - The percentage of players who answered the question correctly.
+ */
+
+export function getFinalResults(quizId: number, sessionId: number, token: string): QuizSessionFinalResult | ErrorObject {
+  const data = getData();
+  const originalToken = decodeToken(token);
+
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SesssionID');
+  }
+  // Check if owner owns quiz
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+  if (session.state !== 'FINAL_RESULTS') {
+    throw HTTPError(400, 'Session is not in the final result state');
+  }
+
+  const quiz = data.quizzes.find((q) => q.quizId === session.quiz.quizId);
+  const usersRankedByScore = session.players
+    .map((player) => ({ name: player.name, score: player.score }))
+    .sort((a, b) => b.score - a.score);
+
+  const questionResults: QuestionResult[] = [];
+
+  quiz.questions.forEach((question) => {
+    const playerAnswers = session.playerAnswers.filter(
+      (playerAnswer) => playerAnswer.questionPosition + 1 === question.questionId
+    );
+
+    const questionCorrectBreakdown = question.answers.map((answer) => {
+      const playersCorrect = playerAnswers
+        .filter((playerAnswer) => playerAnswer.answersId.includes(answer.answerId))
+        .map((playerAnswer) => session.players.find((player) => player.playerId === playerAnswer.playerId).name);
+
+      return {
+        answerId: answer.answerId,
+        playersCorrect: playersCorrect,
+      };
+    });
+
+    const totalPlayers = session.players.length;
+    const totalCorrectPlayers = playerAnswers.filter((playerAnswer) => playerAnswer.answersId.length === question.answers.length).length;
+    const percentageCorrect = Math.round((totalCorrectPlayers / totalPlayers) * 100);
+
+    questionResults.push({
+      questionId: question.questionId,
+      questionCorrectBreakdown: questionCorrectBreakdown,
+      averageAnswerTime: 45,
+      percentCorrect: percentageCorrect,
+    });
+  });
+
+  const quizSessionFinalResult: QuizSessionFinalResult = {
+    usersRankedByScore: usersRankedByScore,
+    questionResults: questionResults,
+  };
+  return quizSessionFinalResult;
+}
+
+/// //////////////////           Get Final results for completed quiz session in CSV Format       /////////////////////
+
+export function getFinalResultsCSV(quizId: number, sessionId: number, token: string): string | ErrorObject {
+  const data = getData();
+  const originalToken = decodeToken(token);
+
+  // Check if token is valid
+  if (!originalToken) {
+    throw HTTPError(401, 'Invalid Token');
+  }
+
+  // Check to see if sessionId is valid
+  const sessionExists = data.token.find((session) => originalToken.sessionId === session.sessionId);
+  if (!sessionExists) {
+    throw HTTPError(401, 'Invalid SesssionID');
+  }
+
+  // Check if owner owns quiz
+  const findQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (findQuiz.userId !== originalToken.userId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  const session = data.session.find(session => session.quizSessionId === sessionId && session.quiz.quizId === quizId);
+  if (!session) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+  if (session.state !== 'FINAL_RESULTS') {
+    throw HTTPError(400, 'Session is not in the final result state');
+  }
+
+  // Calculate scores and ranks
+  const scores: Record<string, number> = {};
+  const ranks: Record<string, number> = {};
+  session.players.forEach(player => {
+    scores[player.name] = 0;
+    ranks[player.name] = 0;
+  });
+
+  session.playerAnswers.forEach(answer => {
+    const question = session.quiz.questions.find(q => q.questionId === answer.questionPosition);
+    if (!question) return;
+
+    const correctAnswers = question.answers.filter(a => a.correct).map(a => a.answerId);
+    const isCorrect = arrayEquals(answer.answersId, correctAnswers);
+    const scalingFactor = 1 / answer.questionPosition;
+    const score = isCorrect ? question.points * scalingFactor : 0;
+
+    scores[answer.playerId] += score;
+  });
+
+  const sortedPlayers = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+
+  let currentRank = 1;
+  let previousScore = scores[sortedPlayers[0]];
+  sortedPlayers.forEach(player => {
+    if (scores[player] < previousScore) {
+      currentRank++;
+      previousScore = scores[player];
+    }
+    ranks[player] = currentRank;
+  });
+
+  // Generate CSV
+  const csvStringifier = createObjectCsvStringifier({
+    header: ['Player', ...session.quiz.questions.map((_, index) => `question${index + 1}score`), ...session.quiz.questions.map((_, index) => `question${index + 1}rank`)],
+  });
+
+  const csvData: any[] = [];
+  sortedPlayers.forEach(player => {
+    const playerData: any = { Player: player };
+    session.quiz.questions.forEach((question, index) => {
+      const playerScore = scores[player];
+      const playerRank = ranks[player];
+      playerData[`question${index + 1}score`] = playerScore;
+      playerData[`question${index + 1}rank`] = playerRank;
+    });
+    csvData.push(playerData);
+  });
+
+  // Convert data to CSV string
+  const csvString = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(csvData);
+
+  // Write CSV string to file
+  const filePath = './final_results.csv';
+  fs.writeFileSync(filePath, csvString);
+
+  // Return file path
+  return filePath;
+}
+
+function arrayEquals(arr1: any[], arr2: any[]): boolean {
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) return false;
+  }
+  return true;
 }
