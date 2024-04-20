@@ -16,6 +16,7 @@ interface QuestionBody {
   answers: AnswerInput[];
   thumbnailUrl: string;
 }
+
 const makeCustomErrorForTest = (status: number) => ({ status, error: expect.any(String) });
 
 interface Payload {
@@ -79,6 +80,14 @@ const requestQuestionMove = (token: string, quizId: number, questionId: number, 
 
 const requestQuestionDelete = (token: string, quizId: number, questionId: number) => {
   return requestHelper('DELETE', `/v2/admin/quiz/${quizId}/question/${questionId}`, {}, { token });
+};
+
+const requestQuestionDuplicate = (token: string, quizId: number, questionId: number) => {
+  return requestHelper('POST', `/v2/admin/quiz/${quizId}/question/${questionId}/duplicate`, {}, { token });
+};
+
+const requestSessionStart = (quizId: number, token: string, autoStartNum: number) => {
+  return requestHelper('POST', `/v1/admin/quiz/${quizId}/session/start`, { autoStartNum }, { token });
 };
 
 const requestClear = () => {
@@ -589,6 +598,11 @@ describe('Testing DELETE /v1/admin/quiz/{quizid}/question/{questionid}', () => {
       const author2: {token: string} = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
       expect(requestQuestionDelete(author2.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
     });
+
+    test('Session not in END state', () => {
+      requestSessionStart(quiz.quizId, author.token, 3);
+      expect(requestQuestionDelete(author.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(400));
+    });
   });
 
   describe('Testing: Success cases', () => {
@@ -964,6 +978,224 @@ describe('adminQuestionMove', () => {
     test('Successfully moves a question', () => {
       const newPosition = 1;
       expect(requestQuestionMove(author.token, quiz.quizId, question1.questionId, newPosition)).toStrictEqual({});
+    });
+  });
+});
+
+/**                            Duplicate Question                             */
+describe('Testing POST /v2/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
+  let author: {token: string}, quiz: {quizId: number}, question1: {questionId: number}, question2: {questionId: number};
+  beforeEach(() => {
+    author = requestRegisterAuth('aaa@bbb.com', 'abcde12345', 'Michael', 'Hourn');
+    quiz = requestQuizCreate(author.token, 'Quiz 1', 'Quiz 1 Des');
+
+    const questionBody1: QuestionBody = {
+      question: 'Question 1',
+      duration: 5,
+      points: 5,
+      answers: [
+        { answer: 'Answer 1', correct: true },
+        { answer: 'Answer 2', correct: false }
+      ],
+      thumbnailUrl: 'http://google.com/some/image/path.jpg'
+    };
+
+    const questionBody2: QuestionBody = {
+      question: 'Question 2',
+      duration: 8,
+      points: 8,
+      answers: [
+        { answer: 'Answer 3', correct: false },
+        { answer: 'Answer 2', correct: true }
+      ],
+      thumbnailUrl: 'http://google.com/some/image/path.jpeg'
+    };
+
+    question1 = requestQuestionCreate(author.token, quiz.quizId, questionBody1);
+    question2 = requestQuestionCreate(author.token, quiz.quizId, questionBody2);
+  });
+
+  describe('TESTING: Error cases', () => {
+    test('Invalid Token', () => {
+      expect(requestQuestionDuplicate(author.token + 1, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    test('Invalid SessionID', () => {
+      requestAuthLogout(author.token);
+      expect(requestQuestionDuplicate(author.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(401));
+    });
+
+    test('User does not own quiz', () => {
+      const author2 = requestRegisterAuth('ccc@ddd.com', '12345abcde', 'John', 'Doe');
+      expect(requestQuestionDuplicate(author2.token, quiz.quizId, question1.questionId)).toStrictEqual(makeCustomErrorForTest(403));
+    });
+
+    test('Invalid QuestionID', () => {
+      expect(requestQuestionDuplicate(author.token, quiz.quizId, question1.questionId + question2.questionId));
+    });
+  });
+
+  describe('TESTING: Success cases', () => {
+    test('Correct return type', () => {
+      expect(requestQuestionDuplicate(author.token, quiz.quizId, question1.questionId)).toStrictEqual({ newQuestionId: expect.any(Number) });
+    });
+
+    test('Duplicates 1st question', () => {
+      requestQuestionDuplicate(author.token, quiz.quizId, question1.questionId);
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz 1',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: 'Quiz 1 Des',
+        numQuestions: 3,
+        questions: [
+          {
+            questionId: question1.questionId,
+            question: 'Question 1',
+            duration: 5,
+            thumbnailUrl: 'http://google.com/some/image/path.jpg',
+            points: 5,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          },
+          {
+            questionId: question2.questionId,
+            question: 'Question 2',
+            duration: 8,
+            thumbnailUrl: 'http://google.com/some/image/path.jpeg',
+            points: 8,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 3',
+                colour: expect.any(String),
+                correct: false
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: true
+              }
+            ]
+          },
+          {
+            questionId: expect.any(Number),
+            question: 'Question 1',
+            duration: 5,
+            thumbnailUrl: 'http://google.com/some/image/path.jpg',
+            points: 5,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          }
+        ],
+        duration: 18,
+        thumbnailUrl: expect.any(String)
+      });
+    });
+
+    test('Duplicates 2nd question', () => {
+      requestQuestionDuplicate(author.token, quiz.quizId, question2.questionId);
+      expect(requestQuizInfo(author.token, quiz.quizId)).toStrictEqual({
+        quizId: quiz.quizId,
+        name: 'Quiz 1',
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: 'Quiz 1 Des',
+        numQuestions: 3,
+        questions: [
+          {
+            questionId: question1.questionId,
+            question: 'Question 1',
+            duration: 5,
+            thumbnailUrl: 'http://google.com/some/image/path.jpg',
+            points: 5,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 1',
+                colour: expect.any(String),
+                correct: true
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: false
+              }
+            ]
+          },
+          {
+            questionId: question2.questionId,
+            question: 'Question 2',
+            duration: 8,
+            thumbnailUrl: 'http://google.com/some/image/path.jpeg',
+            points: 8,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 3',
+                colour: expect.any(String),
+                correct: false
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: true
+              }
+            ]
+          },
+          {
+            questionId: expect.any(Number),
+            question: 'Question 2',
+            duration: 8,
+            thumbnailUrl: 'http://google.com/some/image/path.jpeg',
+            points: 8,
+            answers: [
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 3',
+                colour: expect.any(String),
+                correct: false
+              },
+              {
+                answerId: expect.any(Number),
+                answer: 'Answer 2',
+                colour: expect.any(String),
+                correct: true
+              }
+            ]
+          }
+        ],
+        duration: 21,
+        thumbnailUrl: expect.any(String)
+      });
     });
   });
 });
