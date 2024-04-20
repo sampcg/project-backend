@@ -362,7 +362,7 @@ describe('Testing PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       expect(requestSessionUpdate(quiz.quizId, session.sessionId, author.token, '')).toStrictEqual({});
     });
     */
-   
+
     test('QuestionOpen -> End', () => {
       requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'NEXT_QUESTION');
       requestSessionUpdate(quiz.quizId, session.sessionId, author.token, 'SKIP_COUNTDOWN');
