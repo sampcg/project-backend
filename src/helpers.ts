@@ -202,8 +202,8 @@ export const clear = () => {
   return createRequest('DELETE', '/v1/clear', {});
 };
 
-export const timer = (length: number) => {
+export const timer = (length: number, callback: () => void) => {
   setTimeout(() => {
-    console.log('Timer is done!');
+    callback();
   }, length);
 };

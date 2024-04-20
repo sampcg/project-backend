@@ -14,11 +14,11 @@
   ],
   "quizzes": [
     {
-      "quizId": 2141522138355761,
+      "quizId": 6997864081850499,
       "userId": 0,
       "name": "Quiz 1",
-      "timeCreated": 1713435228,
-      "timeLastEdited": 1713435228,
+      "timeCreated": 1713522454,
+      "timeLastEdited": 1713522454,
       "description": "Quiz 1 Des",
       "numQuestions": 0,
       "questions": [
@@ -32,13 +32,13 @@
               "answerId": 1,
               "answer": "Answer 1",
               "correct": true,
-              "colour": "orange"
+              "colour": "purple"
             },
             {
               "answerId": 2,
               "answer": "Answer 2",
               "correct": false,
-              "colour": "orange"
+              "colour": "red"
             }
           ],
           "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -53,18 +53,18 @@
   "token": [
     {
       "userId": 0,
-      "sessionId": "9EK6s5aP"
+      "sessionId": "mWfmKdsy"
     }
   ],
   "session": [
     {
-      "quizSessionId": 2019829755304107,
+      "quizSessionId": 5722342959770367,
       "quiz": {
-        "quizId": 2141522138355761,
+        "quizId": 6997864081850499,
         "userId": 0,
         "name": "Quiz 1",
-        "timeCreated": 1713435228,
-        "timeLastEdited": 1713435228,
+        "timeCreated": 1713522454,
+        "timeLastEdited": 1713522454,
         "description": "Quiz 1 Des",
         "numQuestions": 0,
         "questions": [
@@ -78,13 +78,13 @@
                 "answerId": 1,
                 "answer": "Answer 1",
                 "correct": true,
-                "colour": "orange"
+                "colour": "purple"
               },
               {
                 "answerId": 2,
                 "answer": "Answer 2",
                 "correct": false,
-                "colour": "orange"
+                "colour": "red"
               }
             ],
             "thumbnailUrl": "http://google.com/some/image/path.jpg",
@@ -95,7 +95,10 @@
         "thumbnailUrl": ""
       },
       "state": "ANSWER_CLOSE",
-      "autoStartNum": 35
+      "autoStartNum": 35,
+      "players": [],
+      "playerAnswers": [],
+      "atQuestion": 0
     }
   ]
 }
