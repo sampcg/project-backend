@@ -1,4 +1,4 @@
-
+import { createClient } from '@vercel/kv';
 import express, { json, NextFunction, Request, Response } from 'express';
 // import { getData, setData } from './dataStore';
 import { echo } from './newecho';
@@ -63,6 +63,15 @@ import {
 
 import { adminTrashList, adminTrashRestore } from './trash';
 
+const KV_REST_API_URL = "https://promoted-fly-46101.upstash.io";
+const KV_REST_API_TOKEN ="AbQVASQgMmFmZmZhZDgtZGQxYi00YmUyLWIzZjgtZTJhNTlmMzE3ODAyNzUwZGNkMTdjZjc3NDkzMWJmYTQyMjRhMzVkZGFjZjA=";
+
+const database = createClient({
+  url: KV_REST_API_URL,
+  token: KV_REST_API_TOKEN,
+});
+
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -93,6 +102,22 @@ const HOST: string = process.env.IP || '127.0.0.1';
 // const save = () => {
 //   fs.writeFileSync('./database.json', JSON.stringify(getData()));
 // };
+
+
+/**                              DEPLOYED ROUTES                              */
+app.get('/data', async (req: Request, res: Response) => {
+  const data = await database.hgetall("data:names");
+  res.status(200).json(data);
+});
+
+app.put('/data', async (req: Request, res: Response) => {
+  const { data } = req.body;
+  await database.hset("data:names", { data });
+  return res.status(200).json({});
+});
+
+
+
 
 /**                               Auth Register                               */
 // First Function By Abrar
